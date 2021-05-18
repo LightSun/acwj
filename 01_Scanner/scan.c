@@ -104,7 +104,8 @@ int scan(struct token *t) {
     }
 
     printf("Unrecognised character %c on line %d\n", c, Line);
-    exit(1);
+    //exit(1);
+    return 0;
   }
 
   // We found a token

@@ -1,0 +1,11 @@
+c/c++环境搭建： https://www.zhihu.com/question/30315894
+
+添加第三方库:
+# -I (大写i) 增加 include 目录
+#-l (小写L) 增加静态库目录
+#-ld (小写L) 增加动态库目录 
+
+include: 
+    c_cpp_properties.json -> includePath
+lib:    
+    settings.json -> code-runner.executorMap -> c/cpp

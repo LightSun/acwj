@@ -1,0 +1,53 @@
+{
+    "version": "2.0.0",
+    //multi: ${workspaceFolder}\\*.cpp
+    //single: ${file}
+    "tasks": [
+        {
+            "label": "Compile",
+            "command": "gcc",
+            "args": [
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}.exe",
+                "-g",
+                "-m64",
+                "-Wall",
+                "-static-libgcc",
+                "-fexec-charset=GBK",
+                "-D__USE_MINGW_ANSI_STDIO"
+            ],
+            "type": "process",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: gcc.exe 生成活动文件all",
+            "command": "D:\\msys2\\mingw64\\bin\\gcc.exe",
+            "args": [
+                "-g",
+                "${workspaceFolder}\\*.c",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "编译多个c文件。"
+        }
+    ]
+}

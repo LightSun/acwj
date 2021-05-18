@@ -20,7 +20,7 @@ static void init() {
 // Print out a usage if started incorrectly
 static void usage(char *prog) {
   fprintf(stderr, "Usage: %s infile\n", prog);
-  exit(1);
+ // exit(1);
 }
 
 // List of printable tokens
@@ -42,17 +42,23 @@ static void scanfile() {
 // Main program: check arguments and print a usage
 // if we don't have an argument. Open up the input
 // file and call scanfile() to scan the tokens in it.
-void main(int argc, char *argv[]) {
-  if (argc != 2)
+int main(int argc, char *argv[]) {
+  char * inFile;
+  if (argc != 2){
     usage(argv[0]);
+    return 1;
+  }
+  inFile = argv[1];
 
   init();
 
-  if ((Infile = fopen(argv[1], "r")) == NULL) {
-    fprintf(stderr, "Unable to open %s: %s\n", argv[1], strerror(errno));
+  if ((Infile = fopen(inFile, "r")) == NULL) {
+    fprintf(stderr, "Unable to open %s: %s\n", inFile, strerror(errno));
     exit(1);
+    return 1;
   }
 
   scanfile();
-  exit(0);
+  //exit(0);
+  return 0;
 }
