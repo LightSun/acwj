@@ -1,0 +1,10 @@
+// Place your key bindings in this file to override the defaults
+//code autocomplete config: setting->command palette-> preference keyboard -> xxx.json
+//plugin: c/c++, code runner
+[
+{ 	
+    "command": "acceptSelectedSuggestion",
+    "key": "enter",
+    "when": "editorTextFocus && suggestWidgetVisible" 
+}
+]

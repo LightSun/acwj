@@ -28,5 +28,11 @@
     },
     "[c]": {
         "editor.quickSuggestions": true
+    },
+    "files.associations": {
+        "expre.h": "c",
+        "ast.h": "c",
+        "scanner.h": "c",
+        "content_delegate.h": "c"
     }
 }

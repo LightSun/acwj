@@ -80,11 +80,7 @@
             "command": "D:\\msys2\\mingw64\\bin\\gcc.exe",
             "args": [
                 "-g",
-                "${workspaceFolder}\\content_file.c",
-                "${workspaceFolder}\\content_text.c",
-                "${workspaceFolder}\\content_delegate.c",
-                "${workspaceFolder}\\scanner.c",
-                "${workspaceFolder}\\main_h7.c",
+                "${workspaceFolder}/study/*.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}.exe"
             ],
@@ -98,7 +94,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "自己编写的scanner。"
+            "detail": "my study。"
         },
     ]
 }
