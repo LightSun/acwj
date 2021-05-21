@@ -25,6 +25,7 @@ int writer_text_writeChars(WriterContext *context,const char *content){
         free(oldBuffer);
     }
     context->bufPos += expectLen;
+    printf("buffer content: %s", context->buffer);
     return 1;
 }
 

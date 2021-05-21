@@ -96,5 +96,27 @@
             },
             "detail": "my study。"
         },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: gcc.exe asm-x64",
+            "command": "D:\\msys2\\mingw64\\bin\\gcc.exe",
+            "args": [
+                //"-g",
+                "-o",
+                "${fileBasenameNoExtension}",
+                "${workspaceFolder}/study/out.s"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "编译汇编代码"
+        },
     ]
 }

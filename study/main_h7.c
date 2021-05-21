@@ -1,13 +1,14 @@
-#include "scanner.h"
 #include "expre.h"
 #include "gen.h"
+#include "scanner.h"
 #include "writer.h"
 
 // List of printable tokens
-char *tokstr[] = { "+", "-", "*", "/", "intlit" };
+char *tokstr[] = {"+", "-", "*", "/", "intlit"};
 
 //only scan
-static void scanContent(ContentDelegate* cd) {
+static void scanContent(ContentDelegate *cd)
+{
     scanner_init();
     struct Token T;
 
@@ -23,30 +24,58 @@ static void scanContent(ContentDelegate* cd) {
 }
 
 //parse and evaluate(no order)
-static void parseContent(ContentDelegate* cd, Writer *w){
+static void parseContent(ContentDelegate *cd, Writer *w)
+{
     scanner_init();
     cd->start(cd->param);
-    struct ASTnode* ast = expre_parseAST(cd);
+    struct ASTnode *ast = expre_parseAST(cd);
     cd->end(cd->param);
     int result = expre_evaluateAST(ast);
-    printf("parseContent: >> evaluate result = %d", result);
+    printf("parseContent: >> evaluate result = %d\n", result);
     gen_genCode(ast, w);
 }
 
-int main(int argc, char** args){
+static char *getFilePath(const char *dir, const char *rPath)
+{
+    char *filepath = (char *)malloc(strlen(dir) + strlen(rPath) + 1);
+    strcpy(filepath, dir);
+    strcpy(filepath + strlen(dir), rPath);
+    return filepath;
+}
+
+static char *getCurrentFilePath(const char *rPath)
+{
+    char buf[80];
+    getcwd(buf, sizeof(buf));
+    printf("work dir: %s, len =%d \n", buf, sizeof(buf));
+    return getFilePath(buf, rPath);
+}
+
+int main(int argc, char **args)
+{
     ContentDelegate *cd;
     Writer *w;
-    if(argc == 1){
+    if (argc == 1)
+    {
         const char *buffer = "2 + 3 * 5 - 8 / 3";
-        w = writer_new(WRITER_TYPE_TEXT, NULL);
-        cd = content_newDelegate(CONTENT_TYPE_TEXT, (void*)buffer);
-    }else{
-        if(argc == 2){
+        cd = content_newDelegate(CONTENT_TYPE_TEXT, (void *)buffer);
+        char* outFile = getCurrentFilePath("/study/out.s");
+        w = writer_new(WRITER_TYPE_FILE, outFile);
+        free(outFile);
+    }
+    else
+    {
+        if (argc == 2)
+        {
             cd = content_newDelegate(CONTENT_TYPE_FILE, args[1]);
-            w = writer_new(WRITER_TYPE_FILE, "out.s");
-        }else{
+            char* outFile = getCurrentFilePath("/study/out.s");
+            w = writer_new(WRITER_TYPE_FILE, outFile);
+            free(outFile);
+        }
+        else
+        {
             cd = content_newDelegate(CONTENT_TYPE_FILE, args[1]);
-            w = writer_new(WRITER_TYPE_FILE, args[2]);    
+            w = writer_new(WRITER_TYPE_FILE, args[2]);
         }
     }
     //scanContent(cd);

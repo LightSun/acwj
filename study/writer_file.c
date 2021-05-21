@@ -3,7 +3,10 @@
 
 int writer_file_start(WriterContext *context, int initSize){
     const char* file = (char*)context->param;
-    context->file = fopen(file, "rb");
+    context->file = fopen(file, "wb+");
+    if(context->file == NULL){
+        printf("file path: %s\n", file);
+    }
     return context->file != NULL;
 }
 

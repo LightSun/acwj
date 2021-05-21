@@ -12,8 +12,8 @@ Writer *writer_new(int type, void* param){
         writer->end = writer_file_end;
         writer->writeChars = writer_file_writeChars;
 
-        char *p = (char *)param;
-        char* dstParam = (char*)malloc(strlen(p) + 1);
+        const char *p = (char *)param;
+        dstParam = (char*)malloc(strlen(p) + 1);
         strcpy(dstParam, p);
         dstParam[strlen(p)] = '\0';
         break;
