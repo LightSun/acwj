@@ -33,6 +33,11 @@
         "expre.h": "c",
         "ast.h": "c",
         "scanner.h": "c",
-        "content_delegate.h": "c"
+        "content_delegate.h": "c",
+        "token.h": "c",
+        "writer_file.h": "c",
+        "common_headers.h": "c",
+        "writer_text.h": "c",
+        "writer.h": "c"
     }
 }
