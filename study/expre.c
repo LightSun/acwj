@@ -78,6 +78,7 @@ static int arithop(int tok) {
 }
 
 // Return an AST tree whose root is a binary operator
+// only parse not deal with operation order
 static struct ASTnode *binexpr0(struct _ContentDelegate* cd, struct Token* token){
   struct ASTnode *n, *left, *right;
   int nodetype;
@@ -104,13 +105,87 @@ static struct ASTnode *binexpr0(struct _ContentDelegate* cd, struct Token* token
   return (n);
 }
 
-struct ASTnode *expre_parseAST(struct _ContentDelegate* cd){
+// Return an AST tree whose root is a '*' or '/' binary operator
+struct ASTnode *multiplicative_expr(struct _ContentDelegate* cd, struct Token* token) {
+  struct ASTnode *left, *right;
+  int tokentype;
 
+  // Get the integer literal on the left.
+  // Fetch the next token at the same time.
+  left = primary(cd, token);
+
+  // If no tokens left, return just the left node
+  tokentype = token->token;
+  if (tokentype == T_EOF)
+    return (left);
+
+  // While the token is a '*' or '/'
+  while ((tokentype == T_STAR) || (tokentype == T_SLASH)) {
+    // Fetch in the next integer literal
+    //scan(&Token);
+    scanner_scan(cd, token);
+
+    right = primary(cd, token);
+
+    // Join that with the left integer literal
+    left = mkastnode(arithop(tokentype), left, right, 0);
+
+    // Update the details of the current token.
+    // If no tokens left, return just the left node
+    tokentype = token->token;
+    if (tokentype == T_EOF)
+      break;
+  }
+
+  // Return whatever tree we have created
+  return (left);
+}
+
+// Return an AST tree whose root is a '+' or '-' binary operator
+struct ASTnode *additive_expr(struct _ContentDelegate* cd, struct Token* token) {
+  struct ASTnode *left, *right;
+  int tokentype;
+
+  // Get the left sub-tree at a higher precedence than us
+  left = multiplicative_expr(cd, token);
+
+  // If no tokens left, return just the left node
+  tokentype = token->token;
+  if (tokentype == T_EOF)
+    return (left);
+
+  // Cache the '+' or '-' token type
+
+  // Loop working on token at our level of precedence
+  while (1) {
+    // Fetch in the next integer literal
+    //scan(&Token);
+    scanner_scan(cd, token);
+
+    // Get the right sub-tree at a higher precedence than us
+    right = multiplicative_expr(cd, token);
+
+    // Join the two sub-trees with our low-precedence operator
+    left = mkastnode(arithop(tokentype), left, right, 0);
+
+    // And get the next token at our precedence
+    tokentype = token->token;
+    if (tokentype == T_EOF)
+      break;
+  }
+
+  // Return whatever tree we have created
+  return (left);
+}
+
+struct ASTnode *expre_parseAST(struct _ContentDelegate* cd){
 
     struct Token token;
     //scan first token
     scanner_scan(cd, &token);
-    struct ASTnode * ast = binexpr0(cd, &token);
+    //only parse symbol, never deal with operation order
+    //struct ASTnode * ast = binexpr0(cd, &token);
+    struct ASTnode * ast = additive_expr(cd, &token);
     return ast;
 }
 
