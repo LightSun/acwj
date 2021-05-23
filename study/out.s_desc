@@ -1,3 +1,6 @@
+//汇编的不同： windows/linux. 32/64, 系统调用号. cpu
+//这个是linux x86_64汇编
+
 	.text   # Preamble code
 .LC0:
 	.string	"%d\n"   # "%d\n" for printf()
@@ -6,20 +9,23 @@ printint:
 	movq	%rsp, %rbp    # Set the frame pointer
 	subq	$16, %rsp
 	movl	%edi, -4(%rbp)
-	movl	-4(%rbp), %eax   # Get the printint() argument
+	movl	-4(%rbp), %eax   # Get the printint() argument 
+	                         #将rbp的指针-4后赋值给eax
 	movl	%eax, %esi
-	leaq	.LC0(%rip), %rdi   # Get the pointer to "%d\n"
+	leaq	.LC0(%rip), %rdi   # Get the pointer to "%d\n"  变址寻址
 	movl	$0, %eax
 	call	printf@PLT      # Call printf()
 	nop
-	leave                   # and return
+	leave                   # and return. 恢复栈空间
 	ret
 
 	.globl	main
 	.type	main, @function
 main:
-	pushq	%rbp		 # Set the frame pointer
-	movq	%rsp, %rbp	 # End of preamble code
+	pushq	%rbp		 # Set the frame pointer. b:byte, s: short(16位整数或者32位浮点), w: 16位, l: long (32位整数或者64位浮点), q表示64位. t表示10个字节(80位浮点)
+						#  保存调用函数的基址到栈中，	
+	movq	%rsp, %rbp	 # End of preamble code  
+						# 设置rbp为当前被调用函数的基址指针，即当前栈顶
 	movq	$2, %r8		 # %r8 = 2
 	movq	$3, %r9		 # %r9 = 3
 	movq	$5, %r10	 # %r10 = 5	
@@ -36,5 +42,5 @@ main:
 	movq	%r10, %rdi	# Copy 15 into %rdi in preparation
 	call	printint	# to call printint()
 	movl	$0, %eax	# Postamble: call exit(0)
-	popq	%rbp
-	ret
+	popq	%rbp        # 恢复rbp为调用函数基址
+	ret					# ret 与call指令对应.

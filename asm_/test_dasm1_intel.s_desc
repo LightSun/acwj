@@ -1,0 +1,92 @@
+	.file	"test_dasm1.c"
+	.intel_syntax noprefix
+	.text
+	.def	printf;	.scl	3;	.type	32;	.endef
+	.seh_proc	printf
+printf:
+	push	rbp
+	.seh_pushreg	rbp
+	push	rbx
+	.seh_pushreg	rbx
+	sub	rsp, 56
+	.seh_stackalloc	56
+	lea	rbp, 48[rsp]
+	.seh_setframe	rbp, 48
+	.seh_endprologue
+	mov	QWORD PTR 32[rbp], rcx
+	mov	QWORD PTR 40[rbp], rdx
+	mov	QWORD PTR 48[rbp], r8
+	mov	QWORD PTR 56[rbp], r9
+	lea	rax, 40[rbp]
+	mov	QWORD PTR -16[rbp], rax
+	mov	rbx, QWORD PTR -16[rbp]
+	mov	ecx, 1
+	mov	rax, QWORD PTR __imp___acrt_iob_func[rip]
+	call	rax
+	mov	r8, rbx
+	mov	rdx, QWORD PTR 32[rbp]
+	mov	rcx, rax
+	call	__mingw_vfprintf
+	mov	DWORD PTR -4[rbp], eax
+	mov	eax, DWORD PTR -4[rbp]
+	add	rsp, 56
+	pop	rbx
+	pop	rbp
+	ret
+	.seh_endproc
+	.def	__main;	.scl	2;	.type	32;	.endef
+	.section .rdata,"dr"
+.LC0:
+	.ascii "result: \0"
+.LC1:
+	.ascii "%s %d\12\0"
+	.text
+	.globl	main
+	.def	main;	.scl	2;	.type	32;	.endef
+	.seh_proc	main
+main:
+	push	rbp
+	.seh_pushreg	rbp # 异常处理相关. -fno-asynchronous-unwind-tables可消除对应的汇编代码  https://stackoverflow.com/questions/20819927/what-are-seh-assembly-commands-that-gcc-outputs
+	mov	rbp, rsp
+	.seh_setframe	rbp, 0
+	sub	rsp, 64               #　预留64字节给函数临时变量
+	.seh_stackalloc	64
+	.seh_endprologue
+	mov	DWORD PTR 16[rbp], ecx
+	mov	QWORD PTR 24[rbp], rdx
+	call	__main             # gcc根据main函数自动生成__main. 相当于做了一层包装.
+	mov	DWORD PTR -4[rbp], 2   # a, intel: -4[rbp] rbp指针减去4个字节得到另外一个指针地址. 如果是linux 则： movl 2，-4(%rbp)
+	mov	DWORD PTR -8[rbp], 3	# b
+	mov	DWORD PTR -12[rbp], 5   # c
+	mov	DWORD PTR -16[rbp], 8   # d
+	mov	DWORD PTR -20[rbp], 3   # e
+	mov	eax, DWORD PTR -8[rbp]       
+	imul	eax, DWORD PTR -12[rbp] # 3 * 5  结果存放在eax
+	mov	DWORD PTR -8[rbp], eax
+	mov	eax, DWORD PTR -8[rbp]
+	add	eax, 2                      # 2 + 15(=3*5)  结果存放在eax
+	mov	DWORD PTR -4[rbp], eax
+	mov	eax, DWORD PTR -16[rbp]
+	cdq
+				                     # CDQ，为Convert Double to Quad的缩写，意为将双字数据扩展为四字。
+									该指令先把edx的每一位置成eax的最高位（若eax>=0x80000000, 则edx=0xFFFFFFFF；若eax<0x80000000，则edx=0x00000000） ，再把edx扩展为eax的高位。
+									该指令常用于扩展被除数，很久前，指令集规定除数必须是被除数的一半长，这个规定一直被沿用。
+									使用IDIV执行除法时，如果除数是32位，这就要求被除数是64位，即EDX:EAX，所以扩展一下EAX以满足除法指令的条件并且得到正确的结果。
+									#
+	idiv	DWORD PTR -20[rbp]    # 8 / 3 结果存放在eax
+	mov	DWORD PTR -8[rbp], eax
+	mov	eax, DWORD PTR -8[rbp]
+	sub	DWORD PTR -4[rbp], eax
+	mov	eax, DWORD PTR -4[rbp]
+	mov	r8d, eax
+	lea	rdx, .LC0[rip]   # 使用RIP，是因为RIP是保存了当前的程序的指针，加上偏移，就可以索引到静态变量的空间
+	lea	rcx, .LC1[rip]   # 取LC0的偏移地址  送到 rcx.  'LEA 目的，源'
+	call	printf
+	mov	eax, 0         # eax复位
+	leave              # 将栈指针指向帧指针,pop备份的指针到rbp = pop rbp 
+	ret                # return 
+	.seh_endproc
+	.ident	"GCC: (Rev2, Built by MSYS2 project) 10.3.0"
+	.def	__mingw_vfprintf;	.scl	2;	.type	32;	.endef
+
+# 

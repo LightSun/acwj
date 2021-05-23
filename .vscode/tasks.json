@@ -77,7 +77,8 @@
         {
             "type": "cppbuild",
             "label": "C/C++: gcc.exe self scanner",
-            "command": "D:\\msys2\\mingw64\\bin\\gcc.exe",
+           // "command": "D:\\msys2\\mingw64\\bin\\gcc.exe",
+           "command": "E:\\study\\cpp\\msys2_64\\mingw64\\bin\\gcc.exe",
             "args": [
                 "-g",
                 "${workspaceFolder}/study/*.c",
@@ -99,9 +100,10 @@
         {
             "type": "cppbuild",
             "label": "C/C++: gcc.exe asm-x64",
-            "command": "D:\\msys2\\mingw64\\bin\\gcc.exe",
+           // "command": "D:\\msys2\\mingw64\\bin\\gcc.exe",
+           "command": "E:\\study\\cpp\\msys2_64\\mingw64\\bin\\gcc.exe",
             "args": [
-                //"-g",
+                //"-g",       
                 "-o",
                 "${fileBasenameNoExtension}",
                 "${workspaceFolder}/study/out.s"
@@ -117,6 +119,56 @@
                 "isDefault": true
             },
             "detail": "编译汇编代码"
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: gcc.exe dasm-intel-x64",
+           "command": "E:\\study\\cpp\\msys2_64\\mingw64\\bin\\gcc.exe",
+           //gcc -S -masm=intel sum.c -o sum_intel.s
+            "args": [    
+                "-S",
+                "-masm=intel",
+                "-fno-asynchronous-unwind-tables",
+                "${workspaceFolder}/asm_/${fileBasenameNoExtension}.c",
+                "-o",
+                "${workspaceFolder}/asm_/${fileBasenameNoExtension}_intel.s"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "反汇编win_1"
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: gcc.exe dasm-linux-x64",
+           "command": "E:\\study\\cpp\\msys2_64\\mingw64\\bin\\gcc.exe",
+           //gcc -S -masm=intel sum.c -o sum_intel.s
+            "args": [    
+                "-S",
+                //"-masm=intel",
+                //"-std=c99",
+                "${workspaceFolder}/asm_/${fileBasenameNoExtension}.c",
+                "-o",
+                "${workspaceFolder}/asm_/${fileBasenameNoExtension}_linux.s"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "反汇编linux_1"
         },
     ]
 }
