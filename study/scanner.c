@@ -108,12 +108,18 @@ static int keyword(char *s) {
       if (!strcmp(s, "print"))
         return (T_PRINT);
       break;
+
+    case 'i':
+      if (!strcmp(s, "int"))
+         return (T_INT);
+      break;
   }
   return (0);
 }
 
 // Scan and return the next token found in the input.
 // Return 1 if token valid, 0 if no tokens left.
+// scan keyword string to 'ud->context->textBuf'
 int scanner_scan(Content* ud,struct Token *t) {
     
   int c, tokentype;
@@ -145,7 +151,13 @@ int scanner_scan(Content* ud,struct Token *t) {
     t->token = T_SLASH;
     break;
 
+  case '=':
+    printf("scanner_scan >> = \n");
+    t->token = T_EQUALS;
+    break;
+
   case ';':
+    printf("scanner_scan >> ; \n");
     t->token = T_SEMI;
     break;
   default:
@@ -165,14 +177,14 @@ int scanner_scan(Content* ud,struct Token *t) {
         t->token = tokentype;
         break;
       }
-      // Not a recognised keyword, so an error for now
-      printf("Unrecognised symbol %s on line %d\n", ud->context.textBuf, ud->context.line);
-      exit(1);
+      //Not a recognised keyword, so it must be an identifier
+      t->token = T_IDENT;
+      break;
     }
 
     printf("Unrecognised character %c on line %d\n", c, ud->context.line);
-    //exit(1);
-    return 0;
+    exit(1);
+    //return 0;
   }
 
   // We found a token

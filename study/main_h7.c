@@ -4,42 +4,11 @@
 #include "writer.h"
 #include "statement.h"
 
-// List of printable tokens
-static char *tokstr[] = {"+", "-", "*", "/", "intlit"};
-
-//only scan
-static void scanContent(Content *cd)
-{
-    scanner_init(cd);
-    struct Token T;
-
-    cd->start(cd->context.param);
-    while (scanner_scan(cd, &T))
-    {
-        printf("Token %s", tokstr[T.token]);
-        if (T.token == T_INTLIT)
-            printf(", value %d", T.intvalue);
-        printf("\n");
-    }
-    cd->end(cd->context.param);
-}
-
-//parse and evaluate(no order)
-static void parseContent(Content *cd, Writer *w)
-{
-    scanner_init(cd);
-    cd->start(cd->context.param);  
-    struct ASTnode *ast = expre_parseAST(cd);
-    cd->end(cd->context.param);
-    int result = expre_evaluateAST(ast);
-    printf("parseContent: >> evaluate result = %d\n", result);
-    gen_genCode(ast, w);
-}
-
 static void parseStatement(Content *cd, Writer *w){
     struct Token token;
     scanner_init(cd);
     cd->start(&cd->context);
+    w->start(w->context, 0);
 
     scanner_scan(cd, &token);
     gen_preamble(w);
@@ -47,6 +16,7 @@ static void parseStatement(Content *cd, Writer *w){
     gen_postamble(w);
 
     cd->end(&cd->context);
+    w->end(w->context);
 }
 
 static char *getFilePath(const char *dir, const char *rPath)
@@ -74,7 +44,8 @@ int main(int argc, char **args)
         // const char *buffer = "2 + 3 * 5 - 8 / 3";
         // cd = content_new(CONTENT_TYPE_TEXT, (void *)buffer);
         // char* outFile = getCurrentFilePath("/study/out.s");
-        char* outFile = getCurrentFilePath("/study/input01.txt");
+       // char* outFile = getCurrentFilePath("/study/input01.txt");
+        char* outFile = getCurrentFilePath("/study/input02");
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 

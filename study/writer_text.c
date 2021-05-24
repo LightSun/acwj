@@ -4,6 +4,9 @@
 static int LOAD_FACTOR = 2;
 
 int writer_text_start(WriterContext *context,int initSize){
+    if(initSize <= 0){
+        initSize = 1024;
+    }
     if(context->buffer == NULL){
         context->buffer = (char*)malloc(initSize + 1);
     }

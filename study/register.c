@@ -163,3 +163,34 @@ void register_cgprintint(REGISTER_CONTEXT_PARAM, int r) {
 
   register_free(r);
 }
+
+//------------- from class 6 -------------------------
+int register_cgloadglob(REGISTER_CONTEXT_PARAM, const char* identifier){
+  // Get a new register
+  int r = register_alloc();
+
+  // Print out the code to initialise it
+  //fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", identifier, reglist[r]);
+
+  char buffer[32];
+  snprintf(buffer, 32, "\tmovq\t%s(\%%rip), %s\n", identifier, reglist[r]);
+  w->writeChars(w->context, buffer);
+  return (r);
+}
+
+// Store a register's value into a variable
+int register_cgstoreglob(REGISTER_CONTEXT_PARAM,int r, const char* identifier){
+ // fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], identifier);
+  char buffer[32];
+  snprintf(buffer, 32, "\tmovq\t%s, %s(\%%rip)\n", identifier, reglist[r]);
+  w->writeChars(w->context, buffer);
+  return (r);
+}
+
+// Generate a global symbol
+void register_cgglobsym(REGISTER_CONTEXT_PARAM, const char* sym){
+   //fprintf(Outfile, "\t.comm\t%s,8,8\n", sym);
+  char buffer[32];
+  snprintf(buffer, 32, "\t.comm\t%s,8,8\n", sym);
+  w->writeChars(w->context, buffer);
+}

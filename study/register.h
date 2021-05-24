@@ -18,6 +18,14 @@ int register_cgdiv(REGISTER_CONTEXT_PARAM, int r1, int r2);
 
 void register_cgprintint(REGISTER_CONTEXT_PARAM, int r);
 
+// Load a value from a variable into a register.
+// Return the number of the register
+int register_cgloadglob(REGISTER_CONTEXT_PARAM, const char* identifier);
+// Store a register's value into a variable
+int register_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, const char* identifier);
+// Generate a global symbol
+void register_cgglobsym(REGISTER_CONTEXT_PARAM, const char* sym);
+
 void register_free_all();
 
 CPP_END

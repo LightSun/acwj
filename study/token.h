@@ -19,7 +19,12 @@ enum
   T_SLASH,
   T_INTLIT,
   T_SEMI,
-  T_PRINT
+
+  T_EQUALS, // =
+  T_IDENT,  // identifier
+  // ============= keywords
+  T_PRINT,   // print
+  T_INT
 };
 
 // Token structure

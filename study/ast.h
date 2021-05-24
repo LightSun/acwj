@@ -8,7 +8,9 @@ CPP_START
 
 // AST node types
 enum {
-  A_ADD, A_SUBTRACT, A_MULTIPLY, A_DIVIDE, A_INTLIT
+  A_ADD, A_SUBTRACT, A_MULTIPLY, A_DIVIDE, A_INTLIT,
+  //identifier, ,assign
+  A_IDENT, A_LVIDENT, A_ASSIGN
 };
 
 // Abstract Syntax Tree structure
@@ -16,7 +18,10 @@ struct ASTnode {
   int op;				// "Operation" to be performed on this tree
   struct ASTnode *left;			// Left and right child trees
   struct ASTnode *right;
-  int intvalue;				// For A_INTLIT, the integer value
+  union {
+    int intvalue;               // For A_INTLIT, the integer value
+    int id;                     // For A_IDENT, the symbol slot number
+  } v;
 };
 
 CPP_END

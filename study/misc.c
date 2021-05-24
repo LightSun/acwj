@@ -17,3 +17,7 @@ void misc_match(Content* cd,struct Token* token,int t, char *what) {
 void misc_semi(Content* cd,struct Token* token) {
   misc_match(cd, token, T_SEMI, ";");
 }
+
+void misc_ident(Content* cd,struct Token* token) {
+   misc_match(cd, token, T_IDENT, "identifier"); 
+}

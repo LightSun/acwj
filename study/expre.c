@@ -3,12 +3,13 @@
 #include "content.h"
 #include "token.h"
 #include "scanner.h"
+#include "sym.h"
 
 // AST tree functions
 // Copyright (c) 2019 Warren Toomey, GPL3
 
 // Build and return a generic AST node
-static struct ASTnode *mkastnode(int op, struct ASTnode *left,
+struct ASTnode *expre_mkastnode(int op, struct ASTnode *left,
 			  struct ASTnode *right, int intvalue) {
   struct ASTnode *n;
 
@@ -22,19 +23,19 @@ static struct ASTnode *mkastnode(int op, struct ASTnode *left,
   n->op = op;
   n->left = left;
   n->right = right;
-  n->intvalue = intvalue;
+  n->v.intvalue = intvalue;
   return (n);
 }
 
 
 // Make an AST leaf node
-static struct ASTnode *mkastleaf(int op, int intvalue) {
-  return (mkastnode(op, NULL, NULL, intvalue));
+struct ASTnode *expre_mkastleaf(int op, int intvalue) {
+  return (expre_mkastnode(op, NULL, NULL, intvalue));
 }
 
 // Make a unary AST node: only one child
-static struct ASTnode *mkastunary(int op, struct ASTnode *left, int intvalue) {
-  return (mkastnode(op, left, NULL, intvalue));
+struct ASTnode *expre_mkastunary(int op, struct ASTnode *left, int intvalue) {
+  return (expre_mkastnode(op, left, NULL, intvalue));
 }
 
 // Parsing of expressions
@@ -44,19 +45,35 @@ static struct ASTnode *mkastunary(int op, struct ASTnode *left, int intvalue) {
 // AST node representing it.
 static struct ASTnode *primary(struct _Content* cd, struct Token* token) {
   struct ASTnode *n;
+  int id;
 
   // For an INTLIT token, make a leaf AST node for it
   // and scan in the next token. Otherwise, a syntax error
   // for any other token type.
   switch (token->token) {
     case T_INTLIT:
-      n = mkastleaf(A_INTLIT, token->intvalue);
-      scanner_scan(cd, token);
-      return (n);
+      // For an INTLIT token, make a leaf AST node for it.
+      n = expre_mkastleaf(A_INTLIT, token->intvalue);
+      break;
+
+    case T_IDENT:
+       // Check that this identifier exists
+      id = sym_findglob(cd->context.textBuf);
+      if (id == -1){
+        fprintf(stderr, "Unknown variable %s.", cd->context.textBuf);
+        exit(1);
+      }
+
+      // Make a leaf AST node for it
+      n = expre_mkastleaf(A_IDENT, id);
+      break;  
+
     default:
       fprintf(stderr, "syntax error on line %d\n", cd->context.line);
       exit(1);
   }
+  scanner_scan(cd, token);
+  return n;
 }
 
 
@@ -117,7 +134,7 @@ struct ASTnode* expre_binexpr(struct _Content* cd, struct Token* token, int ptp)
 
     // Join that sub-tree with ours. Convert the token
     // into an AST operation at the same time.
-    left = mkastnode(arithop(cd, tokentype), left, right, 0);
+    left = expre_mkastnode(arithop(cd, tokentype), left, right, 0);
 
      // Update the details of the current token.
     // If we hit a semicolon, return just the left node
@@ -163,7 +180,7 @@ int expre_evaluateAST(struct ASTnode *n) {
 
   // Debug: Print what we are about to do
   if (n->op == A_INTLIT)
-    printf("int %d\n", n->intvalue);
+    printf("int %d\n", n->v.intvalue);
   else
     printf("%d %s %d\n", leftval, ASTop[n->op], rightval);
 
@@ -177,7 +194,7 @@ int expre_evaluateAST(struct ASTnode *n) {
     case A_DIVIDE:
       return (leftval / rightval);
     case A_INTLIT:
-      return (n->intvalue);
+      return (n->v.intvalue);
     default:
       fprintf(stderr, "Unknown AST operator %d\n", n->op);
       exit(1);
