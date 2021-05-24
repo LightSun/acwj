@@ -4,15 +4,15 @@
 #include "writer.h"
 
 // List of printable tokens
-char *tokstr[] = {"+", "-", "*", "/", "intlit"};
+static char *tokstr[] = {"+", "-", "*", "/", "intlit"};
 
 //only scan
-static void scanContent(ContentDelegate *cd)
+static void scanContent(Content *cd)
 {
-    scanner_init();
+    scanner_init(cd);
     struct Token T;
 
-    cd->start(cd->param);
+    cd->start(cd->context.param);
     while (scanner_scan(cd, &T))
     {
         printf("Token %s", tokstr[T.token]);
@@ -20,16 +20,16 @@ static void scanContent(ContentDelegate *cd)
             printf(", value %d", T.intvalue);
         printf("\n");
     }
-    cd->end(cd->param);
+    cd->end(cd->context.param);
 }
 
 //parse and evaluate(no order)
-static void parseContent(ContentDelegate *cd, Writer *w)
+static void parseContent(Content *cd, Writer *w)
 {
-    scanner_init();
-    cd->start(cd->param);
+    scanner_init(cd);
+    cd->start(cd->context.param);
     struct ASTnode *ast = expre_parseAST(cd);
-    cd->end(cd->param);
+    cd->end(cd->context.param);
     int result = expre_evaluateAST(ast);
     printf("parseContent: >> evaluate result = %d\n", result);
     gen_genCode(ast, w);
@@ -53,12 +53,12 @@ static char *getCurrentFilePath(const char *rPath)
 
 int main(int argc, char **args)
 {
-    ContentDelegate *cd;
+    Content *cd;
     Writer *w;
     if (argc == 1)
     {
         const char *buffer = "2 + 3 * 5 - 8 / 3";
-        cd = content_newDelegate(CONTENT_TYPE_TEXT, (void *)buffer);
+        cd = content_new(CONTENT_TYPE_TEXT, (void *)buffer);
         char* outFile = getCurrentFilePath("/study/out.s");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
@@ -67,20 +67,20 @@ int main(int argc, char **args)
     {
         if (argc == 2)
         {
-            cd = content_newDelegate(CONTENT_TYPE_FILE, args[1]);
+            cd = content_new(CONTENT_TYPE_FILE, args[1]);
             char* outFile = getCurrentFilePath("/study/out.s");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }
         else
         {
-            cd = content_newDelegate(CONTENT_TYPE_FILE, args[1]);
+            cd = content_new(CONTENT_TYPE_FILE, args[1]);
             w = writer_new(WRITER_TYPE_FILE, args[2]);
         }
     }
     //scanContent(cd);
     parseContent(cd, w);
-    content_deleteDelegate(cd);
+    content_delete(cd);
     writer_delete(w);
     return 0;
 }

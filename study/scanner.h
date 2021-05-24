@@ -1,12 +1,10 @@
-#include "content_delegate.h"
+#include "content.h"
 #include "token.h"
 
 CPP_START
 
-int scanner_scan(ContentDelegate *ud, struct Token *t);
+int scanner_scan(Content *ud, struct Token *t);
 
-void scanner_init();
-
-int scanner_line_get();
+void scanner_init(Content *ud);
 
 CPP_END

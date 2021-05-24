@@ -1,4 +1,4 @@
-#include "content_delegate.h"
+#include "content.h"
 
 CPP_START
 

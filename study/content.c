@@ -1,8 +1,9 @@
 #include "content_text.h"
 #include "content_file.h"
 
-ContentDelegate* content_newDelegate(int type,void* param){
-    ContentDelegate *delegate = (ContentDelegate *)malloc(sizeof(ContentDelegate));
+Content* content_new(int type,void* param){
+    Content *delegate = (Content *)malloc(sizeof(Content));
+    memset(delegate, 0, sizeof(Content));
     switch (type)
     {
     case CONTENT_TYPE_FILE:
@@ -22,14 +23,15 @@ ContentDelegate* content_newDelegate(int type,void* param){
     char* dst = (char*)malloc(strlen(p) + 1);
     strcpy(dst, p);
     dst[strlen(p)] = '\0';
-    delegate->param = dst;
-    delegate->type = type;
+
+    delegate->context.param = dst;
+    delegate->context.type = type;
     return delegate;
 }
-void content_deleteDelegate(ContentDelegate* cd){
-    if(cd->type == CONTENT_TYPE_FILE || cd->type == CONTENT_TYPE_TEXT){
-        if(cd->param){
-            free(cd->param);
+void content_delete(Content* cd){
+    if(cd->context.type == CONTENT_TYPE_FILE || cd->context.type == CONTENT_TYPE_TEXT){
+        if(cd->context.param){
+            free(cd->context.param);
         }
     }
     free(cd);

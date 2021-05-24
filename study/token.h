@@ -9,9 +9,17 @@ CPP_START
 #include <ctype.h>
 
 // Tokens
-enum { 
-    // + - * / int
- T_EOF, T_PLUS, T_MINUS, T_STAR, T_SLASH, T_INTLIT
+enum
+{
+  // + - * / int ; print
+  T_EOF,
+  T_PLUS,
+  T_MINUS,
+  T_STAR,
+  T_SLASH,
+  T_INTLIT,
+  T_SEMI,
+  T_PRINT
 };
 
 // Token structure

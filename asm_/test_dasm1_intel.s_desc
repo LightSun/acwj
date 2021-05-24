@@ -4,9 +4,9 @@
 	.def	printf;	.scl	3;	.type	32;	.endef
 	.seh_proc	printf
 printf:
-	push	rbp
+	push	rbp             # 基址指针
 	.seh_pushreg	rbp
-	push	rbx
+	push	rbx    			 # 基址寄存器
 	.seh_pushreg	rbx
 	sub	rsp, 56
 	.seh_stackalloc	56
@@ -17,7 +17,7 @@ printf:
 	mov	QWORD PTR 40[rbp], rdx
 	mov	QWORD PTR 48[rbp], r8
 	mov	QWORD PTR 56[rbp], r9
-	lea	rax, 40[rbp]
+	lea	rax, 40[rbp]        # 取真正的地址
 	mov	QWORD PTR -16[rbp], rax
 	mov	rbx, QWORD PTR -16[rbp]
 	mov	ecx, 1
@@ -80,10 +80,12 @@ main:
 	mov	eax, DWORD PTR -4[rbp]
 	mov	r8d, eax
 	lea	rdx, .LC0[rip]   # 使用RIP，是因为RIP是保存了当前的程序的指针，加上偏移，就可以索引到静态变量的空间
+						 # rip 是指令指针，也称为 PC	
 	lea	rcx, .LC1[rip]   # 取LC0的偏移地址  送到 rcx.  'LEA 目的，源'
+						
 	call	printf
 	mov	eax, 0         # eax复位
-	leave              # 将栈指针指向帧指针,pop备份的指针到rbp = pop rbp 
+	leave              # 将stack指针指向frame指针,pop备份的指针到rbp = pop rbp 
 	ret                # return 
 	.seh_endproc
 	.ident	"GCC: (Rev2, Built by MSYS2 project) 10.3.0"

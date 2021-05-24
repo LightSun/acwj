@@ -1,7 +1,5 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
+#ifndef _COMMON_HEADER_H
+#define _COMMON_HEADER_H
 
 #ifdef cplusplus
 #define CPP_START extern "C" { 
@@ -15,3 +13,11 @@
 #define CPP_END
 #endif
 
+CPP_START
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+CPP_END
+
+#endif

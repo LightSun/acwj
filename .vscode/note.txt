@@ -1,4 +1,7 @@
-c/c++环境搭建： https://www.zhihu.com/question/30315894
+c/c++环境搭建： 
+    https://www.zhihu.com/question/30315894
+c/cpp/java/python 环境搭建： 
+    https://blog.csdn.net/qq_43779011/article/details/106092831
 
 添加第三方库:
 # -I (大写i) 增加 include 目录
