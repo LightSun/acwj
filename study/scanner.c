@@ -36,7 +36,7 @@ static int next(Content* cd) {
     return c;
   }
 
-  c = cd->nextChar(cd->context.param);		// Read from input file
+  c = cd->nextChar(&cd->context);		// Read from input file
   if ('\n' == c)
     cd->context.line++;			// Increment line count
   return c;
@@ -116,7 +116,7 @@ static int keyword(char *s) {
 // Return 1 if token valid, 0 if no tokens left.
 int scanner_scan(Content* ud,struct Token *t) {
     
-  int c;
+  int c, tokentype;
 
   // Skip whitespace
   c = skip(ud);
@@ -144,6 +144,10 @@ int scanner_scan(Content* ud,struct Token *t) {
     printf("scanner_scan >> / \n");
     t->token = T_SLASH;
     break;
+
+  case ';':
+    t->token = T_SEMI;
+    break;
   default:
 
     // If it's a digit, scan the
@@ -155,7 +159,15 @@ int scanner_scan(Content* ud,struct Token *t) {
       break;
     }else if(isalpha(c) || '_' == c){
       //read keyword
-      //TODO scanident(ud, c, )
+      scanident(ud, c, ud->context.textBuf, CONTENT_TEXT_BUF_LEN);
+      // If it's a recognised keyword, return that token
+      if (tokentype = keyword(ud->context.textBuf)) {
+        t->token = tokentype;
+        break;
+      }
+      // Not a recognised keyword, so an error for now
+      printf("Unrecognised symbol %s on line %d\n", ud->context.textBuf, ud->context.line);
+      exit(1);
     }
 
     printf("Unrecognised character %c on line %d\n", c, ud->context.line);

@@ -7,7 +7,7 @@
 
 CPP_START
 
-#define CONTENT_PARAM void* param
+#define CONTENT_PARAM ContentContext* ctx
 #define CONTENT_TYPE_FILE 1
 #define CONTENT_TYPE_TEXT 2
 

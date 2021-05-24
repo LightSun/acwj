@@ -2,6 +2,7 @@
 #include "gen.h"
 #include "scanner.h"
 #include "writer.h"
+#include "statement.h"
 
 // List of printable tokens
 static char *tokstr[] = {"+", "-", "*", "/", "intlit"};
@@ -27,12 +28,25 @@ static void scanContent(Content *cd)
 static void parseContent(Content *cd, Writer *w)
 {
     scanner_init(cd);
-    cd->start(cd->context.param);
+    cd->start(cd->context.param);  
     struct ASTnode *ast = expre_parseAST(cd);
     cd->end(cd->context.param);
     int result = expre_evaluateAST(ast);
     printf("parseContent: >> evaluate result = %d\n", result);
     gen_genCode(ast, w);
+}
+
+static void parseStatement(Content *cd, Writer *w){
+    struct Token token;
+    scanner_init(cd);
+    cd->start(&cd->context);
+
+    scanner_scan(cd, &token);
+    gen_preamble(w);
+    statement_parse(cd, w, &token);
+    gen_postamble(w);
+
+    cd->end(&cd->context);
 }
 
 static char *getFilePath(const char *dir, const char *rPath)
@@ -57,9 +71,14 @@ int main(int argc, char **args)
     Writer *w;
     if (argc == 1)
     {
-        const char *buffer = "2 + 3 * 5 - 8 / 3";
-        cd = content_new(CONTENT_TYPE_TEXT, (void *)buffer);
-        char* outFile = getCurrentFilePath("/study/out.s");
+        // const char *buffer = "2 + 3 * 5 - 8 / 3";
+        // cd = content_new(CONTENT_TYPE_TEXT, (void *)buffer);
+        // char* outFile = getCurrentFilePath("/study/out.s");
+        char* outFile = getCurrentFilePath("/study/input01.txt");
+        cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
+        free(outFile);
+
+        outFile = getCurrentFilePath("/study/out1.s");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -68,7 +87,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/out.s");
+            char* outFile = getCurrentFilePath("/study/out1.s");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }
@@ -79,7 +98,8 @@ int main(int argc, char **args)
         }
     }
     //scanContent(cd);
-    parseContent(cd, w);
+    //parseContent(cd, w);
+    parseStatement(cd, w);
     content_delete(cd);
     writer_delete(w);
     return 0;

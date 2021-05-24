@@ -8,7 +8,7 @@
 
 // Given an AST, generate
 // assembly code recursively
-static int gen_genAST(struct ASTnode *n, struct _Writer* w) {
+int gen_genAST(struct ASTnode *n, struct _Writer* w) {
   int leftreg, rightreg;
 
   // Get the left and right sub-tree values
@@ -33,6 +33,20 @@ static int gen_genAST(struct ASTnode *n, struct _Writer* w) {
       exit(1);
   }
 }
+
+void gen_preamble(struct _Writer *w){
+  register_cgpreamble(w);
+}
+void gen_postamble(struct _Writer *w){
+  register_cgpostamble(w);
+}
+void gen_freeregs(struct _Writer *w){
+  register_free_all();
+}
+void gen_printint(struct _Writer *w, int reg){
+  register_cgprintint(w, reg);
+}
+
 
 void gen_genCode(struct ASTnode *n, struct _Writer* w) {
     if(!w->start(w->context, 64)){

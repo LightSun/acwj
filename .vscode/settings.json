@@ -39,5 +39,6 @@
         "common_headers.h": "c",
         "writer_text.h": "c",
         "writer.h": "c",
+        "misc.h": "c"
     }
 }

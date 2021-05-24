@@ -18,6 +18,8 @@ int register_cgdiv(REGISTER_CONTEXT_PARAM, int r1, int r2);
 
 void register_cgprintint(REGISTER_CONTEXT_PARAM, int r);
 
+void register_free_all();
+
 CPP_END
 
 #endif
