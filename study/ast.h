@@ -9,8 +9,12 @@ CPP_START
 // AST node types
 enum {
   A_ADD, A_SUBTRACT, A_MULTIPLY, A_DIVIDE, A_INTLIT,
-  //identifier, ,assign
-  A_IDENT, A_LVIDENT, A_ASSIGN
+  //identifier
+  A_IDENT, 
+  //used to store value to register var
+  A_LVIDENT,
+  //assign
+   A_ASSIGN
 };
 
 // Abstract Syntax Tree structure
@@ -20,7 +24,7 @@ struct ASTnode {
   struct ASTnode *right;
   union {
     int intvalue;               // For A_INTLIT, the integer value
-    int id;                     // For A_IDENT, the symbol slot number
+    int id;                     // For A_IDENT, the symbol slot number()
   } v;
 };
 

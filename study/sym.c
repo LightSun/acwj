@@ -42,7 +42,7 @@ int sym_addglob(char *name) {
   // Otherwise get a new slot, fill it in and
   // return the slot number
   y = newglob();
-  syms[y].name = strdup(name);
+  syms[y].name = strdup(name); //copy string. need free
   return (y);
 }
 

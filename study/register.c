@@ -185,7 +185,7 @@ int register_cgstoreglob(REGISTER_CONTEXT_PARAM,int r, const char* identifier){
   snprintf(buffer, 32, "\tmovq\t%s, %s(\%%rip)\n", identifier, reglist[r]);
   w->writeChars(w->context, buffer);
   return (r);
-}
+} 
 
 // Generate a global symbol
 void register_cgglobsym(REGISTER_CONTEXT_PARAM, const char* sym){

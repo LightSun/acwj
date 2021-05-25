@@ -1,3 +1,5 @@
+#ifndef _MISC_H
+#define _MISC_H
 #include "token.h"
 #include "scanner.h"
 #include "content.h"
@@ -11,3 +13,4 @@ void misc_semi(Content *cd, struct Token *token);
 void misc_ident(Content *cd, struct Token *token);
 
 CPP_END
+#endif

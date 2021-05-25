@@ -20,6 +20,7 @@ printint:
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
+						# 在bss段申请一段命名空间,该段空间的名称叫symbol, 长度为length. Ld连接器在连接会为它留出空间. bss在运行时才会分配
 	.comm	fred,8,8  # Declare fred
 	.comm	jim,8,8   # Declare jim
 	movq	$5, %r8
@@ -34,3 +35,4 @@ main:
 	movl	$0, %eax
 	popq	%rbp
 	ret
+	# 栈指针 (%rsp) 和基址指针 (%rbp)

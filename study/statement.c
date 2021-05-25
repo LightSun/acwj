@@ -42,8 +42,11 @@ static void var_declaration(Content* cd, struct _Writer* w, struct Token* token)
   // Add it as a known identifier
   misc_match(cd, token, T_INT, "int");
   misc_ident(cd, token);
+
   sym_addglob(cd->context.textBuf);
+
   gen_globsym(w, cd->context.textBuf);
+  //match final semicolon(';')
   misc_semi(cd, token);
 }
 

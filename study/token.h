@@ -17,6 +17,7 @@ enum
   T_MINUS,
   T_STAR,
   T_SLASH,
+  
   T_INTLIT,
   T_SEMI,
 
@@ -24,7 +25,8 @@ enum
   T_IDENT,  // identifier
   // ============= keywords
   T_PRINT,   // print
-  T_INT
+
+  T_INT      // int identifier
 };
 
 // Token structure

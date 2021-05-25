@@ -1,6 +1,6 @@
-#include "common_headers.h"
 #ifndef _GEN_H
 #define _GEN_H
+#include "common_headers.h"
 CPP_START
 
 struct ASTnode;
