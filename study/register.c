@@ -2,10 +2,11 @@
 // Code generator for x86-64
 // Copyright (c) 2019 Warren Toomey, GPL3
 
-// List of available registers
-// and their names
+// List of available registers and their names
+// We need a list of byte registers, too
 static int freereg[4];
-static char *reglist[4]= { "%r8", "%r9", "%r10", "%r11" };
+static char  *reglist[4] = { "%r8", "%r9", "%r10", "%r11" };
+static char *breglist[4] = { "%r8b", "%r9b", "%r10b", "%r11b" };
 
 // Set all registers as available
 void register_free_all(void)
@@ -70,6 +71,7 @@ void register_cgpreamble(REGISTER_CONTEXT_PARAM)
 // Print out the assembly postamble
 void register_cgpostamble(REGISTER_CONTEXT_PARAM)
 {
+  // fputs("\tmovl	$0, %eax\n" "\tpopq	%rbp\n" "\tret\n", Outfile);
   w->writeChars(w->context, 
 	"\tmovl	$0, %eax\n"
 	"\tpopq	%rbp\n"
@@ -131,7 +133,7 @@ int register_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2) {
 // return the number of the register with the result
 int register_cgdiv(REGISTER_CONTEXT_PARAM, int r1, int r2) {
   char buffer[32];
-  snprintf(buffer, 32, "\tmovq\t%s,%%rax\n", reglist[r1], reglist[r2]);
+  snprintf(buffer, 32, "\tmovq\t%s,%%rax\n", reglist[r1]);
   w->writeChars(w->context, buffer);
 
   w->writeChars(w->context, "\tcqo\n");
@@ -182,7 +184,7 @@ int register_cgloadglob(REGISTER_CONTEXT_PARAM, const char* identifier){
 int register_cgstoreglob(REGISTER_CONTEXT_PARAM,int r, const char* identifier){
  // fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], identifier);
   char buffer[32];
-  snprintf(buffer, 32, "\tmovq\t%s, %s(\%%rip)\n", identifier, reglist[r]);
+  snprintf(buffer, 32, "\tmovq\t%s, %s(\%%rip)\n",  reglist[r], identifier);
   w->writeChars(w->context, buffer);
   return (r);
 } 
@@ -193,4 +195,47 @@ void register_cgglobsym(REGISTER_CONTEXT_PARAM, const char* sym){
   char buffer[32];
   snprintf(buffer, 32, "\t.comm\t%s,8,8\n", sym);
   w->writeChars(w->context, buffer);
+}
+
+//--------------------- compare operator -------------------
+//x86_64 registers: https://github.com/LightSun/acwj/tree/master/07_Comparisons
+// Compare two registers.
+static int cgcompare(REGISTER_CONTEXT_PARAM, int r1, int r2, char *how) {
+
+  /* fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
+  fprintf(Outfile, "\t%s\t%s\n", how, breglist[r2]);
+  fprintf(Outfile, "\tandq\t$255,%s\n", reglist[r2]); 
+  free_register(r1); */
+
+  char buffer[32];
+  snprintf(buffer, 32, "\tcmpq\t%s, %s\n",  reglist[r2], reglist[r1]);
+  w->writeChars(w->context, buffer);
+
+  snprintf(buffer, 32, "\t%s\t%s\n", how, breglist[r2]);
+  w->writeChars(w->context, buffer);
+
+  snprintf(buffer, 32, "\tandq\t$255,%s\n",  reglist[r2]);
+  w->writeChars(w->context, buffer);
+
+  register_free(r1);
+  return (r2);
+}
+
+int register_cgequal(REGISTER_CONTEXT_PARAM, int r1, int r2){
+  return(cgcompare(w, r1, r2, "sete"));
+}
+int register_cgnotequal(REGISTER_CONTEXT_PARAM, int r1, int r2){
+  return(cgcompare(w, r1, r2, "setne"));
+}
+int register_cglessthan(REGISTER_CONTEXT_PARAM, int r1, int r2){
+  return(cgcompare(w, r1, r2, "setl"));
+}
+int register_cggreaterthan(REGISTER_CONTEXT_PARAM, int r1, int r2){
+  return(cgcompare(w, r1, r2, "setg"));
+}
+int register_cglessequal(REGISTER_CONTEXT_PARAM, int r1, int r2){
+  return(cgcompare(w, r1, r2, "setle"));
+}
+int register_cggreaterequal(REGISTER_CONTEXT_PARAM, int r1, int r2){
+  return(cgcompare(w, r1, r2, "setge"));
 }

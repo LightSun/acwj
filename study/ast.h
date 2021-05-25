@@ -6,14 +6,18 @@
 
 CPP_START
 
-// AST node types
+// AST node types. The first few line up
+// with the related tokens
 enum {
-  A_ADD, A_SUBTRACT, A_MULTIPLY, A_DIVIDE, A_INTLIT,
-  //identifier
+   A_ADD = 1, A_SUBTRACT, A_MULTIPLY, A_DIVIDE,
+   //==  !=  <  >  <=  >=
+  A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE,
+  A_INTLIT,
+   //identifier
   A_IDENT, 
-  //used to store value to register var
+   //used to store value to register var
   A_LVIDENT,
-  //assign
+   //assign
    A_ASSIGN
 };
 

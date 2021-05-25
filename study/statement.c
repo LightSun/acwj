@@ -66,7 +66,7 @@ static void assignment_statement(Content* cd, struct _Writer* w, struct Token* t
   right = expre_mkastleaf(A_LVIDENT, id);
 
   // Ensure we have an equals sign
-  misc_match(cd, token, T_EQUALS, "=");
+  misc_match(cd, token, T_ASSIGN, "=");
 
   // Parse the following expression
   left = expre_binexpr(cd, token, 0);

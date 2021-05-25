@@ -28,6 +28,16 @@ void register_cgglobsym(REGISTER_CONTEXT_PARAM, const char* sym);
 
 void register_free_all();
 
+//----------------- compare operator -------------------------
+int register_cgequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
+int register_cgnotequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
+int register_cglessthan(REGISTER_CONTEXT_PARAM, int r1, int r2);
+int register_cggreaterthan(REGISTER_CONTEXT_PARAM, int r1, int r2);
+
+int register_cglessequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
+int register_cggreaterequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
+
+
 CPP_END
 
 #endif

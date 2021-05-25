@@ -17,16 +17,22 @@ enum
   T_MINUS,
   T_STAR,
   T_SLASH,
-  
+  // ==  !=  <  >  <=  >=
+  T_EQ,
+  T_NE,
+  T_LT,
+  T_GT,
+  T_LE,
+  T_GE,
+  //int value  ;  = 
   T_INTLIT,
   T_SEMI,
+  T_ASSIGN,
 
-  T_EQUALS, // =
-  T_IDENT,  // identifier
-  // ============= keywords
-  T_PRINT,   // print
-
-  T_INT      // int identifier
+  T_IDENT, // identifier
+  // ============= keywords ====================
+  T_PRINT, // print
+  T_INT    // int identifier prefix
 };
 
 // Token structure

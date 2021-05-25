@@ -1,15 +1,6 @@
 #include "content.h"
 #include "token.h"
 
-// Put back an unwanted character
-/* static void scanner_putback_set(int ch){
-     _putback = ch;
- }
-  */
-/*  int scanner_putback_get(){
-     return _putback;
- }
- */
 
 // Lexical scanning
 // Copyright (c) 2019 Warren Toomey, GPL3
@@ -24,6 +15,10 @@ static int chrpos(char *s, int c) {
 
   p = strchr(s, c);
   return (p ? p - s : -1);
+}
+
+static inline void putback(Content* cd, int c){
+  cd->context.putback = c;
 }
 
 // Get the next character from the input file.
@@ -119,13 +114,13 @@ static int keyword(char *s) {
 
 // Scan and return the next token found in the input.
 // Return 1 if token valid, 0 if no tokens left.
-// scan keyword string to 'ud->context->textBuf'
-int scanner_scan(Content* ud,struct Token *t) {
+// scan keyword string to 'cd->context->textBuf'
+int scanner_scan(Content* cd,struct Token *t) {
     
   int c, tokentype;
 
   // Skip whitespace
-  c = skip(ud);
+  c = skip(cd);
 
   // Determine the token based on
   // the input character
@@ -134,6 +129,7 @@ int scanner_scan(Content* ud,struct Token *t) {
     printf("scanner_scan >> EOF \n");
     t->token = T_EOF;
     return (0);
+
   case '+':
     printf("scanner_scan >> + \n");
     t->token = T_PLUS;
@@ -151,29 +147,63 @@ int scanner_scan(Content* ud,struct Token *t) {
     t->token = T_SLASH;
     break;
 
-  case '=':
-    printf("scanner_scan >> = \n");
-    t->token = T_EQUALS;
-    break;
-
-  case ';':
+ case ';':
     printf("scanner_scan >> ; \n");
     t->token = T_SEMI;
     break;
+
+  case '=':
+    if ((c = next(cd)) == '=') {
+      printf("scanner_scan >> == \n");
+      t->token = T_EQ;
+    } else {
+      // just =
+      putback(cd, c);
+      t->token = T_ASSIGN;
+    }
+    break;
+ 
+   case '!':
+    if ((c = next(cd)) == '=') {
+      t->token = T_NE;
+    } else {
+      printf("Unrecognised character", c);
+      exit(1);
+    }
+    break;
+
+  case '<':
+    if ((c = next(cd)) == '=') {
+      t->token = T_LE;
+    } else {
+      putback(cd, c);
+      t->token = T_LT;
+    }
+    break;
+
+  case '>':
+    if ((c = next(cd)) == '=') {
+      t->token = T_GE;
+    } else {
+      putback(cd, c);
+      t->token = T_GT;
+    }
+    break;
+
   default:
 
     // If it's a digit, scan the
     // literal integer value in
     if (isdigit(c)) {
-      t->intvalue = scanint(ud, c);
+      t->intvalue = scanint(cd, c);
       t->token = T_INTLIT;
       printf("scanner_scan >> %d \n", t->intvalue);
       break;
     }else if(isalpha(c) || '_' == c){
       //read keyword
-      scanident(ud, c, ud->context.textBuf, CONTENT_TEXT_BUF_LEN);
+      scanident(cd, c, cd->context.textBuf, CONTENT_TEXT_BUF_LEN);
       // If it's a recognised keyword, return that token
-      if (tokentype = keyword(ud->context.textBuf)) {
+      if (tokentype = keyword(cd->context.textBuf)) {
         t->token = tokentype;
         break;
       }
@@ -182,7 +212,7 @@ int scanner_scan(Content* ud,struct Token *t) {
       break;
     }
 
-    printf("Unrecognised character %c on line %d\n", c, ud->context.line);
+    printf("Unrecognised character %c on line %d\n", c, cd->context.line);
     exit(1);
     //return 0;
   }

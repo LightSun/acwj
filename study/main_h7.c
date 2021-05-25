@@ -27,11 +27,16 @@ static char *getFilePath(const char *dir, const char *rPath)
     return filepath;
 }
 
+#define _ABSOLUTE_EXE_PATH
 static char *getCurrentFilePath(const char *rPath)
 {
-    char buf[80];
-    getcwd(buf, sizeof(buf));
-    printf("work dir: %s, len =%d \n", buf, sizeof(buf));
+    #ifdef _ABSOLUTE_EXE_PATH
+        const char *buf = "E:/study/github/mine/acwj";
+    #else
+        char buf[80];
+        getcwd(buf, sizeof(buf));
+        printf("work dir: %s, len =%d \n", buf, sizeof(buf));
+    #endif
     return getFilePath(buf, rPath);
 }
 
@@ -45,7 +50,8 @@ int main(int argc, char **args)
         // cd = content_new(CONTENT_TYPE_TEXT, (void *)buffer);
         // char* outFile = getCurrentFilePath("/study/out.s");
        // char* outFile = getCurrentFilePath("/study/input01.txt");
-        char* outFile = getCurrentFilePath("/study/input02");
+      //  char* outFile = getCurrentFilePath("/study/input02");
+        char* outFile = getCurrentFilePath("/study/input04");
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 

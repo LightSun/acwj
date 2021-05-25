@@ -37,6 +37,20 @@ int gen_genAST(struct ASTnode *n, struct _Writer* w, int reg) {
     case A_ASSIGN:
     // The work has already been done, return the result
      return (rightreg);
+
+    case A_EQ:
+      return (register_cgequal(w, leftreg, rightreg));
+    case A_NE:
+      return (register_cgnotequal(w, leftreg, rightreg));
+    case A_LT:
+      return (register_cglessthan(w, leftreg, rightreg));
+    case A_GT:
+      return (register_cggreaterthan(w, leftreg, rightreg));
+    case A_LE:
+      return (register_cglessequal(w, leftreg, rightreg));
+    case A_GE:
+      return (register_cggreaterequal(w, leftreg, rightreg));
+
     default:
       fprintf(stderr, "Unknown AST operator %d\n", n->op);
       exit(1);
