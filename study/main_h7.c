@@ -6,13 +6,16 @@
 
 static void parseStatement(Content *cd, Writer *w){
     struct Token token;
+    struct ASTnode *tree;
+
     scanner_init(cd);
     cd->start(&cd->context);
     w->start(w->context, 0);
 
     scanner_scan(cd, &token);
     gen_preamble(w);
-    statement_parse(cd, w, &token);
+    tree = statement_parse(cd, w, &token);
+    gen_genAST(tree, w, NOREG, 0);
     gen_postamble(w);
 
     cd->end(&cd->context);
@@ -31,7 +34,8 @@ static char *getFilePath(const char *dir, const char *rPath)
 static char *getCurrentFilePath(const char *rPath)
 {
     #ifdef _ABSOLUTE_EXE_PATH
-        const char *buf = "E:/study/github/mine/acwj";
+        //const char *buf = "E:/study/github/mine/acwj";
+        const char *buf = "E:/study/github/mine_clone/acwj";
     #else
         char buf[80];
         getcwd(buf, sizeof(buf));
@@ -51,7 +55,8 @@ int main(int argc, char **args)
         // char* outFile = getCurrentFilePath("/study/out.s");
        // char* outFile = getCurrentFilePath("/study/input01.txt");
       //  char* outFile = getCurrentFilePath("/study/input02");
-        char* outFile = getCurrentFilePath("/study/input04");
+      //  char* outFile = getCurrentFilePath("/study/input04");
+        char* outFile = getCurrentFilePath("/study/input05");
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 

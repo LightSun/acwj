@@ -6,7 +6,17 @@ CPP_START
 struct ASTnode;
 struct _Writer;
 
-int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg);
+// Given an AST, the register (if any) that holds
+// the previous rvalue, and the AST op of the parent,
+// generate assembly code recursively.
+// Return the register id with the tree's final value
+/**
+ * @param n: the ast tree
+ * @param w: the writer to write asm
+ * @param reg: register index
+ * @param parentASTop: parent ast type
+ **/
+int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg, int parentASTop);
 
 void gen_preamble(struct _Writer *w);
 void gen_postamble(struct _Writer *w);

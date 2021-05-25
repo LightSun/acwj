@@ -21,3 +21,18 @@ void misc_semi(Content* cd,struct Token* token) {
 void misc_ident(Content* cd,struct Token* token) {
    misc_match(cd, token, T_IDENT, "identifier"); 
 }
+
+void misc_lparen(Content* cd,struct Token* token) {
+   misc_match(cd, token, T_LPAREN, "("); 
+}
+void misc_rparen(Content* cd,struct Token* token) {
+   misc_match(cd, token, T_RPAREN, ")"); 
+}
+
+void misc_lbrace(Content *cd, struct Token *token){
+   misc_match(cd, token, T_LBRACE, "{"); 
+}
+
+void misc_rbrace(Content *cd, struct Token *token){
+   misc_match(cd, token, T_RBRACE, "}"); 
+}

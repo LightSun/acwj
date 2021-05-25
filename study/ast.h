@@ -18,13 +18,16 @@ enum {
    //used to store value to register var
   A_LVIDENT,
    //assign
-   A_ASSIGN
+   A_ASSIGN,
+  // print      if
+   A_PRINT, A_GLUE, A_IF
 };
 
 // Abstract Syntax Tree structure
 struct ASTnode {
   int op;				// "Operation" to be performed on this tree
   struct ASTnode *left;			// Left and right child trees
+  struct ASTnode *mid;
   struct ASTnode *right;
   union {
     int intvalue;               // For A_INTLIT, the integer value
@@ -32,6 +35,7 @@ struct ASTnode {
   } v;
 };
 
+#define NOREG -1
 CPP_END
 
 #endif

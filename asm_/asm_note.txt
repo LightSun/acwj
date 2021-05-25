@@ -1,2 +1,17 @@
 x86-64汇编
 https://blog.csdn.net/weixin_39962356/article/details/111344962
+
+OF: overflow    溢出标志
+SF: sign flag   符号标志
+ZF: zero flag   零标志
+PF: parity flag 基偶标志
+CF: carry flag  进位标志
+
+IF: interrupt enable 中断允许标志
+TF: Trap flag        陷阱标志
+AF: auxiliary carry  半进位标志
+
+
+rdi:  目的变址 寄存器
+
+

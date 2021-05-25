@@ -1,3 +1,4 @@
+#include "gen.h"
 #include "ast.h"
 #include "register.h"
 #include "writer.h"
@@ -7,16 +8,81 @@
 // Generic code generator
 // Copyright (c) 2019 Warren Toomey, GPL3
 
-// Given an AST, generate assembly code recursively.
-// Return the register id with the tree's final value
-int gen_genAST(struct ASTnode *n, struct _Writer* w, int reg) {
+// Generate and return a new label number
+static int label(void) {
+  static int id = 1;
+  return (id++);
+}
+
+// Generate the code for an IF statement
+// and an optional ELSE clause
+static int genIFAST(struct ASTnode *n, struct _Writer* w) {
+  int Lfalse, Lend;
+
+  // Generate two labels: one for the
+  // false compound statement, and one
+  // for the end of the overall IF statement.
+  // When there is no ELSE clause, Lfalse _is_
+  // the ending label!
+  Lfalse = label();
+  if (n->right)
+    Lend = label();
+
+  // Generate the condition code followed
+  // by a zero jump to the false label.
+  // We cheat by sending the Lfalse label as a register.
+  gen_genAST(n->left, w, Lfalse, n->op);
+  gen_freeregs(w);
+
+  // Generate the true compound statement
+  gen_genAST(n->mid, w, NOREG, n->op);
+  gen_freeregs(w);
+
+  // If there is an optional ELSE clause,
+  // generate the jump to skip to the end
+  if (n->right)
+    register_cgjump(w, Lend);
+
+  // Now the false label
+  register_cglabel(w, Lfalse);
+
+  // Optional ELSE clause: generate the
+  // false compound statement and the
+  // end label
+  if (n->right) {
+    gen_genAST(n->right, w, NOREG, n->op);
+    gen_freeregs(w);
+    register_cglabel(w, Lend);
+  }
+
+  return (NOREG);
+}
+
+int gen_genAST(struct ASTnode *n, struct _Writer* w, int reg, int parentASTop) {
   int leftreg, rightreg;
+
+   // We now have specific AST node handling at the top
+  switch (n->op) {
+    case A_IF:
+      return (genIFAST(n, w));
+
+    case A_GLUE:
+      // Do each child statement, and free the
+      // registers after each child
+      gen_genAST(n->left, w, NOREG, n->op);
+      gen_freeregs(w);
+      gen_genAST(n->right, w, NOREG, n->op);
+      gen_freeregs(w);
+      return (NOREG);
+  }
+
+  // General AST node handling below
 
   // Get the left and right sub-tree values
   if (n->left)
-    leftreg = gen_genAST(n->left, w, -1);
+    leftreg = gen_genAST(n->left, w, NOREG, n->op);
   if (n->right)
-    rightreg = gen_genAST(n->right, w, leftreg);
+    rightreg = gen_genAST(n->right, w, leftreg, n->op);
 
   switch (n->op) {
     case A_ADD:
@@ -38,19 +104,36 @@ int gen_genAST(struct ASTnode *n, struct _Writer* w, int reg) {
     // The work has already been done, return the result
      return (rightreg);
 
+    case A_PRINT:{
+      // Print the left-child's value
+      // and return no register
+      gen_printint(w, leftreg);
+      gen_freeregs(w);
+      return (NOREG);
+    }
+      
     case A_EQ:
-      return (register_cgequal(w, leftreg, rightreg));
+     // return (register_cgequal(w, leftreg, rightreg));
     case A_NE:
-      return (register_cgnotequal(w, leftreg, rightreg));
+      //return (register_cgnotequal(w, leftreg, rightreg));
     case A_LT:
-      return (register_cglessthan(w, leftreg, rightreg));
+     // return (register_cglessthan(w, leftreg, rightreg));
     case A_GT:
-      return (register_cggreaterthan(w, leftreg, rightreg));
+     // return (register_cggreaterthan(w, leftreg, rightreg));
     case A_LE:
-      return (register_cglessequal(w, leftreg, rightreg));
+     // return (register_cglessequal(w, leftreg, rightreg));
     case A_GE:
-      return (register_cggreaterequal(w, leftreg, rightreg));
-
+     // return (register_cggreaterequal(w, leftreg, rightreg));
+       {
+           // If the parent AST node is an A_IF, generate a compare
+          // followed by a jump. Otherwise, compare registers and
+          // set one to 1 or 0 based on the comparison.
+          if (parentASTop == A_IF)
+              return (register_cgcompare_and_jump(w, n->op, leftreg, rightreg, reg));
+          else
+              return (register_cgcompare_and_set(w, n->op, leftreg, rightreg));
+       } 
+      
     default:
       fprintf(stderr, "Unknown AST operator %d\n", n->op);
       exit(1);

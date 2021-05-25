@@ -7,7 +7,7 @@ CPP_START
 struct _Content;
 struct Token;
 
-struct ASTnode *expre_mkastnode(int op, struct ASTnode *left,
+struct ASTnode *expre_mkastnode(int op, struct ASTnode *left, struct ASTnode *mid,
                           struct ASTnode *right, int intvalue);
 // Make an AST leaf node
 struct ASTnode *expre_mkastleaf(int op, int intvalue);

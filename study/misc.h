@@ -12,5 +12,15 @@ void misc_semi(Content *cd, struct Token *token);
 //match identifier and fetch next token
 void misc_ident(Content *cd, struct Token *token);
 
+// (
+void misc_lparen(Content *cd, struct Token *token);
+// )
+void misc_rparen(Content *cd, struct Token *token);
+
+// {
+void misc_lbrace(Content *cd, struct Token *token);
+// }
+void misc_rbrace(Content *cd, struct Token *token);
+
 CPP_END
 #endif

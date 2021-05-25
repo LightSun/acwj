@@ -28,11 +28,15 @@ enum
   T_INTLIT,
   T_SEMI,
   T_ASSIGN,
-
   T_IDENT, // identifier
+
+// { }  ( )
+  T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
   // ============= keywords ====================
-  T_PRINT, // print
-  T_INT    // int identifier prefix
+  T_PRINT,   // print
+  T_INT,    // int identifier prefix
+  T_IF,
+  T_ELSE,
 };
 
 // Token structure

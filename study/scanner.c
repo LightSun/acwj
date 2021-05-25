@@ -105,8 +105,15 @@ static int keyword(char *s) {
       break;
 
     case 'i':
+      if (!strcmp(s, "if"))
+        return (T_IF);
       if (!strcmp(s, "int"))
-         return (T_INT);
+        return (T_INT);
+      break;
+
+    case 'e':
+      if (!strcmp(s, "else"))
+        return (T_ELSE);
       break;
   }
   return (0);
@@ -147,9 +154,27 @@ int scanner_scan(Content* cd,struct Token *t) {
     t->token = T_SLASH;
     break;
 
- case ';':
+  case ';':
     printf("scanner_scan >> ; \n");
     t->token = T_SEMI;
+    break;
+
+  case '{':
+    printf("scanner_scan >> { \n");
+    t->token = T_LBRACE;
+    break;
+  case '}':
+    printf("scanner_scan >> } \n");
+    t->token = T_RBRACE;
+    break;
+
+  case '(':
+    printf("scanner_scan >> ( \n");
+    t->token = T_LPAREN;
+    break;
+  case ')':
+    printf("scanner_scan >> ) \n");
+    t->token = T_RPAREN;
     break;
 
   case '=':
@@ -189,6 +214,7 @@ int scanner_scan(Content* cd,struct Token *t) {
       t->token = T_GT;
     }
     break;
+    
 
   default:
 

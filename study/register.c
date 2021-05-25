@@ -1,4 +1,5 @@
 #include "register.h"
+#include "ast.h"
 // Code generator for x86-64
 // Copyright (c) 2019 Warren Toomey, GPL3
 
@@ -238,4 +239,80 @@ int register_cglessequal(REGISTER_CONTEXT_PARAM, int r1, int r2){
 }
 int register_cggreaterequal(REGISTER_CONTEXT_PARAM, int r1, int r2){
   return(cgcompare(w, r1, r2, "setge"));
+}
+
+//------------------------- if statements ---------------------------
+
+void register_cgjump(REGISTER_CONTEXT_PARAM, int l){
+  // fprintf(Outfile, "\tjmp\tL%d\n", l);
+  char buffer[32];
+  snprintf(buffer, 32, "\tjmp\tL%d\n",  l);
+  w->writeChars(w->context, buffer);
+}
+void register_cglabel(REGISTER_CONTEXT_PARAM, int l){
+  // fprintf(Outfile, "L%d:\n", l);
+  char buffer[32];
+  snprintf(buffer, 32, "L%d:\n",  l);
+  w->writeChars(w->context, buffer);
+}
+
+// List of inverted jump instructions,
+// in AST order: A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE
+static char *invcmplist[] = { "jne", "je", "jge", "jle", "jg", "jl" };
+
+// Compare two registers and jump if false.
+int register_cgcompare_and_jump(REGISTER_CONTEXT_PARAM, int ASTop, int r1, int r2, int label) {
+
+  // Check the range of the AST operation
+  if (ASTop < A_EQ || ASTop > A_GE){
+    fprintf(stderr,"Bad ASTop in register_cgcompare_and_jump()");
+    exit(1);
+  }
+
+ /*  fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
+  fprintf(Outfile, "\t%s\tL%d\n", invcmplist[ASTop - A_EQ], label);
+  freeall_registers(); */
+
+  char buffer[32];
+  snprintf(buffer, 32, "\tcmpq\t%s, %s\n",  reglist[r2], reglist[r1]);
+  w->writeChars(w->context, buffer);
+
+  snprintf(buffer, 32, "\t%s\tL%d\n",  invcmplist[ASTop - A_EQ], label);
+  w->writeChars(w->context, buffer);
+
+  register_free_all();
+  return (NOREG);
+}
+
+
+// List of comparison instructions,
+// in AST order: A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE
+static char *cmplist[] =
+  { "sete", "setne", "setl", "setg", "setle", "setge" };
+
+// Compare two registers and set if true.
+int register_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int ASTop, int r1, int r2) {
+
+  // Check the range of the AST operation
+  if (ASTop < A_EQ || ASTop > A_GE){
+    fprintf(stderr,"Bad ASTop in cgcompare_and_set()");
+    exit(1);
+  }
+
+  /* fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
+  fprintf(Outfile, "\t%s\t%s\n", cmplist[ASTop - A_EQ], breglist[r2]);
+  fprintf(Outfile, "\tmovzbq\t%s, %s\n", breglist[r2], reglist[r2]);
+  free_register(r1); */
+  char buffer[32];
+  snprintf(buffer, 32, "\tcmpq\t%s, %s\n",  reglist[r2], reglist[r1]);
+  w->writeChars(w->context, buffer);
+
+  snprintf(buffer, 32, "\t%s\t%s\n",  cmplist[ASTop - A_EQ], breglist[r2]);
+  w->writeChars(w->context, buffer);
+
+  snprintf(buffer, 32, "\tmovzbq\t%s, %s\n",  breglist[r2], reglist[r2]);
+  w->writeChars(w->context, buffer);
+
+  register_free_all();
+  return (r2);
 }

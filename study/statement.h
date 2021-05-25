@@ -5,6 +5,6 @@
 #include "token.h"
 CPP_START
 
-void statement_parse(Content* cd, struct _Writer* w, struct Token* token);
+struct ASTnode * statement_parse(Content* cd, struct _Writer* w, struct Token* token);
 
 CPP_END

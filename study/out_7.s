@@ -28,7 +28,7 @@ main:
 	andq	$255,%r9	 # Remove all other bits in %r9
 	movq	%r9, x(%rip) # Save the result in x	
 	movq	x(%rip), %r8
-	movq	%r8, %rdi   # 目的变址 寄存器
+	movq	%r8, %rdi   # rdi 目的变址 寄存器
 	call	printint    # Print x out
 	movq	$7, %r8
 	movq	$9, %r9
@@ -105,7 +105,7 @@ main:
 	movl	$0, %eax
 	popq	%rbp
 	ret
-	# 栈指针 (%rsp) 和基址指针 (%rbp)
+	# 栈指针 (%rsp) 和 基址指针 (%rbp)
 
 	# 在bss段申请一段命名空间,该段空间的名称叫symbol, 长度为length. Ld连接器在连接会为它留出空间. bss在运行时才会分配
 	# .comm	fred,8,8  # Declare fred

@@ -5,11 +5,40 @@
 #include "scanner.h"
 #include "sym.h"
 
+//grammer
+/**
+ compound_statement: '{' '}'          // empty, i.e. no statement
+      |      '{' statement '}'
+      |      '{' statement statements '}'
+      ;
+
+ statement: print_statement
+      |     declaration
+      |     assignment_statement
+      |     if_statement
+      ;
+
+ print_statement: 'print' expression ';'  ;
+
+ declaration: 'int' identifier ';'  ;
+
+ assignment_statement: identifier '=' expression ';'   ;
+
+ if_statement: if_head
+      |        if_head 'else' compound_statement
+      ;
+
+ if_head: 'if' '(' true_false_expression ')' compound_statement  ;
+
+ identifier: T_IDENT ;
+ * 
+*/
+
 // AST tree functions
 // Copyright (c) 2019 Warren Toomey, GPL3
 
 // Build and return a generic AST node
-struct ASTnode *expre_mkastnode(int op, struct ASTnode *left,
+struct ASTnode *expre_mkastnode(int op, struct ASTnode *left, struct ASTnode *mid,
 			  struct ASTnode *right, int intvalue) {
   struct ASTnode *n;
 
@@ -23,6 +52,7 @@ struct ASTnode *expre_mkastnode(int op, struct ASTnode *left,
   n->op = op;
   n->left = left;
   n->right = right;
+  n->mid = mid;
   n->v.intvalue = intvalue;
   return (n);
 }
@@ -30,12 +60,12 @@ struct ASTnode *expre_mkastnode(int op, struct ASTnode *left,
 
 // Make an AST leaf node
 struct ASTnode *expre_mkastleaf(int op, int intvalue) {
-  return (expre_mkastnode(op, NULL, NULL, intvalue));
+  return (expre_mkastnode(op, NULL, NULL, NULL, intvalue));
 }
 
 // Make a unary AST node: only one child
 struct ASTnode *expre_mkastunary(int op, struct ASTnode *left, int intvalue) {
-  return (expre_mkastnode(op, left, NULL, intvalue));
+  return (expre_mkastnode(op, left, NULL, NULL, intvalue));
 }
 
 // Parsing of expressions
@@ -116,9 +146,9 @@ struct ASTnode* expre_binexpr(struct _Content* cd, struct Token* token, int ptp)
   // Fetch the next token at the same time.
   left = primary(cd, token);
 
-  // If we hit a semicolon, return just the left node
+  // If we hit a semicolon or ')', return just the left node
   tokentype = token->token;
-  if (tokentype == T_SEMI)
+  if (tokentype == T_SEMI || tokentype == T_RPAREN)
     return (left);
 
   // While the precedence of this token is
@@ -133,12 +163,12 @@ struct ASTnode* expre_binexpr(struct _Content* cd, struct Token* token, int ptp)
 
     // Join that sub-tree with ours. Convert the token
     // into an AST operation at the same time.
-    left = expre_mkastnode(arithop(cd, tokentype), left, right, 0);
+    left = expre_mkastnode(arithop(cd, tokentype), left, NULL, right, 0);
 
      // Update the details of the current token.
     // If we hit a semicolon, return just the left node
     tokentype = token->token;
-    if (tokentype == T_SEMI)
+    if (tokentype == T_SEMI || tokentype == T_RPAREN)
       return (left);
   }
 
