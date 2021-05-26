@@ -1,6 +1,6 @@
-#include "defs.h"
 #include "data.h"
 #include "decl.h"
+#include "defs.h"
 
 // Parsing of statements
 // Copyright (c) 2019 Warren Toomey, GPL3
@@ -19,7 +19,8 @@
 
 // print_statement: 'print' expression ';'  ;
 //
-static struct ASTnode *print_statement(void) {
+static struct ASTnode *print_statement(void)
+{
   struct ASTnode *tree;
   int reg;
 
@@ -40,7 +41,8 @@ static struct ASTnode *print_statement(void) {
 
 // assignment_statement: identifier '=' expression ';'   ;
 //
-static struct ASTnode *assignment_statement(void) {
+static struct ASTnode *assignment_statement(void)
+{
   struct ASTnode *left, *right, *tree;
   int id;
 
@@ -48,7 +50,8 @@ static struct ASTnode *assignment_statement(void) {
   ident();
 
   // Check it's been defined then make a leaf node for it
-  if ((id = findglob(Text)) == -1) {
+  if ((id = findglob(Text)) == -1)
+  {
     fatals("Undeclared variable", Text);
   }
   right = mkastleaf(A_LVIDENT, id);
@@ -77,7 +80,8 @@ static struct ASTnode *assignment_statement(void) {
 // Parse an IF statement including
 // any optional ELSE clause
 // and return its AST
-struct ASTnode *if_statement(void) {
+struct ASTnode *if_statement(void)
+{
   struct ASTnode *condAST, *trueAST, *falseAST = NULL;
 
   // Ensure we have 'if' '('
@@ -97,7 +101,8 @@ struct ASTnode *if_statement(void) {
 
   // If we have an 'else', skip it
   // and get the AST for the compound statement
-  if (Token.token == T_ELSE) {
+  if (Token.token == T_ELSE)
+  {
     scan(&Token);
     falseAST = compound_statement();
   }
@@ -105,12 +110,12 @@ struct ASTnode *if_statement(void) {
   return (mkastnode(A_IF, condAST, trueAST, falseAST, 0));
 }
 
-
 // while_statement: 'while' '(' true_false_expression ')' compound_statement  ;
 //
 // Parse a WHILE statement
 // and return its AST
-struct ASTnode *while_statement(void) {
+struct ASTnode *while_statement(void)
+{
   struct ASTnode *condAST, *bodyAST;
 
   // Ensure we have 'while' '('
@@ -132,51 +137,54 @@ struct ASTnode *while_statement(void) {
   return (mkastnode(A_WHILE, condAST, NULL, bodyAST, 0));
 }
 
-
 // Parse a compound statement
 // and return its AST
-struct ASTnode *compound_statement(void) {
+struct ASTnode *compound_statement(void)
+{
   struct ASTnode *left = NULL;
   struct ASTnode *tree;
 
   // Require a left curly bracket
   lbrace();
 
-  while (1) {
-    switch (Token.token) {
-      case T_PRINT:
-	tree = print_statement();
-	break;
-      case T_INT:
-	var_declaration();
-	tree = NULL;		// No AST generated here
-	break;
-      case T_IDENT:
-	tree = assignment_statement();
-	break;
-      case T_IF:
-	tree = if_statement();
-	break;
-      case T_WHILE:
-	tree = while_statement();
-	break;
-      case T_RBRACE:
-	// When we hit a right curly bracket,
-	// skip past it and return the AST
-	rbrace();
-	return (left);
-      default:
-	fatald("Syntax error, token", Token.token);
+  while (1)
+  {
+    switch (Token.token)
+    {
+    case T_PRINT:
+      tree = print_statement();
+      break;
+    case T_INT:
+      var_declaration();
+      tree = NULL; // No AST generated here
+      break;
+    case T_IDENT:
+      tree = assignment_statement();
+      break;
+    case T_IF:
+      tree = if_statement();
+      break;
+    case T_WHILE:
+      tree = while_statement();
+      break;
+    case T_RBRACE:
+      // When we hit a right curly bracket,
+      // skip past it and return the AST
+      rbrace();
+      return (left);
+    default:
+      fatald("Syntax error, token", Token.token);
     }
 
     // For each new tree, either save it in left
     // if left is empty, or glue the left and the
     // new tree together
-    if (tree) {
+    if (tree)
+    {
       if (left == NULL)
-	left = tree;
+        left = tree;
       else
-	left = mkastnode(A_GLUE, left, NULL, tree, 0);
+        left = mkastnode(A_GLUE, left, NULL, tree, 0);
     }
   }
 }

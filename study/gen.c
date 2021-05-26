@@ -60,6 +60,35 @@ static int genIFAST(struct ASTnode *n, struct _Writer *w)
   return (NOREG);
 }
 
+// Generate the code for a WHILE statement
+// and an optional ELSE clause
+static int genWHILE(struct ASTnode *n, struct _Writer *w)
+{
+  int Lstart, Lend;
+
+  // Generate the start and end labels
+  // and output the start label
+  Lstart = label(w);
+  Lend = label(w);
+  register_cglabel(w, Lstart);
+
+  // Generate the condition code followed
+  // by a jump to the end label.
+  // We cheat by sending the Lfalse label as a register.
+  gen_genAST(n->left, w, Lend, n->op);
+  gen_freeregs(w);
+
+  // Generate the compound statement for the body
+  gen_genAST(n->right, w, NOREG, n->op);
+  gen_freeregs(w);
+
+  // Finally output the jump back to the condition,
+  // and the end label
+  register_cgjump(w, Lstart);
+  register_cglabel(w, Lend);
+  return (NOREG);
+}
+
 //reg: normal reg or label reg
 int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
 {
@@ -71,6 +100,9 @@ int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
   case A_IF:
     return (genIFAST(n, w));
 
+  case A_WHILE:
+    return (genWHILE(n, w));
+
   case A_GLUE:
     // Do each child statement, and free the
     // registers after each child
@@ -78,6 +110,13 @@ int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
     gen_freeregs(w);
     gen_genAST(n->right, w, NOREG, n->op);
     gen_freeregs(w);
+    return (NOREG);
+
+  case A_FUNCTION:
+    // Generate the function's preamble before the code
+    register_cgfuncpreamble(w, sym_getGlob(n->v.id)->name);
+    gen_genAST(n->left, w, NOREG, n->op);
+    register_cgfuncpostamble(w);
     return (NOREG);
   }
 
@@ -132,10 +171,10 @@ int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
   case A_GE:
     // return (register_cggreaterequal(w, leftreg, rightreg));
     {
-      // If the parent AST node is an A_IF, generate a compare
-      // followed by a jump. Otherwise, compare registers and
-      // set one to 1 or 0 based on the comparison.
-      if (parentASTop == A_IF)
+      // If the parent AST node is an A_IF or A_WHILE, generate
+      // a compare followed by a jump. Otherwise, compare registers
+      // and set one to 1 or 0 based on the comparison.
+      if (parentASTop == A_IF || parentASTop == A_WHILE)
         return (register_cgcompare_and_jump(w, n->op, leftreg, rightreg, reg));
       else
         return (register_cgcompare_and_set(w, n->op, leftreg, rightreg));

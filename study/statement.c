@@ -2,6 +2,7 @@
 #include "expre.h"
 #include "misc.h"
 #include "sym.h"
+#include "decl.h"
 
 /**
  compound_statement: '{' '}'          // empty, i.e. no statement
@@ -30,7 +31,8 @@
  identifier: T_IDENT ;
  */
 
-static struct ASTnode * print_statement(Content* cd, struct _Writer* w, struct Token* token) {
+static struct ASTnode *print_statement(Content *cd, struct _Writer *w, struct Token *token)
+{
   struct ASTnode *tree;
   int reg;
 
@@ -39,33 +41,18 @@ static struct ASTnode * print_statement(Content* cd, struct _Writer* w, struct T
 
   // Parse the following expression
   tree = expre_binexpr(cd, token, 0);
-  
+
   //make an print ast tree
   tree = expre_mkastunary(A_PRINT, tree, 0);
 
   // Match the following semicolon and return tree
-  misc_semi(cd, token);
+  //misc_semi(cd, token);
 
   return tree;
 }
 
-// Parse the declaration of a variable
-static void var_declaration(Content* cd, struct _Writer* w, struct Token* token) {
-
-  // Ensure we have an 'int' token followed by an identifier
-  // and a semicolon. Text now has the identifier's name.
-  // Add it as a known identifier
-  misc_match(cd, token, T_INT, "int");
-  misc_ident(cd, token);
-
-  sym_addglob(cd->context.textBuf);
-
-  gen_globsym(w, cd->context.textBuf);
-  //match final semicolon(';')
-  misc_semi(cd, token);
-}
-
-static struct ASTnode* assignment_statement(Content* cd, struct _Writer* w, struct Token* token) {
+static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, struct Token *token)
+{
   struct ASTnode *left, *right, *tree;
   int id;
 
@@ -73,8 +60,9 @@ static struct ASTnode* assignment_statement(Content* cd, struct _Writer* w, stru
   misc_ident(cd, token);
 
   // Check it's been defined then make a leaf node for it
-  if ((id = sym_findglob(cd->context.textBuf)) == -1) {
-    printf("Undeclared variable", cd->context.textBuf);
+  if ((id = sym_findglob(cd->context.textBuf)) == -1)
+  {
+    fprintf(stderr, "Undeclared variable %s\n", cd->context.textBuf);
     exit(1);
   }
   right = expre_mkastleaf(A_LVIDENT, id);
@@ -89,7 +77,7 @@ static struct ASTnode* assignment_statement(Content* cd, struct _Writer* w, stru
   tree = expre_mkastnode(A_ASSIGN, left, NULL, right, 0);
 
   // Match the following semicolon
-  misc_semi(cd, token);
+  //misc_semi(cd, token);
 
   return tree;
 }
@@ -97,7 +85,8 @@ static struct ASTnode* assignment_statement(Content* cd, struct _Writer* w, stru
 // Parse an IF statement including
 // any optional ELSE clause
 // and return its AST
-struct ASTnode *if_statement(Content* cd, struct _Writer* w, struct Token* token) {
+struct ASTnode *if_statement(Content *cd, struct _Writer *w, struct Token *token)
+{
   struct ASTnode *condAST, *trueAST, *falseAST = NULL;
 
   // Ensure we have 'if' '('
@@ -109,7 +98,8 @@ struct ASTnode *if_statement(Content* cd, struct _Writer* w, struct Token* token
   // the tree's operation is a comparison.
   condAST = expre_binexpr(cd, token, 0);
 
-  if (condAST->op < A_EQ || condAST->op > A_GE){
+  if (condAST->op < A_EQ || condAST->op > A_GE)
+  {
     printf("Bad comparison operator");
     exit(1);
   }
@@ -120,7 +110,8 @@ struct ASTnode *if_statement(Content* cd, struct _Writer* w, struct Token* token
 
   // If we have an 'else', skip it
   // and get the AST for the compound statement
-  if (token->token == T_ELSE) {
+  if (token->token == T_ELSE)
+  {
     //scan(&Token);
     scanner_scan(cd, token);
     falseAST = statement_parse(cd, w, token);
@@ -129,52 +120,151 @@ struct ASTnode *if_statement(Content* cd, struct _Writer* w, struct Token* token
   return (expre_mkastnode(A_IF, condAST, trueAST, falseAST, 0));
 }
 
-// Parse a compound statement
+static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct Token *token);
+
+// while_statement: 'while' '(' true_false_expression ')' compound_statement  ;
+// Parse a WHILE statement
 // and return its AST
-struct ASTnode *statement_parse(Content* cd, struct _Writer* w, struct Token* token) {
+struct ASTnode *while_statement(Content *cd, struct _Writer *w, struct Token *token)
+{
+  struct ASTnode *condAST, *bodyAST;
+
+  // Ensure we have 'while' '('
+  misc_match(cd, token, T_WHILE, "while");
+  misc_lparen(cd, token);
+
+  // Parse the following expression
+  // and the ')' following. Ensure
+  // the tree's operation is a comparison.
+  condAST = expre_binexpr(cd, token, 0);
+  if (condAST->op < A_EQ || condAST->op > A_GE)
+  {
+    fprintf(stderr, "Bad comparison operator");
+    exit(1);
+  }
+  misc_rparen(cd, token);
+
+  // Get the AST for the compound statement
+  bodyAST = statement_parse(cd, w, token);
+
+  // Build and return the AST for this statement
+  return (expre_mkastnode(A_WHILE, condAST, NULL, bodyAST, 0));
+}
+
+// Parse a FOR statement
+// and return its AST
+static struct ASTnode *for_statement(Content *cd, struct _Writer *w, struct Token *token)
+{
+  struct ASTnode *condAST, *bodyAST;
+  struct ASTnode *preopAST, *postopAST;
+  struct ASTnode *tree;
+
+  // Ensure we have 'for' '('
+  misc_match(cd, token, T_FOR, "for");
+  misc_lparen(cd, token);
+
+  // Get the pre_op statement and the ';'
+  preopAST = single_statement(cd, w, token);
+  misc_semi(cd, token);
+
+  // Get the condition and the ';'
+  condAST = expre_binexpr(cd, token, 0);
+  if (condAST->op < A_EQ || condAST->op > A_GE)
+  {
+    fprintf(stderr, "Bad comparison operator");
+    exit(1);
+  }
+  misc_semi(cd, token);
+
+  // Get the post_op statement and the ')'
+  postopAST = single_statement(cd, w, token);
+  misc_rparen(cd, token);
+
+  // Get the compound statement which is the body
+  bodyAST = statement_parse(cd, w, token);
+
+  // For now, all four sub-trees have to be non-NULL.
+  // Later on, we'll change the semantics for when some are missing
+
+  // Glue the compound statement and the postop tree
+  tree = expre_mkastnode(A_GLUE, bodyAST, NULL, postopAST, 0);
+
+  // Make a WHILE loop with the condition and this new body
+  tree = expre_mkastnode(A_WHILE, condAST, NULL, tree, 0);
+
+  // And glue the preop tree to the A_WHILE tree
+  return (expre_mkastnode(A_GLUE, preopAST, NULL, tree, 0));
+  //https://github.com/LightSun/acwj/tree/master/10_For_Loops
+}
+
+// Parse a single statement
+// and return its AST
+static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct Token *token)
+{
+  switch (token->token)
+  {
+  case T_PRINT:
+    return (print_statement(cd, w, token));
+
+  case T_INT:
+    decl_var(cd, w, token);
+    return (NULL); // No AST generated here
+
+  case T_IDENT:
+    return (assignment_statement(cd, w, token));
+
+  case T_IF:
+    return (if_statement(cd, w, token));
+
+  case T_WHILE:
+    return (while_statement(cd, w, token));
+
+  case T_FOR:
+    return (for_statement(cd, w, token));
+
+  default:
+    fprintf(stderr, "Syntax error, token = %d", token->token);
+    exit(1);
+  }
+}
+
+// Parse a compound statement with "{ + }"
+// and return its AST
+struct ASTnode *statement_parse(Content *cd, struct _Writer *w, struct Token *token)
+{
   struct ASTnode *left = NULL;
   struct ASTnode *tree;
 
   // Require a left curly bracket
   misc_lbrace(cd, token);
 
-  while (1) {
-      switch (token->token) {
-        case T_PRINT:
-          tree = print_statement(cd, w, token);
-          break;
+  while (1)
+  {
+    // Parse a single statement
+    tree = single_statement(cd, w, token);
 
-        case T_INT:
-          var_declaration(cd, w, token);
-          tree = NULL;            // No AST generated here
-          break;
+    // Some statements must be followed by a semicolon
+    if (tree != NULL && (tree->op == A_PRINT || tree->op == A_ASSIGN))
+    {
+      misc_semi(cd, token);
+    }
 
-        case T_IDENT:
-          tree = assignment_statement(cd, w, token);
-          break;
-
-        case T_IF:
-          tree = if_statement(cd, w, token);
-          break;
-
-      case T_RBRACE:
-          // When we hit a right curly bracket,
-          // skip past it and return the AST
-          misc_rbrace(cd, token);
-          return (left);
-        default:
-          printf("Syntax error, token", token->token);
-          exit(1);
-      }
-
-      // For each new tree, either save it in left
-      // if left is empty, or glue the left and the
-      // new tree together
-      if (tree) {
-        if (left == NULL)
-          left = tree;
-        else
-          left = expre_mkastnode(A_GLUE, left, NULL, tree, 0);
-      }
+    // For each new tree, either save it in left
+    // if left is empty, or glue the left and the
+    // new tree together
+    if (tree != NULL)
+    {
+      if (left == NULL)
+        left = tree;
+      else
+        left = expre_mkastnode(A_GLUE, left, NULL, tree, 0);
+    }
+    // When we hit a right curly bracket,
+    // skip past it and return the AST
+    if (token->token == T_RBRACE)
+    {
+      misc_rbrace(cd, token);
+      return (left);
+    }
   }
 }

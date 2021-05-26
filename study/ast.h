@@ -21,7 +21,11 @@ enum {
    //assign
    A_ASSIGN,
   // print,   ,if
-   A_PRINT, A_GLUE, A_IF
+   A_PRINT, A_GLUE, A_IF,
+   //while
+   A_WHILE, 
+   
+   A_FUNCTION
 };
 
 // Abstract Syntax Tree structure
@@ -36,7 +40,10 @@ struct ASTnode {
   } v;
 };
 
+// Use NOREG when the AST generation
+// functions have no register to return
 #define NOREG -1
+
 CPP_END
 
 #endif

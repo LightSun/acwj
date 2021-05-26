@@ -37,6 +37,9 @@ enum
   T_INT,    // int identifier prefix
   T_IF,
   T_ELSE,
+  T_WHILE,
+  T_FOR,
+  T_VOID,
 };
 
 // Token structure

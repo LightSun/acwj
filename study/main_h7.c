@@ -3,6 +3,7 @@
 #include "scanner.h"
 #include "writer.h"
 #include "statement.h"
+#include "decl.h"
 
 static void parseStatement(Content *cd, Writer *w){
     struct Token token;
@@ -14,9 +15,16 @@ static void parseStatement(Content *cd, Writer *w){
 
     scanner_scan(cd, &token);
     gen_preamble(w);
-    tree = statement_parse(cd, w, &token);
+    while(1){
+        tree = decl_function(cd, w, &token);
+        gen_genAST(tree, w, NOREG, 0);
+        if(token.token == T_EOF){
+            break;
+        }
+    }
+/*     tree = statement_parse(cd, w, &token);
     gen_genAST(tree, w, NOREG, 0);
-    gen_postamble(w);
+    gen_postamble(w); */
 
     cd->end(&cd->context);
     w->end(w->context);
@@ -52,15 +60,18 @@ int main(int argc, char **args)
     {
         // const char *buffer = "2 + 3 * 5 - 8 / 3";
         // cd = content_new(CONTENT_TYPE_TEXT, (void *)buffer);
-        // char* outFile = getCurrentFilePath("/study/out.s");
-       // char* outFile = getCurrentFilePath("/study/input01.txt");
-      //  char* outFile = getCurrentFilePath("/study/input02");
-      //  char* outFile = getCurrentFilePath("/study/input04");
-        char* outFile = getCurrentFilePath("/study/input05");
+        // char* outFile = getCurrentFilePath("/study/note/out.s");
+       // char* outFile = getCurrentFilePath("/study/res/input01.txt");
+      //  char* outFile = getCurrentFilePath("/study/res/input02");
+      //  char* outFile = getCurrentFilePath("/study/res/input04");
+      //  char* outFile = getCurrentFilePath("/study/res/input05");
+      //  char* outFile = getCurrentFilePath("/study/res/input06.txt");
+       // char* outFile = getCurrentFilePath("/study/res/input07");
+        char* outFile = getCurrentFilePath("/study/res/input08"); //func1
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 
-        outFile = getCurrentFilePath("/study/out1.s");
+        outFile = getCurrentFilePath("/study/note/out_11.s");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -69,7 +80,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/out1.s");
+            char* outFile = getCurrentFilePath("/study/note/out_11.s");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }

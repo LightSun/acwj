@@ -317,3 +317,32 @@ int register_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int ASTop, int r1, int r2
   register_free_all();
   return (r2);
 }
+
+
+void register_cgfuncpreamble(REGISTER_CONTEXT_PARAM, const char* funcName){
+  /*  fprintf(Outfile,
+          "\t.text\n"
+          "\t.globl\t%s\n"
+          "\t.type\t%s, @function\n"
+          "%s:\n" "\tpushq\t%%rbp\n"
+          "\tmovq\t%%rsp, %%rbp\n", name, name, name); */
+
+   w->writeChars(w->context, "\t.text\n");     
+
+  char buffer[32];
+  snprintf(buffer, 32, "\t.globl\t%s\n",  funcName);
+  w->writeChars(w->context, buffer);       
+
+  snprintf(buffer, 32, "\t.type\t%s, @function\n",  funcName);
+  w->writeChars(w->context, buffer);      
+
+  snprintf(buffer, 32, "%s:\n" "\tpushq\t%%rbp\n",  funcName);
+  w->writeChars(w->context, buffer);    
+
+  w->writeChars(w->context, "\tmovq\t%%rsp, %%rbp\n");       
+}
+
+void register_cgfuncpostamble(REGISTER_CONTEXT_PARAM){
+  //fputs("\tmovl $0, %eax\n" "\tpopq     %rbp\n" "\tret\n", Outfile);
+  w->writeChars(w->context, "\tmovl $0, %eax\n" "\tpopq     %rbp\n" "\tret\n");   
+}

@@ -4,6 +4,9 @@
 int content_file_start(CONTENT_PARAM){
     const char* file = (char*)ctx->param;
     ctx->infile = fopen(file, "r");
+    if(ctx->infile == NULL){
+     printf("content_file_start: failed, path: %s\n", file);
+    }
     return ctx->infile != NULL;
 }
 
