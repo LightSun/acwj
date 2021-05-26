@@ -65,7 +65,7 @@ static void var_declaration(Content* cd, struct _Writer* w, struct Token* token)
   misc_semi(cd, token);
 }
 
-static struct ASTnode * assignment_statement(Content* cd, struct _Writer* w, struct Token* token) {
+static struct ASTnode* assignment_statement(Content* cd, struct _Writer* w, struct Token* token) {
   struct ASTnode *left, *right, *tree;
   int id;
 
@@ -139,42 +139,42 @@ struct ASTnode *statement_parse(Content* cd, struct _Writer* w, struct Token* to
   misc_lbrace(cd, token);
 
   while (1) {
-    switch (token->token) {
-      case T_PRINT:
-        tree = print_statement(cd, w, token);
-        break;
+      switch (token->token) {
+        case T_PRINT:
+          tree = print_statement(cd, w, token);
+          break;
 
-      case T_INT:
-        var_declaration(cd, w, token);
-        tree = NULL;            // No AST generated here
-        break;
+        case T_INT:
+          var_declaration(cd, w, token);
+          tree = NULL;            // No AST generated here
+          break;
 
-      case T_IDENT:
-        tree = assignment_statement(cd, w, token);
-        break;
+        case T_IDENT:
+          tree = assignment_statement(cd, w, token);
+          break;
 
-      case T_IF:
-        tree = if_statement(cd, w, token);
-        break;
+        case T_IF:
+          tree = if_statement(cd, w, token);
+          break;
 
-    case T_RBRACE:
-        // When we hit a right curly bracket,
-        // skip past it and return the AST
-        misc_rbrace(cd, token);
-        return (left);
-      default:
-        printf("Syntax error, token", token->token);
-        exit(1);
-    }
+      case T_RBRACE:
+          // When we hit a right curly bracket,
+          // skip past it and return the AST
+          misc_rbrace(cd, token);
+          return (left);
+        default:
+          printf("Syntax error, token", token->token);
+          exit(1);
+      }
 
-    // For each new tree, either save it in left
-    // if left is empty, or glue the left and the
-    // new tree together
-    if (tree) {
-      if (left == NULL)
-        left = tree;
-      else
-        left = expre_mkastnode(A_GLUE, left, NULL, tree, 0);
-    }
+      // For each new tree, either save it in left
+      // if left is empty, or glue the left and the
+      // new tree together
+      if (tree) {
+        if (left == NULL)
+          left = tree;
+        else
+          left = expre_mkastnode(A_GLUE, left, NULL, tree, 0);
+      }
   }
 }

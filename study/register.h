@@ -44,7 +44,7 @@ void register_cgjump(REGISTER_CONTEXT_PARAM, int l);
 // Generate a label
 void register_cglabel(REGISTER_CONTEXT_PARAM, int l);
 
-int register_cgcompare_and_jump(REGISTER_CONTEXT_PARAM, int asTop, int r1, int r2, int r3);
+int register_cgcompare_and_jump(REGISTER_CONTEXT_PARAM, int asTop, int r1, int r2, int label);
 int register_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int asTop,int r1, int r2);
 
 CPP_END

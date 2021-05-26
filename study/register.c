@@ -185,7 +185,7 @@ int register_cgloadglob(REGISTER_CONTEXT_PARAM, const char* identifier){
 int register_cgstoreglob(REGISTER_CONTEXT_PARAM,int r, const char* identifier){
  // fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], identifier);
   char buffer[32];
-  snprintf(buffer, 32, "\tmovq\t%s, %s(\%%rip)\n",  reglist[r], identifier);
+  snprintf(buffer, 32, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], identifier);
   w->writeChars(w->context, buffer);
   return (r);
 } 
@@ -257,6 +257,7 @@ void register_cglabel(REGISTER_CONTEXT_PARAM, int l){
 }
 
 // List of inverted jump instructions,
+// = -> !=, != -> =, < -> >=, > -> <=, <= -> >, >= -> <
 // in AST order: A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE
 static char *invcmplist[] = { "jne", "je", "jge", "jle", "jg", "jl" };
 

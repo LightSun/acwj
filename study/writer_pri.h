@@ -7,9 +7,12 @@ typedef struct
 {   
     void *param;
     int type;
+    
     char *buffer;
     int bufPos;
     FILE *file;
+
+    int label; //the arm label
 }WriterContext;
 
 CPP_END

@@ -30,6 +30,7 @@ Writer *writer_new(int type, void* param){
     memset(writer->context, 0, sizeof(WriterContext));
     writer->context->param = dstParam;
     writer->context->type = type;
+    writer->context->label = 1;
     return writer;
 }
 

@@ -15,12 +15,7 @@ struct ASTnode *expre_mkastleaf(int op, int intvalue);
 // Make a unary AST node: only one child
 struct ASTnode *expre_mkastunary(int op, struct ASTnode *left, int intvalue);
 
-// Return an AST tree whose root is a binary operator
-struct ASTnode* expre_parseAST(struct _Content* cd);
-
 struct ASTnode* expre_binexpr(struct _Content* cd, struct Token* token, int ptp);
-
-int expre_evaluateAST(struct ASTnode *n);
 
 CPP_END
 #endif

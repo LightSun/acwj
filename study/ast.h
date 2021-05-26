@@ -12,6 +12,7 @@ enum {
    A_ADD = 1, A_SUBTRACT, A_MULTIPLY, A_DIVIDE,
    //==  !=  <  >  <=  >=
   A_EQ, A_NE, A_LT, A_GT, A_LE, A_GE,
+  //int value
   A_INTLIT,
    //identifier
   A_IDENT, 
@@ -19,7 +20,7 @@ enum {
   A_LVIDENT,
    //assign
    A_ASSIGN,
-  // print      if
+  // print,   ,if
    A_PRINT, A_GLUE, A_IF
 };
 
