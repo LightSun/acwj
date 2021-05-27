@@ -3,6 +3,8 @@
 #include "misc.h"
 #include "sym.h"
 #include "decl.h"
+#include "utils.h"
+#include "types.h"
 
 /**
  compound_statement: '{' '}'          // empty, i.e. no statement
@@ -34,6 +36,7 @@
 static struct ASTnode *print_statement(Content *cd, struct _Writer *w, struct Token *token)
 {
   struct ASTnode *tree;
+  int lefttype, righttype;
   int reg;
 
   // Match a 'print' as the first token
@@ -42,11 +45,19 @@ static struct ASTnode *print_statement(Content *cd, struct _Writer *w, struct To
   // Parse the following expression
   tree = expre_binexpr(cd, token, 0);
 
-  //make an print ast tree
-  tree = expre_mkastunary(A_PRINT, tree, 0);
+  // Ensure the two types are compatible.
+  lefttype = P_INT;
+  righttype = tree->type;
+  if (!types_compatible(&lefttype, &righttype, 0)){
+    fatal(cd, "Incompatible types");
+  }
 
-  // Match the following semicolon and return tree
-  //misc_semi(cd, token);
+  // Widen the tree if required. 
+  if (righttype)
+    tree = expre_mkastunary(righttype, P_INT, tree, 0);
+
+  //make an print ast tree
+  tree = expre_mkastunary(A_PRINT, P_NONE, tree, 0);
 
   return tree;
 }
@@ -54,6 +65,7 @@ static struct ASTnode *print_statement(Content *cd, struct _Writer *w, struct To
 static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, struct Token *token)
 {
   struct ASTnode *left, *right, *tree;
+  int lefttype, righttype;
   int id;
 
   // Ensure we have an identifier
@@ -65,7 +77,7 @@ static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, stru
     fprintf(stderr, "Undeclared variable %s\n", cd->context.textBuf);
     exit(1);
   }
-  right = expre_mkastleaf(A_LVIDENT, id);
+  right = expre_mkastleaf(A_LVIDENT, sym_getGlob(id)->type, id);
 
   // Ensure we have an equals sign
   misc_match(cd, token, T_ASSIGN, "=");
@@ -73,11 +85,18 @@ static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, stru
   // Parse the following expression
   left = expre_binexpr(cd, token, 0);
 
-  // Make an assignment AST tree
-  tree = expre_mkastnode(A_ASSIGN, left, NULL, right, 0);
+  // Ensure the two types are compatible.
+  lefttype = left->type;
+  righttype = right->type;
+  if (!types_compatible(&lefttype, &righttype, 1))
+    fatal(cd, "Incompatible types");
 
-  // Match the following semicolon
-  //misc_semi(cd, token);
+  // Widen the left if required.
+  if (lefttype)
+    left = expre_mkastunary(lefttype, right->type, left, 0);
+
+  // Make an assignment AST tree
+  tree = expre_mkastnode(A_ASSIGN, P_INT, left, NULL, right, 0);
 
   return tree;
 }
@@ -117,7 +136,7 @@ struct ASTnode *if_statement(Content *cd, struct _Writer *w, struct Token *token
     falseAST = statement_parse(cd, w, token);
   }
   // Build and return the AST for this statement
-  return (expre_mkastnode(A_IF, condAST, trueAST, falseAST, 0));
+  return (expre_mkastnode(A_IF, P_NONE, condAST, trueAST, falseAST, 0));
 }
 
 static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct Token *token);
@@ -148,7 +167,7 @@ struct ASTnode *while_statement(Content *cd, struct _Writer *w, struct Token *to
   bodyAST = statement_parse(cd, w, token);
 
   // Build and return the AST for this statement
-  return (expre_mkastnode(A_WHILE, condAST, NULL, bodyAST, 0));
+  return (expre_mkastnode(A_WHILE, P_NONE, condAST, NULL, bodyAST, 0));
 }
 
 // Parse a FOR statement
@@ -187,13 +206,13 @@ static struct ASTnode *for_statement(Content *cd, struct _Writer *w, struct Toke
   // Later on, we'll change the semantics for when some are missing
 
   // Glue the compound statement and the postop tree
-  tree = expre_mkastnode(A_GLUE, bodyAST, NULL, postopAST, 0);
+  tree = expre_mkastnode(A_GLUE, P_NONE, bodyAST, NULL, postopAST, 0);
 
   // Make a WHILE loop with the condition and this new body
-  tree = expre_mkastnode(A_WHILE, condAST, NULL, tree, 0);
+  tree = expre_mkastnode(A_WHILE, P_NONE, condAST, NULL, tree, 0);
 
   // And glue the preop tree to the A_WHILE tree
-  return (expre_mkastnode(A_GLUE, preopAST, NULL, tree, 0));
+  return (expre_mkastnode(A_GLUE, P_NONE, preopAST, NULL, tree, 0));
   //https://github.com/LightSun/acwj/tree/master/10_For_Loops
 }
 
@@ -206,6 +225,7 @@ static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct T
   case T_PRINT:
     return (print_statement(cd, w, token));
 
+  case T_CHAR:
   case T_INT:
     decl_var(cd, w, token);
     return (NULL); // No AST generated here
@@ -257,7 +277,7 @@ struct ASTnode *statement_parse(Content *cd, struct _Writer *w, struct Token *to
       if (left == NULL)
         left = tree;
       else
-        left = expre_mkastnode(A_GLUE, left, NULL, tree, 0);
+        left = expre_mkastnode(A_GLUE, P_NONE, left, NULL, tree, 0);
     }
     // When we hit a right curly bracket,
     // skip past it and return the AST

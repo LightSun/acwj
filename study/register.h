@@ -20,11 +20,15 @@ void register_cgprintint(REGISTER_CONTEXT_PARAM, int r);
 
 // Load a value from a variable into a register.
 // Return the number of the register
-int register_cgloadglob(REGISTER_CONTEXT_PARAM, const char* identifier);
+//name: identifier name
+int register_cgloadglob(REGISTER_CONTEXT_PARAM, int pType, const char* name);
 // Store a register's value into a variable
-int register_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, const char* identifier);
+//name: identifier name
+int register_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int pType, const char* name);
 // Generate a global symbol
-void register_cgglobsym(REGISTER_CONTEXT_PARAM, int id, const char* sym);
+//pType: one of Primitive types
+//name: identifier name
+void register_cgglobsym(REGISTER_CONTEXT_PARAM, int pType, const char* name);
 
 void register_free_all();
 
@@ -51,6 +55,9 @@ int register_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int asTop,int r1, int r2)
 void register_cgfuncpreamble(REGISTER_CONTEXT_PARAM, const char* funcName);
 
 void register_cgfuncpostamble(REGISTER_CONTEXT_PARAM);
+
+//---------------- widen --------------------------
+int register_cgwiden(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype);
 
 CPP_END
 

@@ -41,7 +41,7 @@ enum {
 
 // Abstract Syntax Tree structure
 struct ASTnode {
-  int op;			                	// "Operation" to be performed on this tree
+  int op;			                	// "Operation" to be performed on this tree. ast op like A_WHILE and etc.
   int type;                     // Type of any expression this tree generates. like P_INT and etc.
   struct ASTnode *left;		    	// Left and right child trees
   struct ASTnode *mid;

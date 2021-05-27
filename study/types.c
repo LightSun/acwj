@@ -1,10 +1,10 @@
 #include "ast.h"
 
-// Given two primitive types, return true if they are compatible,
-// false otherwise. Also return either zero or an A_WIDEN
+// Given two primitive types, return true if they are compatible, false otherwise. 
+// Also return either zero or an A_WIDEN
 // operation if one has to be widened to match the other.
 // If onlyright is true, only widen left to right.
-int type_compatible(int *left, int *right, int onlyright) {
+int types_compatible(int *left, int *right, int onlyright) {
 
   // Voids not compatible with anything
   if ((*left == P_VOID) || (*right == P_VOID)) return (0);

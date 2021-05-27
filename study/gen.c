@@ -141,10 +141,16 @@ int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
   case A_INTLIT:
     return (register_cgload(w, n->v.intvalue));
 
-  case A_IDENT:
-    return (register_cgloadglob(w, sym_getGlob(n->v.id)->name));
-  case A_LVIDENT:
-    return (register_cgstoreglob(w, reg, sym_getGlob(n->v.id)->name));
+  case A_IDENT:{
+    SymTable* st = sym_getGlob(n->v.id);
+    return (register_cgloadglob(w, st->type, st->name));
+  }
+
+  case A_LVIDENT:{
+     SymTable* st = sym_getGlob(n->v.id);
+    return (register_cgstoreglob(w, reg, st->type, st->name));
+  }
+
   case A_ASSIGN:
     // The work has already been done, return the result
     return (rightreg);
@@ -180,6 +186,10 @@ int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
         return (register_cgcompare_and_set(w, n->op, leftreg, rightreg));
     }
 
+ case A_WIDEN:
+      // Widen the child's type to the parent's type
+      return (register_cgwiden(w, leftreg, n->left->type, n->type));
+
   default:
     fprintf(stderr, "Unknown AST operator %d\n", n->op);
     exit(1);
@@ -203,7 +213,7 @@ void gen_printint(struct _Writer *w, int reg)
   register_cgprintint(w, reg);
 }
 
-void gen_globsym(struct _Writer *w, int id, const char* name)
+void gen_globsym(struct _Writer *w, int pType, const char* name)
 {
-  register_cgglobsym(w, id, name);
+  register_cgglobsym(w, pType, name);
 }

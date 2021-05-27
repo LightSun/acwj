@@ -5,6 +5,7 @@
 #include "scanner.h"
 #include "sym.h"
 #include "utils.h"
+#include "types.h"
 
 //grammer
 /**
@@ -66,6 +67,7 @@ struct ASTnode *expre_mkastleaf(int op, int type, int intvalue) {
 }
 
 // Make a unary AST node: only one child
+//op: ast op 
 struct ASTnode *expre_mkastunary(int op, int type,struct ASTnode *left, int intvalue) {
   return (expre_mkastnode(op, type, left, NULL, NULL, intvalue));
 }
@@ -87,7 +89,7 @@ static struct ASTnode *primary(struct _Content* cd, struct Token* token) {
       // For an INTLIT token, make a leaf AST node for it.
       // Make it a P_CHAR if it's within the P_CHAR range
       if ((token->intvalue) >= 0 && (token->intvalue < 256)){
-          n = mkastleaf(A_INTLIT, P_CHAR, token->intvalue);
+          n = expre_mkastleaf(A_INTLIT, P_CHAR, token->intvalue);
       }else{
           n = expre_mkastleaf(A_INTLIT, P_INT, token->intvalue);
       }
@@ -146,6 +148,7 @@ static int op_precedence(struct _Content* cd, int tokentype) {
 // ptp:  the previous token's precedence.
 struct ASTnode* expre_binexpr(struct _Content* cd, struct Token* token, int ptp) {
   struct ASTnode *left, *right;
+  int lefttype, righttype;
   int tokentype;
 
   // Get the integer literal on the left.
@@ -167,9 +170,23 @@ struct ASTnode* expre_binexpr(struct _Content* cd, struct Token* token, int ptp)
     // precedence of our token to build a sub-tree
     right = expre_binexpr(cd, token, OpPrec[tokentype]);
 
-    // Join that sub-tree with ours. Convert the token
+    // Ensure the two types are compatible.
+    lefttype = left->type;
+    righttype = right->type;
+    if(!types_compatible(&lefttype, &righttype, 0)){
+      fatal(cd, "Incompatible types");
+    }
+    // Widen either side if required. type vars are A_WIDEN now
+    if(lefttype){
+      left = expre_mkastunary(lefttype, right->type, left, 0);
+    }
+    if(righttype){
+      right = expre_mkastunary(righttype, left->type, right, 0);
+    }
+
+     // Join that sub-tree with ours. Convert the token
     // into an AST operation at the same time.
-    left = expre_mkastnode(arithop(cd, tokentype), left, NULL, right, 0);
+    left = expre_mkastnode(arithop(cd, tokentype), left->type, left, NULL, right, 0);
 
      // Update the details of the current token.
     // If we hit a semicolon, return just the left node

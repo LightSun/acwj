@@ -38,7 +38,9 @@ void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token)
   // and generate its space in assembly
   id = sym_addglob(cd->context.textBuf, type, S_VARIABLE);
 
-  gen_globsym(w, id, sym_getGlob(id)->name);
+  SymTable* st = sym_getGlob(id);
+  gen_globsym(w, st->type, st->name);
+  
   //match final semicolon(';')
   misc_semi(cd, token);
 }

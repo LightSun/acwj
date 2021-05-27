@@ -177,36 +177,45 @@ void register_cgprintint(REGISTER_CONTEXT_PARAM, int r)
 }
 
 //------------- from class 6 -------------------------
-int register_cgloadglob(REGISTER_CONTEXT_PARAM, const char *identifier)
+int register_cgloadglob(REGISTER_CONTEXT_PARAM, int pType, const char *name)
 {
   // Get a new register
   int r = register_alloc();
 
-  // Print out the code to initialise it
-  //fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", identifier, reglist[r]);
+  //fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", name, reglist[r]);
 
   char buffer[32];
-  snprintf(buffer, 32, "\tmovq\t%s(\%%rip), %s\n", identifier, reglist[r]);
+   // Print out the code to initialise it: P_CHAR or P_INT
+  if(pType == P_INT){
+      snprintf(buffer, 32, "\tmovq\t%s(\%%rip), %s\n", name, reglist[r]);
+  }else{
+      snprintf(buffer, 32, "\tmovzbq\t%s(\%%rip), %s\n", name, reglist[r]);
+  }
   w->writeChars(w->context, buffer);
   return (r);
 }
 
 // Store a register's value into a variable
-int register_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, const char *identifier)
+int register_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int pType, const char *name)
 {
-  // fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], identifier);
+  // fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], name);
   char buffer[32];
-  snprintf(buffer, 32, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], identifier);
+  // Choose P_INT or P_CHAR
+  if(pType == P_INT){
+    snprintf(buffer, 32, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], name);
+  }else{
+    snprintf(buffer, 32, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], name);
+  }
   w->writeChars(w->context, buffer);
   return (r);
 }
 
 // Generate a global symbol
-void register_cgglobsym(REGISTER_CONTEXT_PARAM, int id, const char *sym)
+void register_cgglobsym(REGISTER_CONTEXT_PARAM, int pType, const char *sym)
 {
   //fprintf(Outfile, "\t.comm\t%s,8,8\n", sym);
   char buffer[32];
-  if (id == P_INT)
+  if (pType == P_INT)
   {
     snprintf(buffer, 32, "\t.comm\t%s,8,8\n", sym);
   }
@@ -381,4 +390,14 @@ void register_cgfuncpostamble(REGISTER_CONTEXT_PARAM)
   w->writeChars(w->context, "\tmovl $0, %eax\n"
                             "\tpopq     %rbp\n"
                             "\tret\n");
+}
+
+
+//---------------------------------------------
+// Widen the value in the register from the old
+// to the new type, and return a register with
+// this new value
+int register_cgwiden(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype) {
+  // Nothing to do
+  return (r);
 }

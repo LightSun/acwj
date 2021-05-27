@@ -22,9 +22,6 @@ static void parseStatement(Content *cd, Writer *w){
             break;
         }
     }
-/*     tree = statement_parse(cd, w, &token);
-    gen_genAST(tree, w, NOREG, 0);
-    gen_postamble(w); */
 
     cd->end(&cd->context);
     w->end(w->context);
@@ -67,11 +64,12 @@ int main(int argc, char **args)
       //  char* outFile = getCurrentFilePath("/study/res/input05");
       //  char* outFile = getCurrentFilePath("/study/res/input06.txt");
        // char* outFile = getCurrentFilePath("/study/res/input07");
-        char* outFile = getCurrentFilePath("/study/res/input08"); //func1
+       // char* outFile = getCurrentFilePath("/study/res/input08"); //func1
+        char* outFile = getCurrentFilePath("/study/res/input10"); //12
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 
-        outFile = getCurrentFilePath("/study/note/out_11.s");
+        outFile = getCurrentFilePath("/study/note/out_12.s");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -80,7 +78,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/note/out_11.s");
+            char* outFile = getCurrentFilePath("/study/note/out_12.s");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }

@@ -125,6 +125,11 @@ static int keyword(char *s)
       return (T_INT);
     break;
 
+  case 'c':
+    if (!strcmp(s, "char"))
+      return (T_CHAR);
+    break;
+
   case 'e':
     if (!strcmp(s, "else"))
       return (T_ELSE);
