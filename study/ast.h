@@ -6,6 +6,15 @@
 
 CPP_START
 
+// Primitive types
+enum {
+  //may be complex expre named GLUE
+  P_NONE, 
+  P_VOID, 
+  P_CHAR,
+   P_INT
+};
+
 // AST node types. The first few line up
 // with the related tokens
 enum {
@@ -20,18 +29,21 @@ enum {
   A_LVIDENT,
    //assign
    A_ASSIGN,
-  // print,   ,if
+  // print,   complex statement  ,if
    A_PRINT, A_GLUE, A_IF,
    //while
    A_WHILE, 
    
-   A_FUNCTION
+   A_FUNCTION,
+
+   A_WIDEN, //sometimes: need widen. like char to int
 };
 
 // Abstract Syntax Tree structure
 struct ASTnode {
-  int op;				// "Operation" to be performed on this tree
-  struct ASTnode *left;			// Left and right child trees
+  int op;			                	// "Operation" to be performed on this tree
+  int type;                     // Type of any expression this tree generates. like P_INT and etc.
+  struct ASTnode *left;		    	// Left and right child trees
   struct ASTnode *mid;
   struct ASTnode *right;
   union {

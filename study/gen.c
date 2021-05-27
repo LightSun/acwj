@@ -203,7 +203,7 @@ void gen_printint(struct _Writer *w, int reg)
   register_cgprintint(w, reg);
 }
 
-void gen_globsym(struct _Writer *w, const char *s)
+void gen_globsym(struct _Writer *w, int id, const char* name)
 {
-  register_cgglobsym(w, s);
+  register_cgglobsym(w, id, name);
 }

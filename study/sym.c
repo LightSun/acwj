@@ -1,9 +1,10 @@
 #include "sym.h"
 
+
 // Symbol table functions
 // Copyright (c) 2019 Warren Toomey, GPL3
 
-static int Globs = 0;		           // Position of next free global symbol slot
+static int Globs = 0;		               // Position of next free global symbol slot
 static SymTable syms[SYM_BOLS_COUNT];  // Global symbol table
 
 // Determine if the symbol s is in the global symbol table.
@@ -31,8 +32,9 @@ static int newglob(void) {
 }
 
 // Add a global symbol to the symbol table.
+// Also set up its type and structural type.
 // Return the slot number in the symbol table
-int sym_addglob(char *name) {
+int sym_addglob(char *name, int type, int stype) {
   int y;
 
   // If this is already in the symbol table, return the existing slot
@@ -43,6 +45,8 @@ int sym_addglob(char *name) {
   // return the slot number
   y = newglob();
   syms[y].name = strdup(name); //copy string. need free
+  syms[y].type = type;
+  syms[y].stype = stype;
   return (y);
 }
 

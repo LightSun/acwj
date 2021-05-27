@@ -24,7 +24,7 @@ int register_cgloadglob(REGISTER_CONTEXT_PARAM, const char* identifier);
 // Store a register's value into a variable
 int register_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, const char* identifier);
 // Generate a global symbol
-void register_cgglobsym(REGISTER_CONTEXT_PARAM, const char* sym);
+void register_cgglobsym(REGISTER_CONTEXT_PARAM, int id, const char* sym);
 
 void register_free_all();
 

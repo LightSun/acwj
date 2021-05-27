@@ -34,7 +34,10 @@ enum
   T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
   // ============= keywords ====================
   T_PRINT,   // print
+  
   T_INT,    // int identifier prefix
+  T_CHAR,   
+
   T_IF,
   T_ELSE,
   T_WHILE,

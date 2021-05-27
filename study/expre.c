@@ -4,6 +4,7 @@
 #include "token.h"
 #include "scanner.h"
 #include "sym.h"
+#include "utils.h"
 
 //grammer
 /**
@@ -38,7 +39,7 @@
 // Copyright (c) 2019 Warren Toomey, GPL3
 
 // Build and return a generic AST node
-struct ASTnode *expre_mkastnode(int op, struct ASTnode *left, struct ASTnode *mid,
+struct ASTnode *expre_mkastnode(int op, int type, struct ASTnode *left, struct ASTnode *mid,
 			  struct ASTnode *right, int intvalue) {
   struct ASTnode *n;
 
@@ -50,6 +51,7 @@ struct ASTnode *expre_mkastnode(int op, struct ASTnode *left, struct ASTnode *mi
   }
   // Copy in the field values and return it
   n->op = op;
+  n->type = type;
   n->left = left;
   n->right = right;
   n->mid = mid;
@@ -59,13 +61,13 @@ struct ASTnode *expre_mkastnode(int op, struct ASTnode *left, struct ASTnode *mi
 
 
 // Make an AST leaf node
-struct ASTnode *expre_mkastleaf(int op, int intvalue) {
-  return (expre_mkastnode(op, NULL, NULL, NULL, intvalue));
+struct ASTnode *expre_mkastleaf(int op, int type, int intvalue) {
+  return (expre_mkastnode(op, type, NULL, NULL, NULL, intvalue));
 }
 
 // Make a unary AST node: only one child
-struct ASTnode *expre_mkastunary(int op, struct ASTnode *left, int intvalue) {
-  return (expre_mkastnode(op, left, NULL, NULL, intvalue));
+struct ASTnode *expre_mkastunary(int op, int type,struct ASTnode *left, int intvalue) {
+  return (expre_mkastnode(op, type, left, NULL, NULL, intvalue));
 }
 
 // Parsing of expressions
@@ -83,19 +85,23 @@ static struct ASTnode *primary(struct _Content* cd, struct Token* token) {
   switch (token->token) {
     case T_INTLIT:
       // For an INTLIT token, make a leaf AST node for it.
-      n = expre_mkastleaf(A_INTLIT, token->intvalue);
+      // Make it a P_CHAR if it's within the P_CHAR range
+      if ((token->intvalue) >= 0 && (token->intvalue < 256)){
+          n = mkastleaf(A_INTLIT, P_CHAR, token->intvalue);
+      }else{
+          n = expre_mkastleaf(A_INTLIT, P_INT, token->intvalue);
+      }
       break;
 
     case T_IDENT:
        // Check that this identifier exists
       id = sym_findglob(cd->context.textBuf);
       if (id == -1){
-        fprintf(stderr, "Unknown variable %s.", cd->context.textBuf);
-        exit(1);
+        fatals(cd, "Unknown variable %s.", cd->context.textBuf);
       }
 
       // Make a leaf AST node for it
-      n = expre_mkastleaf(A_IDENT, id);
+      n = expre_mkastleaf(A_IDENT, sym_getGlob(id)->type, id);
       break;  
 
     default:

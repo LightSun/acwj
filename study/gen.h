@@ -23,7 +23,7 @@ void gen_postamble(struct _Writer *w);
 void gen_freeregs(struct _Writer *w);
 void gen_printint(struct _Writer *w, int reg);
 
-void gen_globsym(struct _Writer *w, const char *sym);
+void gen_globsym(struct _Writer *w, int id, const char* symName);
 
 CPP_END
 #endif
