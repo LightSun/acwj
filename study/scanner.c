@@ -167,7 +167,7 @@ static int keyword(char *s)
 }
 
 // Reject the token that we just scanned
- void scanner_reject_token(Content *cd, struct token *t) {
+ void scanner_reject_token(Content *cd, struct Token *t) {
   if (cd->context.rejtoken != NULL){
     fatal(cd, "Can't reject token twice");
   }

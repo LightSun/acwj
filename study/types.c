@@ -1,10 +1,12 @@
 #include "ast.h"
+#include "gen.h"
+#include "writer.h"
 
 // Given two primitive types, return true if they are compatible, false otherwise.
 // Also return either zero or an A_WIDEN
 // operation if one has to be widened to match the other.
 // If onlyright is true, only widen left to right.
-int types_compatible(int *left, int *right, int onlyright)
+int types_compatible(struct _Writer* w,int *left, int *right, int onlyright)
 {
   int leftsize, rightsize;
 
@@ -15,8 +17,8 @@ int types_compatible(int *left, int *right, int onlyright)
     return (1);
   }
   // Get the sizes for each type
-  leftsize = genprimsize(*left);
-  rightsize = genprimsize(*right);
+  leftsize = gen_primsize(w, *left);
+  rightsize = gen_primsize(w, *right);
 
   // Types with zero size are not
   // not compatible with anything

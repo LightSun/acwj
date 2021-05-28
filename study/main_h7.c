@@ -4,6 +4,7 @@
 #include "writer.h"
 #include "statement.h"
 #include "decl.h"
+#include "sym.h"
 
 static void parseStatement(Content *cd, Writer *w){
     struct Token token;
@@ -17,7 +18,7 @@ static void parseStatement(Content *cd, Writer *w){
     gen_preamble(w);
     while(1){
         tree = decl_function(cd, w, &token);
-        gen_genAST(tree, w, NOREG, 0);
+        gen_genAST(cd, tree, w, NOREG, 0);
         if(token.token == T_EOF){
             break;
         }
@@ -49,8 +50,14 @@ static char *getCurrentFilePath(const char *rPath)
     return getFilePath(buf, rPath);
 }
 
+static void printint(long x) {
+    printf("x = %ld", x);
+}
 int main(int argc, char **args)
 {
+    // For now, ensure that void printint() is defined //13
+    sym_addglob("printint", P_CHAR, S_FUNCTION, 0);
+
     Content *cd;
     Writer *w;
     if (argc == 1)
@@ -64,12 +71,13 @@ int main(int argc, char **args)
       //  char* outFile = getCurrentFilePath("/study/res/input05");
       //  char* outFile = getCurrentFilePath("/study/res/input06.txt");
        // char* outFile = getCurrentFilePath("/study/res/input07");
-       // char* outFile = getCurrentFilePath("/study/res/input08"); //func1
-        char* outFile = getCurrentFilePath("/study/res/input10"); //12
+       // char* outFile = getCurrentFilePath("/study/res/input08"); //func1 11
+      //  char* outFile = getCurrentFilePath("/study/res/input10"); //12
+        char* outFile = getCurrentFilePath("/study/res/input14"); //13
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 
-        outFile = getCurrentFilePath("/study/note/out_12.s");
+        outFile = getCurrentFilePath("/study/note/out_13.s");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -78,7 +86,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/note/out_12.s");
+            char* outFile = getCurrentFilePath("/study/note/out_13.s");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }

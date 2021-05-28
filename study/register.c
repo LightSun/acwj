@@ -492,6 +492,6 @@ int register_cgcall(REGISTER_CONTEXT_PARAM, int r, const char *symName)
   snprintf(buffer, 32, "\tmovq\t%%rax, %s\n", reglist[outr]);
   w->writeChars(w->context, buffer);
 
-  free_register(r);
+  register_free(r);
   return (outr);
 }

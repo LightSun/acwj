@@ -1,10 +1,10 @@
 #include "statement.h"
+#include "decl.h"
 #include "expre.h"
 #include "misc.h"
 #include "sym.h"
-#include "decl.h"
-#include "utils.h"
 #include "types.h"
+#include "utils.h"
 
 /**
  compound_statement: '{' '}'          // empty, i.e. no statement
@@ -43,16 +43,17 @@ static struct ASTnode *print_statement(Content *cd, struct _Writer *w, struct To
   misc_match(cd, token, T_PRINT, "print");
 
   // Parse the following expression
-  tree = expre_binexpr(cd, token, 0);
+  tree = expre_binexpr(cd, w, token, 0);
 
   // Ensure the two types are compatible.
   lefttype = P_INT;
   righttype = tree->type;
-  if (!types_compatible(&lefttype, &righttype, 0)){
+  if (!types_compatible(w, &lefttype, &righttype, 0))
+  {
     fatal(cd, "Incompatible types");
   }
 
-  // Widen the tree if required. 
+  // Widen the tree if required.
   if (righttype)
     tree = expre_mkastunary(righttype, P_INT, tree, 0);
 
@@ -70,11 +71,11 @@ static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, stru
 
   // Ensure we have an identifier
   misc_ident(cd, token);
-  
+
   // This could be a variable or a function call.
   // If next token is '(', it's a function call
   if (token->token == T_LPAREN)
-    return (expre_funccall(cd, token));
+    return (expre_funccall(cd, w, token));
 
   // Check it's been defined then make a leaf node for it
   if ((id = sym_findglob(cd->context.textBuf)) == -1)
@@ -88,12 +89,12 @@ static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, stru
   misc_match(cd, token, T_ASSIGN, "=");
 
   // Parse the following expression
-  left = expre_binexpr(cd, token, 0);
+  left = expre_binexpr(cd, w, token, 0);
 
   // Ensure the two types are compatible.
   lefttype = left->type;
   righttype = right->type;
-  if (!types_compatible(&lefttype, &righttype, 1))
+  if (!types_compatible(w, &lefttype, &righttype, 1))
     fatal(cd, "Incompatible types");
 
   // Widen the left if required.
@@ -120,7 +121,7 @@ struct ASTnode *if_statement(Content *cd, struct _Writer *w, struct Token *token
   // Parse the following expression
   // and the ')' following. Ensure
   // the tree's operation is a comparison.
-  condAST = expre_binexpr(cd, token, 0);
+  condAST = expre_binexpr(cd, w, token, 0);
 
   if (condAST->op < A_EQ || condAST->op > A_GE)
   {
@@ -160,7 +161,7 @@ struct ASTnode *while_statement(Content *cd, struct _Writer *w, struct Token *to
   // Parse the following expression
   // and the ')' following. Ensure
   // the tree's operation is a comparison.
-  condAST = expre_binexpr(cd, token, 0);
+  condAST = expre_binexpr(cd, w, token, 0);
   if (condAST->op < A_EQ || condAST->op > A_GE)
   {
     fprintf(stderr, "Bad comparison operator");
@@ -192,7 +193,7 @@ static struct ASTnode *for_statement(Content *cd, struct _Writer *w, struct Toke
   misc_semi(cd, token);
 
   // Get the condition and the ';'
-  condAST = expre_binexpr(cd, token, 0);
+  condAST = expre_binexpr(cd, w, token, 0);
   if (condAST->op < A_EQ || condAST->op > A_GE)
   {
     fprintf(stderr, "Bad comparison operator");
@@ -222,7 +223,8 @@ static struct ASTnode *for_statement(Content *cd, struct _Writer *w, struct Toke
 }
 
 // Parse a return statement and return its AST
-static struct ASTnode *return_statement(Content *cd, struct _Writer *w, struct Token *token) {
+static struct ASTnode *return_statement(Content *cd, struct _Writer *w, struct Token *token)
+{
   struct ASTnode *tree;
   int returntype, functype;
 
@@ -235,12 +237,12 @@ static struct ASTnode *return_statement(Content *cd, struct _Writer *w, struct T
   misc_lparen(cd, token);
 
   // Parse the following expression
-  tree = expre_binexpr(cd, token, 0);
+  tree = expre_binexpr(cd, w, token, 0);
 
   // Ensure this is compatible with the function's type
   returntype = tree->type;
   functype = sym_getGlob(cd->context.functionid)->type;
-  if (!types_compatible(&returntype, &functype, 1))
+  if (!types_compatible(w, &returntype, &functype, 1))
     fatal(cd, "Incompatible types");
 
   // Widen the left if required.
@@ -266,6 +268,7 @@ static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct T
 
   case T_CHAR:
   case T_INT:
+  case T_LONG:
     decl_var(cd, w, token);
     return (NULL); // No AST generated here
 
@@ -280,6 +283,9 @@ static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct T
 
   case T_FOR:
     return (for_statement(cd, w, token));
+
+  case T_RETURN:
+    return (return_statement(cd, w, token));
 
   default:
     fprintf(stderr, "Syntax error, token = %d", token->token);
@@ -303,7 +309,8 @@ struct ASTnode *statement_parse(Content *cd, struct _Writer *w, struct Token *to
     tree = single_statement(cd, w, token);
 
     // Some statements must be followed by a semicolon
-    if (tree != NULL && (tree->op == A_PRINT || tree->op == A_ASSIGN))
+    if (tree != NULL && (tree->op == A_PRINT || tree->op == A_ASSIGN 
+          || tree->op == A_RETURN ||  tree->op == A_FUNCCALL))
     {
       misc_semi(cd, token);
     }

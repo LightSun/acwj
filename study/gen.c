@@ -17,7 +17,7 @@ static int label(struct _Writer *w)
 
 // Generate the code for an IF statement
 // and an optional ELSE clause
-static int genIFAST(struct ASTnode *n, struct _Writer *w)
+static int genIFAST(struct _Content* cd, struct ASTnode *n, struct _Writer *w)
 {
   int Lfalse, Lend;
 
@@ -33,11 +33,11 @@ static int genIFAST(struct ASTnode *n, struct _Writer *w)
   // Generate the condition code followed
   // by a zero jump to the false label.
   // We cheat by sending the Lfalse label as a register.
-  gen_genAST(n->left, w, Lfalse, n->op);
+  gen_genAST(cd, n->left, w, Lfalse, n->op);
   gen_freeregs(w);
 
   // Generate the true compound statement
-  gen_genAST(n->mid, w, NOREG, n->op);
+  gen_genAST(cd, n->mid, w, NOREG, n->op);
   gen_freeregs(w);
 
   // If there is an optional ELSE clause,
@@ -53,7 +53,7 @@ static int genIFAST(struct ASTnode *n, struct _Writer *w)
   // end label
   if (n->right)
   {
-    gen_genAST(n->right, w, NOREG, n->op);
+    gen_genAST(cd, n->right, w, NOREG, n->op);
     gen_freeregs(w);
     register_cglabel(w, Lend);
   }
@@ -63,7 +63,7 @@ static int genIFAST(struct ASTnode *n, struct _Writer *w)
 
 // Generate the code for a WHILE statement
 // and an optional ELSE clause
-static int genWHILE(struct ASTnode *n, struct _Writer *w)
+static int genWHILE(struct _Content* cd, struct ASTnode *n, struct _Writer *w)
 {
   int Lstart, Lend;
 
@@ -76,11 +76,11 @@ static int genWHILE(struct ASTnode *n, struct _Writer *w)
   // Generate the condition code followed
   // by a jump to the end label.
   // We cheat by sending the Lfalse label as a register.
-  gen_genAST(n->left, w, Lend, n->op);
+  gen_genAST(cd, n->left, w, Lend, n->op);
   gen_freeregs(w);
 
   // Generate the compound statement for the body
-  gen_genAST(n->right, w, NOREG, n->op);
+  gen_genAST(cd, n->right, w, NOREG, n->op);
   gen_freeregs(w);
 
   // Finally output the jump back to the condition,
@@ -99,24 +99,24 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
   switch (n->op)
   {
   case A_IF:
-    return (genIFAST(n, w));
+    return (genIFAST(cd, n, w));
 
   case A_WHILE:
-    return (genWHILE(n, w));
+    return (genWHILE(cd, n, w));
 
   case A_GLUE:
     // Do each child statement, and free the
     // registers after each child
-    gen_genAST(n->left, w, NOREG, n->op);
+    gen_genAST(cd, n->left, w, NOREG, n->op);
     gen_freeregs(w);
-    gen_genAST(n->right, w, NOREG, n->op);
+    gen_genAST(cd, n->right, w, NOREG, n->op);
     gen_freeregs(w);
     return (NOREG);
 
   case A_FUNCTION:
     // Generate the function's preamble before the code
     register_cgfuncpreamble(w, sym_getGlob(n->v.id)->name);
-    gen_genAST(n->left, w, NOREG, n->op);
+    gen_genAST(cd, n->left, w, NOREG, n->op);
     register_cgfuncpostamble(w);
     return (NOREG);
   }
@@ -125,9 +125,9 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
 
   // Get the left and right sub-tree values
   if (n->left)
-    leftreg = gen_genAST(n->left, w, NOREG, n->op);
+    leftreg = gen_genAST(cd, n->left, w, NOREG, n->op);
   if (n->right)
-    rightreg = gen_genAST(n->right, w, leftreg, n->op);
+    rightreg = gen_genAST(cd, n->right, w, leftreg, n->op);
 
   switch (n->op)
   {
@@ -200,7 +200,7 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
   }
 
   case A_FUNCCALL:
-    return (register_cgcall(leftreg, n->v.id));
+    return (register_cgcall(w, leftreg, sym_getGlob(n->v.id)->name));
 
   default:
     fprintf(stderr, "Unknown AST operator %d\n", n->op);
@@ -212,9 +212,9 @@ void gen_preamble(struct _Writer *w)
 {
   register_cgpreamble(w);
 }
-void gen_postamble(struct _Writer *w)
+void gen_postamble(struct _Writer *w, int endlabel)
 {
-  register_cgpostamble(w);
+  register_cgpostamble(w, endlabel);
 }
 void gen_freeregs(struct _Writer *w)
 {
@@ -228,4 +228,8 @@ void gen_printint(struct _Writer *w, int reg)
 void gen_globsym(struct _Writer *w, int pType, const char *name)
 {
   register_cgglobsym(w, pType, name);
+}
+
+int gen_primsize(struct _Writer *w,int type) {
+  return (register_cgprimsize(w, type));
 }

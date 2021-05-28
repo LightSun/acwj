@@ -1,3 +1,5 @@
+#ifndef _STATEMENT_H
+#define _STATEMENT_H
 
 #include "common_headers.h"
 #include "gen.h"
@@ -8,3 +10,5 @@ CPP_START
 struct ASTnode * statement_parse(Content* cd, struct _Writer* w, struct Token* token);
 
 CPP_END
+
+#endif

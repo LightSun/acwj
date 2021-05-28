@@ -50,6 +50,7 @@
         "ranges": "c",
         "tuple": "c",
         "type_traits": "c",
-        "utility": "c"
+        "utility": "c",
+        "gen.h": "c"
     }
 }

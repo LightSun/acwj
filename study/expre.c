@@ -1,6 +1,7 @@
 
-#include "ast.h"
+#include "expre.h"
 #include "content.h"
+#include "writer.h"
 #include "token.h"
 #include "scanner.h"
 #include "sym.h"
@@ -76,7 +77,7 @@ struct ASTnode *expre_mkastunary(int op, int type,struct ASTnode *left, int intv
 
 // Parse a function call with a single expression
 // argument and return its AST
-struct ASTnode *expre_funccall(struct _Content* cd, struct Token* token) {
+struct ASTnode *expre_funccall(struct _Content* cd, struct _Writer* w, struct Token* token) {
   struct ASTnode *tree;
   int id;
 
@@ -89,7 +90,7 @@ struct ASTnode *expre_funccall(struct _Content* cd, struct Token* token) {
   misc_lparen(cd, token);
 
   // Parse the following expression
-  tree = expre_binexpr(cd, token, 0);
+  tree = expre_binexpr(cd, w, token, 0);
 
   // Build the function call AST node. Store the
   // function's return type as this node's type.
@@ -106,7 +107,7 @@ struct ASTnode *expre_funccall(struct _Content* cd, struct Token* token) {
 
 // Parse a primary factor and return an
 // AST node representing it.
-static struct ASTnode *primary(struct _Content* cd, struct Token* token) {
+static struct ASTnode *primary(struct _Content* cd, struct _Writer* w, struct Token* token) {
   struct ASTnode *n;
   int id;
 
@@ -133,7 +134,7 @@ static struct ASTnode *primary(struct _Content* cd, struct Token* token) {
       scanner_scan(cd, token);
       // It's a '(', so a function call
       if (token->token == T_LPAREN){
-        return (expre_funccall(cd, token));
+        return (expre_funccall(cd, w, token));
       }
       // Not a function call, so reject the new token
       scanner_reject_token(cd, token);
@@ -188,14 +189,14 @@ static int op_precedence(struct _Content* cd, int tokentype) {
 }
 // Return an AST tree whose root is a binary operator.
 // ptp:  the previous token's precedence.
-struct ASTnode* expre_binexpr(struct _Content* cd, struct Token* token, int ptp) {
+struct ASTnode* expre_binexpr(struct _Content* cd, struct _Writer* w,struct Token* token, int ptp) {
   struct ASTnode *left, *right;
   int lefttype, righttype;
   int tokentype;
 
   // Get the integer literal on the left.
   // Fetch the next token at the same time.
-  left = primary(cd, token);
+  left = primary(cd, w, token);
 
   // If we hit a semicolon or ')', return just the left node
   tokentype = token->token;
@@ -210,12 +211,12 @@ struct ASTnode* expre_binexpr(struct _Content* cd, struct Token* token, int ptp)
 
     // Recursively call binexpr() with the
     // precedence of our token to build a sub-tree
-    right = expre_binexpr(cd, token, OpPrec[tokentype]);
+    right = expre_binexpr(cd, w, token, OpPrec[tokentype]);
 
     // Ensure the two types are compatible.
     lefttype = left->type;
     righttype = right->type;
-    if(!types_compatible(&lefttype, &righttype, 0)){
+    if(!types_compatible(w, &lefttype, &righttype, 0)){
       fatal(cd, "Incompatible types");
     }
     // Widen either side if required. type vars are A_WIDEN now

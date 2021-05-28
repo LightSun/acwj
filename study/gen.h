@@ -17,14 +17,16 @@ struct _Content;
  * @param reg: register index
  * @param parentASTop: parent ast type
  **/
-int gen_genAST(struct _Content cd, struct ASTnode *n, struct _Writer *w, int reg, int parentASTop);
+int gen_genAST(struct _Content* cd, struct ASTnode *n, struct _Writer *w, int reg, int parentASTop);
 
 void gen_preamble(struct _Writer *w);
-void gen_postamble(struct _Writer *w);
+void gen_postamble(struct _Writer *w, int endlabel);
 void gen_freeregs(struct _Writer *w);
 void gen_printint(struct _Writer *w, int reg);
 
 void gen_globsym(struct _Writer *w, int id, const char* symName);
+//get the type size in bytes.
+int gen_primsize(struct _Writer *w, int type);
 
 CPP_END
 #endif

@@ -1,3 +1,5 @@
+#ifndef _SCANNER_H
+#define _SCANNER_H
 #include "content.h"
 #include "token.h"
 
@@ -11,3 +13,4 @@ int scanner_scan(Content *ud, struct Token *t);
 void scanner_reject_token(Content *cd, struct Token *t);
 
 CPP_END
+#endif
