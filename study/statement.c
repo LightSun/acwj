@@ -70,6 +70,11 @@ static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, stru
 
   // Ensure we have an identifier
   misc_ident(cd, token);
+  
+  // This could be a variable or a function call.
+  // If next token is '(', it's a function call
+  if (token->token == T_LPAREN)
+    return (expre_funccall(cd, token));
 
   // Check it's been defined then make a leaf node for it
   if ((id = sym_findglob(cd->context.textBuf)) == -1)
@@ -214,6 +219,40 @@ static struct ASTnode *for_statement(Content *cd, struct _Writer *w, struct Toke
   // And glue the preop tree to the A_WHILE tree
   return (expre_mkastnode(A_GLUE, P_NONE, preopAST, NULL, tree, 0));
   //https://github.com/LightSun/acwj/tree/master/10_For_Loops
+}
+
+// Parse a return statement and return its AST
+static struct ASTnode *return_statement(Content *cd, struct _Writer *w, struct Token *token) {
+  struct ASTnode *tree;
+  int returntype, functype;
+
+  // Can't return a value if function returns P_VOID
+  if (sym_getGlob(cd->context.functionid)->type == P_VOID)
+    fatal(cd, "Can't return from a void function");
+
+  // Ensure we have 'return' '('
+  misc_match(cd, token, T_RETURN, "return");
+  misc_lparen(cd, token);
+
+  // Parse the following expression
+  tree = expre_binexpr(cd, token, 0);
+
+  // Ensure this is compatible with the function's type
+  returntype = tree->type;
+  functype = sym_getGlob(cd->context.functionid)->type;
+  if (!types_compatible(&returntype, &functype, 1))
+    fatal(cd, "Incompatible types");
+
+  // Widen the left if required.
+  if (returntype)
+    tree = expre_mkastunary(returntype, functype, tree, 0);
+
+  // Add on the A_RETURN node
+  tree = expre_mkastunary(A_RETURN, P_NONE, tree, 0);
+
+  // Get the ')'
+  misc_rparen(cd, token);
+  return (tree);
 }
 
 // Parse a single statement

@@ -34,7 +34,7 @@ static int newglob(void) {
 // Add a global symbol to the symbol table.
 // Also set up its type and structural type.
 // Return the slot number in the symbol table
-int sym_addglob(char *name, int type, int stype) {
+int sym_addglob(char *name, int type, int stype, int endlabel) {
   int y;
 
   // If this is already in the symbol table, return the existing slot
@@ -47,6 +47,7 @@ int sym_addglob(char *name, int type, int stype) {
   syms[y].name = strdup(name); //copy string. need free
   syms[y].type = type;
   syms[y].stype = stype;
+  syms[y].endlabel = endlabel;
   return (y);
 }
 

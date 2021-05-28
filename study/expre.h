@@ -15,6 +15,8 @@ struct ASTnode *expre_mkastleaf(int op,  int type, int intvalue);
 // Make a unary AST node: only one child
 struct ASTnode *expre_mkastunary(int op, int type, struct ASTnode *left, int intvalue);
 
+struct ASTnode *expre_funccall(struct _Content *cd, struct Token *token);
+
 struct ASTnode* expre_binexpr(struct _Content* cd, struct Token* token, int ptp);
 
 CPP_END

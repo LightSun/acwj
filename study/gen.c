@@ -3,6 +3,7 @@
 #include "register.h"
 #include "sym.h"
 #include "writer.h"
+#include "content.h"
 //#include "token.h"
 
 // Generic code generator
@@ -90,7 +91,7 @@ static int genWHILE(struct ASTnode *n, struct _Writer *w)
 }
 
 //reg: normal reg or label reg
-int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
+int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
 {
   int leftreg, rightreg;
 
@@ -141,13 +142,15 @@ int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
   case A_INTLIT:
     return (register_cgload(w, n->v.intvalue));
 
-  case A_IDENT:{
-    SymTable* st = sym_getGlob(n->v.id);
+  case A_IDENT:
+  {
+    SymTable *st = sym_getGlob(n->v.id);
     return (register_cgloadglob(w, st->type, st->name));
   }
 
-  case A_LVIDENT:{
-     SymTable* st = sym_getGlob(n->v.id);
+  case A_LVIDENT:
+  {
+    SymTable *st = sym_getGlob(n->v.id);
     return (register_cgstoreglob(w, reg, st->type, st->name));
   }
 
@@ -186,9 +189,18 @@ int gen_genAST(struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
         return (register_cgcompare_and_set(w, n->op, leftreg, rightreg));
     }
 
- case A_WIDEN:
-      // Widen the child's type to the parent's type
-      return (register_cgwiden(w, leftreg, n->left->type, n->type));
+  case A_WIDEN:
+    // Widen the child's type to the parent's type
+    return (register_cgwiden(w, leftreg, n->left->type, n->type));
+
+  case A_RETURN:{
+    SymTable * st = sym_getGlob(cd->context.functionid);
+    register_cgreturn(w, leftreg, st->type, st->endlabel);
+    return (NOREG);
+  }
+
+  case A_FUNCCALL:
+    return (register_cgcall(leftreg, n->v.id));
 
   default:
     fprintf(stderr, "Unknown AST operator %d\n", n->op);
@@ -213,7 +225,7 @@ void gen_printint(struct _Writer *w, int reg)
   register_cgprintint(w, reg);
 }
 
-void gen_globsym(struct _Writer *w, int pType, const char* name)
+void gen_globsym(struct _Writer *w, int pType, const char *name)
 {
   register_cgglobsym(w, pType, name);
 }

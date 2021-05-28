@@ -1,5 +1,6 @@
 #include "content.h"
 #include "token.h"
+#include "utils.h"
 
 // Lexical scanning
 // Copyright (c) 2019 Warren Toomey, GPL3
@@ -130,6 +131,13 @@ static int keyword(char *s)
       return (T_CHAR);
     break;
 
+  case 'l':
+    if (!strcmp(s, "long"))
+      return (T_LONG);
+    break;
+
+    //-------------------------
+
   case 'e':
     if (!strcmp(s, "else"))
       return (T_ELSE);
@@ -149,8 +157,21 @@ static int keyword(char *s)
     if (!strcmp(s, "void"))
       return (T_VOID);
     break;
+
+   case 'r':
+    if (!strcmp(s, "return"))
+      return (T_RETURN);
+    break;  
   }
   return (0);
+}
+
+// Reject the token that we just scanned
+ void scanner_reject_token(Content *cd, struct token *t) {
+  if (cd->context.rejtoken != NULL){
+    fatal(cd, "Can't reject token twice");
+  }
+  cd->context.rejtoken = t;
 }
 
 // Scan and return the next token found in the input.
@@ -158,6 +179,13 @@ static int keyword(char *s)
 // scan keyword string to 'cd->context->textBuf'
 int scanner_scan(Content *cd, struct Token *t)
 {
+  
+  // If we have any rejected token, return it
+  if (cd->context.rejtoken != NULL) {
+    t = cd->context.rejtoken;
+    cd->context.rejtoken = NULL;
+    return (1);
+  }
 
   int c, tokentype;
 
@@ -289,7 +317,7 @@ int scanner_scan(Content *cd, struct Token *t)
       break;
     }
 
-    printf("Unrecognised character %c on line %d\n", c, cd->context.line);
+    fprintf(stderr,"Unrecognised character %c on line %d\n", c, cd->context.line);
     exit(1);
     //return 0;
   }

@@ -12,7 +12,8 @@ enum {
   P_NONE, 
   P_VOID, 
   P_CHAR,
-   P_INT
+   P_INT,
+   P_LONG
 };
 
 // AST node types. The first few line up
@@ -37,6 +38,9 @@ enum {
    A_FUNCTION,
 
    A_WIDEN, //sometimes: need widen. like char to int
+
+   A_FUNCCALL, // function call
+   A_RETURN,
 };
 
 // Abstract Syntax Tree structure

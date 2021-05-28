@@ -3,8 +3,11 @@
 
 CPP_START
 
+void scanner_init(Content *ud);
+
 int scanner_scan(Content *ud, struct Token *t);
 
-void scanner_init(Content *ud);
+// Reject the token that we just scanned
+void scanner_reject_token(Content *cd, struct Token *t);
 
 CPP_END

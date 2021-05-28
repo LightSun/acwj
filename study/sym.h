@@ -17,10 +17,11 @@ struct _SymTable {
   char *name;                   // Name of a symbol
   int type;                     // Primitive type for the symbol
   int stype;                    // Structural type for the symbol
+  int endlabel;		            	// For S_FUNCTIONs, the end label
 };
 
 int sym_findglob(char *s);
-int sym_addglob(char *name, int type, int stype);
+int sym_addglob(char *name, int type, int stype, int endlabel);
 SymTable* sym_getGlob(int pos);
 
 CPP_END

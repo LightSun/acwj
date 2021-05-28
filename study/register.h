@@ -8,7 +8,7 @@ CPP_START
 
 // Print out the assembly preamble
 void register_cgpreamble(REGISTER_CONTEXT_PARAM);
-void register_cgpostamble(REGISTER_CONTEXT_PARAM);
+void register_cgpostamble(REGISTER_CONTEXT_PARAM, int endLabel);
 
 int register_cgload(REGISTER_CONTEXT_PARAM, int value);
 int register_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2);
@@ -59,6 +59,19 @@ void register_cgfuncpostamble(REGISTER_CONTEXT_PARAM);
 //---------------- widen --------------------------
 int register_cgwiden(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype);
 
+//get the data size of the primitive type.
+int register_cgprimsize(REGISTER_CONTEXT_PARAM, int pType);
+
+void cgfuncpreamble(REGISTER_CONTEXT_PARAM, const char *name);
+
+/**
+ * To call a function with one argument, we need to copy the register with the argument value into %rdi.
+ *  On return, we need to copy the returned value from %rax into the register that will have this new value:
+ * */
+int register_cgcall(REGISTER_CONTEXT_PARAM, int reg, const char *symName);
+
+//return
+void register_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int pType, int endlabel);
 CPP_END
 
 #endif

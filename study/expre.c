@@ -6,6 +6,7 @@
 #include "sym.h"
 #include "utils.h"
 #include "types.h"
+#include "misc.h"
 
 //grammer
 /**
@@ -72,6 +73,34 @@ struct ASTnode *expre_mkastunary(int op, int type,struct ASTnode *left, int intv
   return (expre_mkastnode(op, type, left, NULL, NULL, intvalue));
 }
 
+
+// Parse a function call with a single expression
+// argument and return its AST
+struct ASTnode *expre_funccall(struct _Content* cd, struct Token* token) {
+  struct ASTnode *tree;
+  int id;
+
+  // Check that the identifier has been defined,
+  // then make a leaf node for it. XXX Add structural type test
+  if ((id = sym_findglob(cd->context.textBuf)) == -1) {
+    fatals(cd, "Undeclared function", cd->context.textBuf);
+  }
+  // Get the '('
+  misc_lparen(cd, token);
+
+  // Parse the following expression
+  tree = expre_binexpr(cd, token, 0);
+
+  // Build the function call AST node. Store the
+  // function's return type as this node's type.
+  // Also record the function's symbol-id
+  tree = expre_mkastunary(A_FUNCCALL, sym_getGlob(id)->type, tree, id);
+
+  // Get the ')'
+  misc_rparen(cd, token);
+  return (tree);
+}
+
 // Parsing of expressions
 // Copyright (c) 2019 Warren Toomey, GPL3
 
@@ -96,7 +125,20 @@ static struct ASTnode *primary(struct _Content* cd, struct Token* token) {
       break;
 
     case T_IDENT:
-       // Check that this identifier exists
+    /** can be: 
+   x= fred + jim;
+   x= fred(5) + jim;
+     * */
+    //this should be a var-del or func-call
+      scanner_scan(cd, token);
+      // It's a '(', so a function call
+      if (token->token == T_LPAREN){
+        return (expre_funccall(cd, token));
+      }
+      // Not a function call, so reject the new token
+      scanner_reject_token(cd, token);
+
+      // Check that this identifier exists
       id = sym_findglob(cd->context.textBuf);
       if (id == -1){
         fatals(cd, "Unknown variable %s.", cd->context.textBuf);

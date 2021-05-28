@@ -43,6 +43,9 @@ enum
   T_WHILE,
   T_FOR,
   T_VOID,
+
+  T_LONG,
+  T_RETURN 
 };
 
 // Token structure

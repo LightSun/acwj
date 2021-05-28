@@ -41,6 +41,15 @@
         "writer.h": "c",
         "misc.h": "c",
         "sym.h": "c",
-        "statement.h": "c"
+        "statement.h": "c",
+        "content_pri.h": "c",
+        "array": "c",
+        "compare": "c",
+        "functional": "c",
+        "ostream": "c",
+        "ranges": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c"
     }
 }

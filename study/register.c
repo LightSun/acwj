@@ -6,8 +6,9 @@
 // List of available registers and their names
 // We need a list of byte registers, too
 static int freereg[4];
-static char *reglist[4] = {"%r8", "%r9", "%r10", "%r11"};
-static char *breglist[4] = {"%r8b", "%r9b", "%r10b", "%r11b"};
+static char *reglist[4] = {"%r8", "%r9", "%r10", "%r11"};      //long
+static char *breglist[4] = {"%r8b", "%r9b", "%r10b", "%r11b"}; //char
+static char *dreglist[4] = {"%r8d", "%r9d", "%r10d", "%r11d"}; //int
 
 // Set all registers as available
 void register_free_all(void)
@@ -47,39 +48,17 @@ static void register_free(int reg)
 void register_cgpreamble(REGISTER_CONTEXT_PARAM)
 {
   register_free_all();
-  w->writeChars(w->context,
-                "\t.text\n"
-                ".LC0:\n"
-                "\t.string\t\"%d\\n\"\n"
-                "printint:\n"
-                "\tpushq\t%rbp\n"
-                "\tmovq\t%rsp, %rbp\n"
-                "\tsubq\t$16, %rsp\n"
-                "\tmovl\t%edi, -4(%rbp)\n"
-                "\tmovl\t-4(%rbp), %eax\n"
-                "\tmovl\t%eax, %esi\n"
-                "\tleaq	.LC0(%rip), %rdi\n"
-                "\tmovl	$0, %eax\n"
-                "\tcall	printf@PLT\n"
-                "\tnop\n"
-                "\tleave\n"
-                "\tret\n"
-                "\n"
-                "\t.globl\tmain\n"
-                "\t.type\tmain, @function\n"
-                "main:\n"
-                "\tpushq\t%rbp\n"
-                "\tmovq	%rsp, %rbp\n");
+  w->writeChars(w->context,"\t.text\n");
 }
 
 // Print out the assembly postamble
-void register_cgpostamble(REGISTER_CONTEXT_PARAM)
+void register_cgpostamble(REGISTER_CONTEXT_PARAM, int endLabel)
 {
-  // fputs("\tmovl	$0, %eax\n" "\tpopq	%rbp\n" "\tret\n", Outfile);
-  w->writeChars(w->context,
-                "\tmovl	$0, %eax\n"
-                "\tpopq	%rbp\n"
-                "\tret\n");
+  
+  register_cglabel(w, endLabel);
+  //fputs("\tpopq %rbp\n" "\tret\n", Outfile);
+  w->writeChars(w->context, "\tpopq %rbp\n"
+                            "\tret\n");
 }
 
 // Load an integer literal value into a register.
@@ -182,14 +161,28 @@ int register_cgloadglob(REGISTER_CONTEXT_PARAM, int pType, const char *name)
   // Get a new register
   int r = register_alloc();
 
-  //fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", name, reglist[r]);
+  char buffer[64];
+  // Print out the code to initialise it
+  switch (pType)
+  {
+  case P_CHAR:
+    //fprintf(Outfile, "\tmovzbq\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
+    snprintf(buffer, 64, "\tmovzbq\t%s(\%%rip), %s\n", name, reglist[r]);
+    break;
 
-  char buffer[32];
-   // Print out the code to initialise it: P_CHAR or P_INT
-  if(pType == P_INT){
-      snprintf(buffer, 32, "\tmovq\t%s(\%%rip), %s\n", name, reglist[r]);
-  }else{
-      snprintf(buffer, 32, "\tmovzbq\t%s(\%%rip), %s\n", name, reglist[r]);
+  case P_INT:
+    //fprintf(Outfile, "\tmovzbl\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
+    snprintf(buffer, 64, "\tmovzbl\t%s(\%%rip), %s\n", name, reglist[r]);
+    break;
+
+  case P_LONG:
+    //fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
+    snprintf(buffer, 64, "\tmovq\t%s(\%%rip), %s\n", name, reglist[r]);
+    break;
+
+  default:
+    fprintf(stderr, "Bad type in register_cgloadglob:", pType);
+    exit(1);
   }
   w->writeChars(w->context, buffer);
   return (r);
@@ -198,13 +191,27 @@ int register_cgloadglob(REGISTER_CONTEXT_PARAM, int pType, const char *name)
 // Store a register's value into a variable
 int register_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int pType, const char *name)
 {
-  // fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], name);
-  char buffer[32];
-  // Choose P_INT or P_CHAR
-  if(pType == P_INT){
-    snprintf(buffer, 32, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], name);
-  }else{
-    snprintf(buffer, 32, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], name);
+  char buffer[64];
+  switch (pType)
+  {
+  case P_CHAR:
+    // fprintf(Outfile, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], Gsym[id].name);
+    snprintf(buffer, 64, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], name);
+    break;
+
+  case P_INT:
+    // fprintf(Outfile, "\tmovl\t%s, %s(\%%rip)\n", dreglist[r], Gsym[id].name);
+    snprintf(buffer, 64, "\tmovl\t%s, %s(\%%rip)\n", dreglist[r], name);
+    break;
+
+  case P_LONG:
+    //fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], Gsym[id].name);
+    snprintf(buffer, 64, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], name);
+    break;
+
+  default:
+    fprintf(stderr, "Bad type in register_cgstoreglob:", pType);
+    exit(1);
   }
   w->writeChars(w->context, buffer);
   return (r);
@@ -213,16 +220,13 @@ int register_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int pType, const char *n
 // Generate a global symbol
 void register_cgglobsym(REGISTER_CONTEXT_PARAM, int pType, const char *sym)
 {
-  //fprintf(Outfile, "\t.comm\t%s,8,8\n", sym);
+  int typesize;
+  typesize = register_cgprimsize(w, pType);
+  //fprintf(Outfile, "\t.comm\t%s,%d,%d\n", Gsym[id].name, typesize, typesize);
+
   char buffer[32];
-  if (pType == P_INT)
-  {
-    snprintf(buffer, 32, "\t.comm\t%s,8,8\n", sym);
-  }
-  else
-  {
-    snprintf(buffer, 32, "\t.comm\t%s,1,1\n", sym);
-  }
+  snprintf(buffer, 32, "\t.comm\t%s,%d,%d\n", sym, typesize, typesize);
+
   w->writeChars(w->context, buffer);
 }
 
@@ -392,12 +396,102 @@ void register_cgfuncpostamble(REGISTER_CONTEXT_PARAM)
                             "\tret\n");
 }
 
-
 //---------------------------------------------
 // Widen the value in the register from the old
 // to the new type, and return a register with
 // this new value
-int register_cgwiden(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype) {
+int register_cgwiden(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype)
+{
   // Nothing to do
   return (r);
+}
+
+//========================= add in lesson 13 ----------------------
+
+// Array of type sizes in P_XXX order.
+// 0 means no size. P_NONE, P_VOID, P_CHAR, P_INT, P_LONG
+static int psize[] = {0, 0, 1, 4, 8};
+
+// Given a P_XXX type value, return the
+// size of a primitive type in bytes.
+int register_cgprimsize(REGISTER_CONTEXT_PARAM, int pType)
+{
+  // Check the type is valid
+  if (pType < P_NONE || pType > P_LONG)
+  {
+    fprintf(stderr, "Bad type in cgprimsize()");
+    exit(1);
+  }
+  return (psize[pType]);
+}
+
+// Print out a function preamble
+void cgfuncpreamble(REGISTER_CONTEXT_PARAM, const char* name) {
+  //char *name = Gsym[id].name;
+
+  char buffer[96];
+  snprintf(buffer, 96, "\t.text\n"
+                       "\t.globl\t%s\n"
+                       "\t.type\t%s, @function\n"
+                       "%s:\n"
+                       "\tpushq\t%%rbp\n"
+                       "\tmovq\t%%rsp, %%rbp\n",
+           name, name, name);
+
+  w->writeChars(w->context, buffer);
+}
+
+// Generate code to return a value from a function
+void register_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int pType, int endlabel)
+{
+  char buffer[32];
+  //snprintf(buffer, 32, "\t.globl\t%s\n", funcName);
+
+  // Generate code depending on the function's type
+  switch (pType)
+  { // Gsym[id].type
+  case P_CHAR:
+    // fprintf(Outfile, "\tmovzbl\t%s, %%eax\n", breglist[reg]);
+    snprintf(buffer, 32, "\tmovzbl\t%s, %%eax\n", breglist[reg]);
+    break;
+
+  case P_INT:
+    //fprintf(Outfile, "\tmovl\t%s, %%eax\n", dreglist[reg]);
+    snprintf(buffer, 32, "\tmovl\t%s, %%eax\n", dreglist[reg]);
+    break;
+
+  case P_LONG:
+    // fprintf(Outfile, "\tmovq\t%s, %%rax\n", reglist[reg]);
+    snprintf(buffer, 32, "\tmovq\t%s, %%rax\n", reglist[reg]);
+    break;
+
+  default:
+    fprintf(stderr, "Bad function type in cgreturn:", pType);
+    exit(1);
+  }
+  w->writeChars(w->context, buffer);
+  register_cgjump(w, endlabel);
+}
+
+int register_cgcall(REGISTER_CONTEXT_PARAM, int r, const char *symName)
+{
+  // Get a new register
+  int outr = register_alloc();
+  /*  
+  fprintf(Outfile, "\tmovq\t%s, %%rdi\n", reglist[r]);
+  fprintf(Outfile, "\tcall\t%s\n", Gsym[id].name);
+  fprintf(Outfile, "\tmovq\t%%rax, %s\n", reglist[outr]); */
+
+  char buffer[32];
+  snprintf(buffer, 32, "\tmovq\t%s, %%rdi\n", reglist[r]);
+  w->writeChars(w->context, buffer);
+
+  snprintf(buffer, 32, "\tcall\t%s\n", symName);
+  w->writeChars(w->context, buffer);
+
+  snprintf(buffer, 32, "\tmovq\t%%rax, %s\n", reglist[outr]);
+  w->writeChars(w->context, buffer);
+
+  free_register(r);
+  return (outr);
 }
