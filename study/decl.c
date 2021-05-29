@@ -38,9 +38,9 @@ void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token)
   // textBuf now has the identifier's name.
   // Add it as a known identifier
   // and generate its space in assembly
-  id = sym_addglob(cd->context.textBuf, type, S_VARIABLE, 0);
+  id = sym_addglob(cd->context.globalState, cd->context.textBuf, type, S_VARIABLE, 0);
 
-  SymTable* st = sym_getGlob(id);
+  SymTable* st = sym_getGlob(cd->context.globalState, id);
   gen_globsym(w, st->type, st->name);
   
   //match final semicolon(';')
@@ -61,7 +61,7 @@ struct ASTnode *decl_function(struct _Content *cd, struct _Writer *w, struct Tok
   // to the symbol table, and set the Functionid global
   // to the function's symbol-id
   endlabel = (w->context->label++); //genlabel()
-  nameslot = sym_addglob(cd->context.textBuf, type, S_FUNCTION, endlabel);
+  nameslot = sym_addglob(cd->context.globalState, cd->context.textBuf, type, S_FUNCTION, endlabel);
   cd->context.functionid = nameslot;
 
 // ( )

@@ -55,8 +55,9 @@ static void printint(long x) {
 }
 int main(int argc, char **args)
 {
+    struct GlobalState* gs = sym_globalState_new();
     // For now, ensure that void printint() is defined //13
-    sym_addglob("printint", P_CHAR, S_FUNCTION, 0);
+    sym_addglob(gs, "printint", P_CHAR, S_FUNCTION, 0);
 
     Content *cd;
     Writer *w;
@@ -77,7 +78,7 @@ int main(int argc, char **args)
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 
-        outFile = getCurrentFilePath("/study/note/out_13.s");
+        outFile = getCurrentFilePath("/study/note/out_13_2.s");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -86,7 +87,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/note/out_13.s");
+            char* outFile = getCurrentFilePath("/study/note/out_13_2.s");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }
@@ -96,10 +97,13 @@ int main(int argc, char **args)
             w = writer_new(WRITER_TYPE_FILE, args[2]);
         }
     }
+    cd->context.globalState = gs;
+    w->context->globalState = gs;
     //scanContent(cd);
     //parseContent(cd, w);
     parseStatement(cd, w);
     content_delete(cd);
     writer_delete(w);
+    sym_globalState_delete(gs);
     return 0;
 }

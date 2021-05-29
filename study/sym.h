@@ -20,9 +20,20 @@ struct _SymTable {
   int endlabel;		            	// For S_FUNCTIONs, the end label
 };
 
-int sym_findglob(char *s);
-int sym_addglob(char *name, int type, int stype, int endlabel);
-SymTable* sym_getGlob(int pos);
+struct GlobalState
+{
+  SymTable syms[SYM_BOLS_COUNT]; // Global symbol table
+  int globs;                     // Position of next free global symbol slot
+};
+
+struct GlobalState* sym_globalState_new();
+void sym_globalState_delete(struct GlobalState* gs);
+
+int sym_findglob(struct GlobalState* gs,const char *s);
+
+int sym_addglob(struct GlobalState* gs, const char *name, int type, int stype, int endlabel);
+
+SymTable* sym_getGlob(struct GlobalState* gs, int pos);
 
 CPP_END
 

@@ -18,9 +18,8 @@ fred:
 main:
 	pushq	%rbp
 	movq	%%rsp, %%rbp
-
 	movq	$10, %r9
-	movq	%r9, %rdi 		# rdi.目的变址寄存器。这里print 
+	movq	%r9, %rdi  # 目的变址寄存器。
 	call	printint
 	movq	%rax, %r10
 	movq	$15, %r8

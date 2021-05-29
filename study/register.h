@@ -62,8 +62,6 @@ int register_cgwiden(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype);
 //get the data size of the primitive type.
 int register_cgprimsize(REGISTER_CONTEXT_PARAM, int pType);
 
-void cgfuncpreamble(REGISTER_CONTEXT_PARAM, const char *name);
-
 /**
  * To call a function with one argument, we need to copy the register with the argument value into %rdi.
  *  On return, we need to copy the returned value from %rax into the register that will have this new value:

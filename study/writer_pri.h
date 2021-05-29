@@ -3,6 +3,8 @@
 #define _REGISTER_WRITE_PRI_H
 CPP_START
 
+struct GlobalState;
+
 typedef struct
 {   
     void *param;
@@ -13,6 +15,7 @@ typedef struct
     FILE *file;
 
     int label; //the arm label
+    struct GlobalState *globalState; // the global state. help do
 }WriterContext;
 
 CPP_END

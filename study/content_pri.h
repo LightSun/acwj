@@ -8,6 +8,7 @@ CPP_START
 #define CONTENT_TEXT_BUF_LEN 512 // max Length of symbols in input
 //extern_ char Text[TEXTLEN + 1];                 // Last identifier scanned
 struct Token;
+struct GlobalState;
 
 typedef struct
 {
@@ -23,6 +24,8 @@ typedef struct
 
    struct Token *rejtoken; // A pointer to a rejected token
    int functionid;         // Symbol id of the current function
+
+   struct GlobalState *globalState; // the global state. help do
 } ContentContext;
 
 CPP_END

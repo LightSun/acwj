@@ -371,21 +371,16 @@ void register_cgfuncpreamble(REGISTER_CONTEXT_PARAM, const char *funcName)
           "%s:\n" "\tpushq\t%%rbp\n"
           "\tmovq\t%%rsp, %%rbp\n", name, name, name); */
 
-  w->writeChars(w->context, "\t.text\n");
+  char buffer[96];
+  snprintf(buffer, 96, "\t.text\n"
+                       "\t.globl\t%s\n"
+                       "\t.type\t%s, @function\n"
+                       "%s:\n"
+                       "\tpushq\t%%rbp\n"
+                       "\tmovq\t%%rsp, %%rbp\n",
+           funcName, funcName, funcName);
 
-  char buffer[32];
-  snprintf(buffer, 32, "\t.globl\t%s\n", funcName);
   w->writeChars(w->context, buffer);
-
-  snprintf(buffer, 32, "\t.type\t%s, @function\n", funcName);
-  w->writeChars(w->context, buffer);
-
-  snprintf(buffer, 32, "%s:\n"
-                       "\tpushq\t%%rbp\n",
-           funcName);
-  w->writeChars(w->context, buffer);
-
-  w->writeChars(w->context, "\tmovq\t%%rsp, %%rbp\n");
 }
 
 void register_cgfuncpostamble(REGISTER_CONTEXT_PARAM)
@@ -423,22 +418,6 @@ int register_cgprimsize(REGISTER_CONTEXT_PARAM, int pType)
     exit(1);
   }
   return (psize[pType]);
-}
-
-// Print out a function preamble
-void cgfuncpreamble(REGISTER_CONTEXT_PARAM, const char* name) {
-  //char *name = Gsym[id].name;
-
-  char buffer[96];
-  snprintf(buffer, 96, "\t.text\n"
-                       "\t.globl\t%s\n"
-                       "\t.type\t%s, @function\n"
-                       "%s:\n"
-                       "\tpushq\t%%rbp\n"
-                       "\tmovq\t%%rsp, %%rbp\n",
-           name, name, name);
-
-  w->writeChars(w->context, buffer);
 }
 
 // Generate code to return a value from a function

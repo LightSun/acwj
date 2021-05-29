@@ -115,7 +115,7 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
 
   case A_FUNCTION:
     // Generate the function's preamble before the code
-    register_cgfuncpreamble(w, sym_getGlob(n->v.id)->name);
+    register_cgfuncpreamble(w, sym_getGlob(cd->context.globalState, n->v.id)->name);
     gen_genAST(cd, n->left, w, NOREG, n->op);
     register_cgfuncpostamble(w);
     return (NOREG);
@@ -144,13 +144,13 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
 
   case A_IDENT:
   {
-    SymTable *st = sym_getGlob(n->v.id);
+    SymTable *st = sym_getGlob(cd->context.globalState, n->v.id);
     return (register_cgloadglob(w, st->type, st->name));
   }
 
   case A_LVIDENT:
   {
-    SymTable *st = sym_getGlob(n->v.id);
+    SymTable *st = sym_getGlob(cd->context.globalState, n->v.id);
     return (register_cgstoreglob(w, reg, st->type, st->name));
   }
 
@@ -194,13 +194,13 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
     return (register_cgwiden(w, leftreg, n->left->type, n->type));
 
   case A_RETURN:{
-    SymTable * st = sym_getGlob(cd->context.functionid);
+    SymTable * st = sym_getGlob(cd->context.globalState, cd->context.functionid);
     register_cgreturn(w, leftreg, st->type, st->endlabel);
     return (NOREG);
   }
 
   case A_FUNCCALL:
-    return (register_cgcall(w, leftreg, sym_getGlob(n->v.id)->name));
+    return (register_cgcall(w, leftreg, sym_getGlob(cd->context.globalState, n->v.id)->name));
 
   default:
     fprintf(stderr, "Unknown AST operator %d\n", n->op);
