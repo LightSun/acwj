@@ -18,6 +18,7 @@ CPP_START
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdarg.h>
 CPP_END
 
 #endif

@@ -26,7 +26,7 @@ int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int pType, const cha
 //name: identifier name
 void register_x64_cgglobsym(REGISTER_CONTEXT_PARAM, int pType, const char *name);
 
-void register_x64_free_all();
+void register_x64_free_all(REGISTER_CONTEXT_PARAM);
 
 //----------------- compare operator -------------------------
 int register_x64_cgequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
@@ -49,7 +49,7 @@ int register_x64_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int asTop, int r1, in
 //-------------- function -----------------------
 void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, const char *funcName);
 
-void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM);
+void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int endLabel);
 
 //---------------- widen --------------------------
 int register_x64_cgwiden(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype);

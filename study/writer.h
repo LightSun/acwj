@@ -11,7 +11,6 @@ CPP_START
 #define WRITER_TYPE_FILE 1
 #define WRITER_TYPE_TEXT 2
 
-struct _Writer;
 typedef struct _Writer Writer;
 struct _Writer
 {

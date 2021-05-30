@@ -117,7 +117,7 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
     // Generate the function's preamble before the code
     CONTENT_G_REG(cd)->register_cgfuncpreamble(WRITER_G_REG_CTX(w), sym_getGlob(cd->context->globalState, n->v.id)->name);
     gen_genAST(cd, n->left, w, NOREG, n->op);
-    CONTENT_G_REG(cd)->register_cgfuncpostamble(WRITER_G_REG_CTX(w));
+    CONTENT_G_REG(cd)->register_cgfuncpostamble(WRITER_G_REG_CTX(w), sym_getGlob(cd->context->globalState, n->v.id)->endlabel);
     return (NOREG);
   }
 

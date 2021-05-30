@@ -7,26 +7,26 @@
 
 // List of available registers and their names
 // We need a list of byte registers, too
-static int freereg[4];
-static char *reglist[4] = {"%r8", "%r9", "%r10", "%r11"};      //long
-static char *breglist[4] = {"%r8b", "%r9b", "%r10b", "%r11b"}; //char
-static char *dreglist[4] = {"%r8d", "%r9d", "%r10d", "%r11d"}; //int
+//static int freereg[4];
+static char *reglist[REG_COUNT] = {"%r8", "%r9", "%r10", "%r11"};      //long
+static char *breglist[REG_COUNT] = {"%r8b", "%r9b", "%r10b", "%r11b"}; //char
+static char *dreglist[REG_COUNT] = {"%r8d", "%r9d", "%r10d", "%r11d"}; //int
 
 // Set all registers as available
-void register_x64_free_all(void)
+void register_x64_free_all(REGISTER_CONTEXT_PARAM)
 {
-  freereg[0] = freereg[1] = freereg[2] = freereg[3] = 1;
+  ctx->freereg[0] = ctx->freereg[1] = ctx->freereg[2] = ctx->freereg[3] = 1;
 }
 
 // Allocate a free register. Return the number of
 // the register. Die if no available registers.
-static int register_x64_alloc(void)
+static int register_x64_alloc(REGISTER_CONTEXT_PARAM)
 {
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < REG_COUNT; i++)
   {
-    if (freereg[i])
+    if (ctx->freereg[i])
     {
-      freereg[i] = 0;
+      ctx->freereg[i] = 0;
       return (i);
     }
   }
@@ -36,20 +36,20 @@ static int register_x64_alloc(void)
 
 // Return a register to the list of available registers.
 // Check to see if it's not already there.
-static void register_x64_free(int reg)
+static void register_x64_free(REGISTER_CONTEXT_PARAM, int reg)
 {
-  if (freereg[reg] != 0)
+  if (ctx->freereg[reg] != 0)
   {
     fprintf(stderr, "Error trying to free register %d\n", reg);
     exit(1);
   }
-  freereg[reg] = 1;
+  ctx->freereg[reg] = 1;
 }
 
 // Print out the assembly preamble
 void register_x64_cgpreamble(REGISTER_CONTEXT_PARAM)
 {
-  register_x64_free_all();
+  register_x64_free_all(ctx);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\t.text\n");
 }
 
@@ -69,7 +69,7 @@ int register_x64_cgload(REGISTER_CONTEXT_PARAM, int value)
 {
 
   // Get a new register
-  int r = register_x64_alloc();
+  int r = register_x64_alloc(ctx);
 
   // Print out the code to initialise it
   //fprintf(Outfile, "\tmovq\t$%d, %s\n", value, reglist[r]);
@@ -88,7 +88,7 @@ int register_x64_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2)
   snprintf(buffer, 32, "\taddq\t%s, %s\n", reglist[r1], reglist[r2]);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
 
-  register_x64_free(r1);
+  register_x64_free(ctx, r1);
   return (r2);
 }
 
@@ -101,7 +101,7 @@ int register_x64_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2)
   snprintf(buffer, 32, "\tsubq\t%s, %s\n", reglist[r2], reglist[r1]);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
 
-  register_x64_free(r2);
+  register_x64_free(ctx, r2);
   return (r1);
 }
 
@@ -114,7 +114,7 @@ int register_x64_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2)
   snprintf(buffer, 32, "\timulq\t%s, %s\n", reglist[r1], reglist[r2]);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
 
-  register_x64_free(r1);
+  register_x64_free(ctx, r1);
   return (r2);
 }
 
@@ -138,7 +138,7 @@ int register_x64_cgdiv(REGISTER_CONTEXT_PARAM, int r1, int r2)
   fprintf(Outfile, "\tcqo\n");
   fprintf(Outfile, "\tidivq\t%s\n", reglist[r2]);
   fprintf(Outfile, "\tmovq\t%%rax,%s\n", reglist[r1]); */
-  register_x64_free(r2);
+  register_x64_free(ctx, r2);
   return (r1);
 }
 
@@ -154,14 +154,14 @@ void register_x64_cgprintint(REGISTER_CONTEXT_PARAM, int r)
 
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\tcall\tprintint\n");
 
-  register_x64_free(r);
+  register_x64_free(ctx, r);
 }
 
 //------------- from class 6 -------------------------
 int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int pType, const char *name)
 {
   // Get a new register
-  int r = register_x64_alloc();
+  int r = register_x64_alloc(ctx);
 
   char buffer[64];
   // Print out the code to initialise it
@@ -253,7 +253,7 @@ static int cgcompare(REGISTER_CONTEXT_PARAM, int r1, int r2, char *how)
   snprintf(buffer, 32, "\tandq\t$255,%s\n", reglist[r2]);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
 
-  register_x64_free(r1);
+  register_x64_free(ctx, r1);
   return (r2);
 }
 
@@ -327,7 +327,7 @@ int register_x64_cgcompare_and_jump(REGISTER_CONTEXT_PARAM, int ASTop, int r1, i
   snprintf(buffer, 32, "\t%s\tL%d\n", invcmplist[ASTop - A_EQ], label);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
 
-  register_x64_free_all();
+  register_x64_free_all(ctx);
   return (NOREG);
 }
 
@@ -361,7 +361,7 @@ int register_x64_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int ASTop, int r1, in
   snprintf(buffer, 32, "\tmovzbq\t%s, %s\n", breglist[r2], reglist[r2]);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
 
-  register_x64_free_all();
+  register_x64_free_all(ctx);
   return (r2);
 }
 
@@ -386,7 +386,7 @@ void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, const char *funcName)
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
 }
 
-void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM)
+void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int endLabel)
 {
   //fputs("\tmovl $0, %eax\n" "\tpopq     %rbp\n" "\tret\n", Outfile);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\tmovl $0, %eax\n"
@@ -458,7 +458,7 @@ void register_x64_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int pType, int endla
 int register_x64_cgcall(REGISTER_CONTEXT_PARAM, int r, const char *symName)
 {
   // Get a new register
-  int outr = register_x64_alloc();
+  int outr = register_x64_alloc(ctx);
   /*  
   fprintf(Outfile, "\tmovq\t%s, %%rdi\n", reglist[r]);
   fprintf(Outfile, "\tcall\t%s\n", Gsym[id].name);
@@ -474,6 +474,6 @@ int register_x64_cgcall(REGISTER_CONTEXT_PARAM, int r, const char *symName)
   snprintf(buffer, 32, "\tmovq\t%%rax, %s\n", reglist[outr]);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
 
-  register_x64_free(r);
+  register_x64_free(ctx, r);
   return (outr);
 }

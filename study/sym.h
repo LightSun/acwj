@@ -35,6 +35,10 @@ int sym_addglob(struct GlobalState* gs, const char *name, int type, int stype, i
 
 SymTable* sym_getGlob(struct GlobalState* gs, int pos);
 
+#define SYM_NAME(gs, id)  sym_getGlob(gs, pos)->name
+#define SYM_END_LABEL(gs, id)  sym_getGlob(gs, pos)->endlabel
+#define SYM_TYPE(gs, id)  sym_getGlob(gs, pos)->type
+
 CPP_END
 
 #endif

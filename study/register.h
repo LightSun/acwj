@@ -48,6 +48,8 @@ struct _Register
     void (*register_cgpreamble)(REGISTER_CONTEXT_PARAM);
     void (*register_cgpostamble)(REGISTER_CONTEXT_PARAM, int endLabel);
 
+// Load an integer literal value into a register.
+// Return the number of the register
     int (*register_cgload)(REGISTER_CONTEXT_PARAM, int value);
     int (*register_cgadd)(REGISTER_CONTEXT_PARAM, int r1, int r2);
     int (*register_cgsub)(REGISTER_CONTEXT_PARAM, int r1, int r2);
@@ -91,7 +93,7 @@ struct _Register
     //-------------- function -----------------------
     void (*register_cgfuncpreamble)(REGISTER_CONTEXT_PARAM, const char *funcName);
 
-    void (*register_cgfuncpostamble)(REGISTER_CONTEXT_PARAM);
+    void (*register_cgfuncpostamble)(REGISTER_CONTEXT_PARAM, int endLabel);
 
     //---------------- widen --------------------------
     int (*register_cgwiden)(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype);
