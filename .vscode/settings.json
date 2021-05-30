@@ -52,6 +52,18 @@
         "type_traits": "c",
         "utility": "c",
         "gen.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "content_text.h": "c",
+        "content_file.h": "c",
+        "register.h": "c",
+        "register_pri.h": "c",
+        "register_x64.h": "c",
+        "optional": "c",
+        "istream": "c",
+        "system_error": "c",
+        "writer_pri.h": "c",
+        "stdarg.h": "c",
+        "string_view": "c",
+        "random": "c"
     }
 }

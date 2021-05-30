@@ -5,13 +5,14 @@
 #include "statement.h"
 #include "decl.h"
 #include "sym.h"
+#include "register.h"
 
 static void parseStatement(Content *cd, Writer *w){
     struct Token token;
     struct ASTnode *tree;
 
     scanner_init(cd);
-    cd->start(&cd->context);
+    cd->start(cd->context);
     w->start(w->context, 0);
 
     scanner_scan(cd, &token);
@@ -24,7 +25,7 @@ static void parseStatement(Content *cd, Writer *w){
         }
     }
 
-    cd->end(&cd->context);
+    cd->end(cd->context);
     w->end(w->context);
 }
 
@@ -55,6 +56,8 @@ static void printint(long x) {
 }
 int main(int argc, char **args)
 {
+
+    Register* reg = register_new(REGISTER_TYPE_X64);
     struct GlobalState* gs = sym_globalState_new();
     // For now, ensure that void printint() is defined //13
     sym_addglob(gs, "printint", P_CHAR, S_FUNCTION, 0);
@@ -97,13 +100,17 @@ int main(int argc, char **args)
             w = writer_new(WRITER_TYPE_FILE, args[2]);
         }
     }
-    cd->context.globalState = gs;
+    cd->context->globalState = gs;
     w->context->globalState = gs;
-    //scanContent(cd);
-    //parseContent(cd, w);
+    cd->context->_register = reg;
+    w->context->_register = reg;
+    reg->context->writer = w;
+
     parseStatement(cd, w);
     content_delete(cd);
     writer_delete(w);
+
     sym_globalState_delete(gs);
+    register_delete(reg);
     return 0;
 }

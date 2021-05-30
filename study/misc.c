@@ -8,7 +8,7 @@ void misc_match(Content* cd,struct Token* token,int t, char *what) {
   if (token->token == t) {
     scanner_scan(cd, token);
   } else {
-    fprintf(stderr, "%s expected on line %d\n", what, cd->context.line);
+    fprintf(stderr, "%s expected on line %d\n", what, cd->context->line);
     exit(1);
   }
 }

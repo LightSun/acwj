@@ -43,10 +43,10 @@ static int genIFAST(struct _Content* cd, struct ASTnode *n, struct _Writer *w)
   // If there is an optional ELSE clause,
   // generate the jump to skip to the end
   if (n->right)
-    register_cgjump(w, Lend);
+    CONTENT_G_REG(cd)->register_cgjump(WRITER_G_REG_CTX(w), Lend);
 
   // Now the false label
-  register_cglabel(w, Lfalse);
+  CONTENT_G_REG(cd)->register_cglabel(WRITER_G_REG_CTX(w), Lfalse);
 
   // Optional ELSE clause: generate the
   // false compound statement and the
@@ -55,7 +55,7 @@ static int genIFAST(struct _Content* cd, struct ASTnode *n, struct _Writer *w)
   {
     gen_genAST(cd, n->right, w, NOREG, n->op);
     gen_freeregs(w);
-    register_cglabel(w, Lend);
+    CONTENT_G_REG(cd)->register_cglabel(WRITER_G_REG_CTX(w), Lend);
   }
 
   return (NOREG);
@@ -71,7 +71,7 @@ static int genWHILE(struct _Content* cd, struct ASTnode *n, struct _Writer *w)
   // and output the start label
   Lstart = label(w);
   Lend = label(w);
-  register_cglabel(w, Lstart);
+  CONTENT_G_REG(cd)->register_cglabel(WRITER_G_REG_CTX(w), Lstart);
 
   // Generate the condition code followed
   // by a jump to the end label.
@@ -85,8 +85,8 @@ static int genWHILE(struct _Content* cd, struct ASTnode *n, struct _Writer *w)
 
   // Finally output the jump back to the condition,
   // and the end label
-  register_cgjump(w, Lstart);
-  register_cglabel(w, Lend);
+  CONTENT_G_REG(cd)->register_cgjump(WRITER_G_REG_CTX(w), Lstart);
+  CONTENT_G_REG(cd)->register_cglabel(WRITER_G_REG_CTX(w), Lend);
   return (NOREG);
 }
 
@@ -115,9 +115,9 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
 
   case A_FUNCTION:
     // Generate the function's preamble before the code
-    register_cgfuncpreamble(w, sym_getGlob(cd->context.globalState, n->v.id)->name);
+    CONTENT_G_REG(cd)->register_cgfuncpreamble(WRITER_G_REG_CTX(w), sym_getGlob(cd->context->globalState, n->v.id)->name);
     gen_genAST(cd, n->left, w, NOREG, n->op);
-    register_cgfuncpostamble(w);
+    CONTENT_G_REG(cd)->register_cgfuncpostamble(WRITER_G_REG_CTX(w));
     return (NOREG);
   }
 
@@ -132,26 +132,26 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
   switch (n->op)
   {
   case A_ADD:
-    return (register_cgadd(w, leftreg, rightreg));
+    return (CONTENT_G_REG(cd)->register_cgadd(WRITER_G_REG_CTX(w), leftreg, rightreg));
   case A_SUBTRACT:
-    return (register_cgsub(w, leftreg, rightreg));
+    return (CONTENT_G_REG(cd)->register_cgsub(WRITER_G_REG_CTX(w), leftreg, rightreg));
   case A_MULTIPLY:
-    return (register_cgmul(w, leftreg, rightreg));
+    return (CONTENT_G_REG(cd)->register_cgmul(WRITER_G_REG_CTX(w), leftreg, rightreg));
   case A_DIVIDE:
-    return (register_cgdiv(w, leftreg, rightreg));
+    return (CONTENT_G_REG(cd)->register_cgdiv(WRITER_G_REG_CTX(w), leftreg, rightreg));
   case A_INTLIT:
-    return (register_cgload(w, n->v.intvalue));
+    return (CONTENT_G_REG(cd)->register_cgload(WRITER_G_REG_CTX(w), n->v.intvalue));
 
   case A_IDENT:
   {
-    SymTable *st = sym_getGlob(cd->context.globalState, n->v.id);
-    return (register_cgloadglob(w, st->type, st->name));
+    SymTable *st = sym_getGlob(cd->context->globalState, n->v.id);
+    return (CONTENT_G_REG(cd)->register_cgloadglob(WRITER_G_REG_CTX(w), st->type, st->name));
   }
 
   case A_LVIDENT:
   {
-    SymTable *st = sym_getGlob(cd->context.globalState, n->v.id);
-    return (register_cgstoreglob(w, reg, st->type, st->name));
+    SymTable *st = sym_getGlob(cd->context->globalState, n->v.id);
+    return (CONTENT_G_REG(cd)->register_cgstoreglob(WRITER_G_REG_CTX(w), reg, st->type, st->name));
   }
 
   case A_ASSIGN:
@@ -184,23 +184,23 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
       // a compare followed by a jump. Otherwise, compare registers
       // and set one to 1 or 0 based on the comparison.
       if (parentASTop == A_IF || parentASTop == A_WHILE)
-        return (register_cgcompare_and_jump(w, n->op, leftreg, rightreg, reg));
+        return (CONTENT_G_REG(cd)->register_cgcompare_and_jump(WRITER_G_REG_CTX(w), n->op, leftreg, rightreg, reg));
       else
-        return (register_cgcompare_and_set(w, n->op, leftreg, rightreg));
+        return (CONTENT_G_REG(cd)->register_cgcompare_and_set(WRITER_G_REG_CTX(w), n->op, leftreg, rightreg));
     }
 
   case A_WIDEN:
     // Widen the child's type to the parent's type
-    return (register_cgwiden(w, leftreg, n->left->type, n->type));
+    return (CONTENT_G_REG(cd)->register_cgwiden(WRITER_G_REG_CTX(w), leftreg, n->left->type, n->type));
 
   case A_RETURN:{
-    SymTable * st = sym_getGlob(cd->context.globalState, cd->context.functionid);
-    register_cgreturn(w, leftreg, st->type, st->endlabel);
+    SymTable * st = sym_getGlob(cd->context->globalState, cd->context->functionid);
+    CONTENT_G_REG(cd)->register_cgreturn(WRITER_G_REG_CTX(w), leftreg, st->type, st->endlabel);
     return (NOREG);
   }
 
   case A_FUNCCALL:
-    return (register_cgcall(w, leftreg, sym_getGlob(cd->context.globalState, n->v.id)->name));
+    return (CONTENT_G_REG(cd)->register_cgcall(WRITER_G_REG_CTX(w), leftreg, sym_getGlob(cd->context->globalState, n->v.id)->name));
 
   default:
     fprintf(stderr, "Unknown AST operator %d\n", n->op);
@@ -210,26 +210,26 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
 
 void gen_preamble(struct _Writer *w)
 {
-  register_cgpreamble(w);
+  WRITER_G_REG(w)->register_cgpreamble(WRITER_G_REG_CTX(w));
 }
 void gen_postamble(struct _Writer *w, int endlabel)
 {
-  register_cgpostamble(w, endlabel);
+  WRITER_G_REG(w)->register_cgpostamble(WRITER_G_REG_CTX(w), endlabel);
 }
 void gen_freeregs(struct _Writer *w)
 {
-  register_free_all();
+  WRITER_G_REG(w)->register_free_all();
 }
 void gen_printint(struct _Writer *w, int reg)
 {
-  register_cgprintint(w, reg);
+  WRITER_G_REG(w)->register_cgprintint(WRITER_G_REG_CTX(w), reg);
 }
 
 void gen_globsym(struct _Writer *w, int pType, const char *name)
 {
-  register_cgglobsym(w, pType, name);
+  WRITER_G_REG(w)->register_cgglobsym(WRITER_G_REG_CTX(w), pType, name);
 }
 
 int gen_primsize(struct _Writer *w,int type) {
-  return (register_cgprimsize(w, type));
+  return (WRITER_G_REG(w)->register_cgprimsize(WRITER_G_REG_CTX(w), type));
 }

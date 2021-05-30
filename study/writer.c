@@ -1,6 +1,6 @@
 #include "writer.h"
-#include "writer_text.h"
-#include "writer_file.h"
+#include "writer/writer_text.h"
+#include "writer/writer_file.h"
 
 Writer *writer_new(int type, void* param){
     Writer *writer = (Writer *)malloc(sizeof(Writer));

@@ -209,7 +209,7 @@ This is where the biggest change has occurred. Firstly, here are the tokens
 it looks for:
 
  + 'static', 'extern' which it complains about, because we can only be
-    parsing expressions in a local context.
+    parsing expressions in a local context->
  + 'sizeof()'
  + integer and string literals
  + identifiers: these could be known types (e.g. 'int'), names of enums,

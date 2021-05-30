@@ -20,7 +20,7 @@ static int chrpos(char *s, int c)
 
 static inline void putback(Content *cd, int c)
 {
-  cd->context.putback = c;
+  cd->context->putback = c;
 }
 
 // Get the next character from the input file.
@@ -28,16 +28,16 @@ static int next(Content *cd)
 {
   int c;
 
-  if (cd->context.putback)
+  if (cd->context->putback)
   {                          // Use the character put
-    c = cd->context.putback; // back if there is one
-    cd->context.putback = 0;
+    c = cd->context->putback; // back if there is one
+    cd->context->putback = 0;
     return c;
   }
 
-  c = cd->nextChar(&cd->context); // Read from input file
+  c = cd->nextChar(cd->context); // Read from input file
   if ('\n' == c)
-    cd->context.line++; // Increment line count
+    cd->context->line++; // Increment line count
   return c;
 }
 
@@ -72,7 +72,7 @@ static int scanint(Content *cd, int c)
 
   // We hit a non-integer character, put it back.
   //putback(c);
-  cd->context.putback = c;
+  cd->context->putback = c;
   return val;
 }
 
@@ -89,7 +89,7 @@ static int scanident(Content *cd, int c, char *buf, int lim)
     // else append to buf[] and get next character
     if (lim - 1 == i)
     {
-      printf("identifier too long on line %d\n", cd->context.line);
+      printf("identifier too long on line %d\n", cd->context->line);
       exit(1);
     }
     else if (i < lim - 1)
@@ -101,7 +101,7 @@ static int scanident(Content *cd, int c, char *buf, int lim)
   // We hit a non-valid character, put it back.
   // NUL-terminate the buf[] and return the length
   //putback(c);
-  cd->context.putback = c;
+  cd->context->putback = c;
 
   buf[i] = '\0';
   return (i);
@@ -168,10 +168,10 @@ static int keyword(char *s)
 
 // Reject the token that we just scanned
  void scanner_reject_token(Content *cd, struct Token *t) {
-  if (cd->context.rejtoken != NULL){
+  if (cd->context->rejtoken != NULL){
     fatal(cd, "Can't reject token twice");
   }
-  cd->context.rejtoken = t;
+  cd->context->rejtoken = t;
 }
 
 // Scan and return the next token found in the input.
@@ -181,9 +181,9 @@ int scanner_scan(Content *cd, struct Token *t)
 {
   
   // If we have any rejected token, return it
-  if (cd->context.rejtoken != NULL) {
-    t = cd->context.rejtoken;
-    cd->context.rejtoken = NULL;
+  if (cd->context->rejtoken != NULL) {
+    t = cd->context->rejtoken;
+    cd->context->rejtoken = NULL;
     return (1);
   }
 
@@ -305,9 +305,9 @@ int scanner_scan(Content *cd, struct Token *t)
     else if (isalpha(c) || '_' == c)
     {
       //read keyword
-      scanident(cd, c, cd->context.textBuf, CONTENT_TEXT_BUF_LEN);
+      scanident(cd, c, cd->context->textBuf, CONTENT_TEXT_BUF_LEN);
       // If it's a recognised keyword, return that token
-      if (tokentype = keyword(cd->context.textBuf))
+      if (tokentype = keyword(cd->context->textBuf))
       {
         t->token = tokentype;
         break;
@@ -317,7 +317,7 @@ int scanner_scan(Content *cd, struct Token *t)
       break;
     }
 
-    fprintf(stderr,"Unrecognised character %c on line %d\n", c, cd->context.line);
+    fprintf(stderr,"Unrecognised character %c on line %d\n", c, cd->context->line);
     exit(1);
     //return 0;
   }
@@ -328,6 +328,6 @@ int scanner_scan(Content *cd, struct Token *t)
 
 void scanner_init(Content *ud)
 {
-  ud->context.line = 1;
-  ud->context.putback = '\n';
+  ud->context->line = 1;
+  ud->context->putback = '\n';
 }

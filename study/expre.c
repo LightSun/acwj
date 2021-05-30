@@ -83,8 +83,8 @@ struct ASTnode *expre_funccall(struct _Content* cd, struct _Writer* w, struct To
 
   // Check that the identifier has been defined,
   // then make a leaf node for it. XXX Add structural type test
-  if ((id = sym_findglob(cd->context.globalState, cd->context.textBuf)) == -1) {
-    fatals(cd, "Undeclared function", cd->context.textBuf);
+  if ((id = sym_findglob(cd->context->globalState, cd->context->textBuf)) == -1) {
+    fatals(cd, "Undeclared function", cd->context->textBuf);
   }
   // Get the '('
   misc_lparen(cd, token);
@@ -95,7 +95,7 @@ struct ASTnode *expre_funccall(struct _Content* cd, struct _Writer* w, struct To
   // Build the function call AST node. Store the
   // function's return type as this node's type.
   // Also record the function's symbol-id
-  tree = expre_mkastunary(A_FUNCCALL, sym_getGlob(cd->context.globalState, id)->type, tree, id);
+  tree = expre_mkastunary(A_FUNCCALL, sym_getGlob(cd->context->globalState, id)->type, tree, id);
 
   // Get the ')'
   misc_rparen(cd, token);
@@ -140,17 +140,17 @@ static struct ASTnode *primary(struct _Content* cd, struct _Writer* w, struct To
       scanner_reject_token(cd, token);
 
       // Check that this identifier exists
-      id = sym_findglob(cd->context.globalState, cd->context.textBuf);
+      id = sym_findglob(cd->context->globalState, cd->context->textBuf);
       if (id == -1){
-        fatals(cd, "Unknown variable %s.", cd->context.textBuf);
+        fatals(cd, "Unknown variable %s.", cd->context->textBuf);
       }
 
       // Make a leaf AST node for it
-      n = expre_mkastleaf(A_IDENT, sym_getGlob(cd->context.globalState, id)->type, id);
+      n = expre_mkastleaf(A_IDENT, sym_getGlob(cd->context->globalState, id)->type, id);
       break;  
 
     default:
-      fprintf(stderr, "syntax error on line %d\n", cd->context.line);
+      fprintf(stderr, "syntax error on line %d\n", cd->context->line);
       exit(1);
   }
   scanner_scan(cd, token);
@@ -164,7 +164,7 @@ static int arithop(struct _Content* cd, int tokentype) {
   if (tokentype > T_EOF && tokentype < T_INTLIT){
     return(tokentype);
   }
-  fprintf(stderr, "unknown token in arithop() on line %d\n", cd->context.line);
+  fprintf(stderr, "unknown token in arithop() on line %d\n", cd->context->line);
   exit(1);
 }
 
@@ -182,7 +182,7 @@ static int OpPrec[] = {
 static int op_precedence(struct _Content* cd, int tokentype) {
   int prec = OpPrec[tokentype];
   if (prec == 0) {
-    fprintf(stderr, "syntax error on line %d, token %d\n", cd->context.line, tokentype);
+    fprintf(stderr, "syntax error on line %d, token %d\n", cd->context->line, tokentype);
     exit(1);
   }
   return (prec);

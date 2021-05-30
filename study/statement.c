@@ -78,12 +78,12 @@ static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, stru
     return (expre_funccall(cd, w, token));
 
   // Check it's been defined then make a leaf node for it
-  if ((id = sym_findglob(cd->context.globalState, cd->context.textBuf)) == -1)
+  if ((id = sym_findglob(cd->context->globalState, cd->context->textBuf)) == -1)
   {
-    fprintf(stderr, "Undeclared variable %s\n", cd->context.textBuf);
+    fprintf(stderr, "Undeclared variable %s\n", cd->context->textBuf);
     exit(1);
   }
-  right = expre_mkastleaf(A_LVIDENT, sym_getGlob(cd->context.globalState,id)->type, id);
+  right = expre_mkastleaf(A_LVIDENT, sym_getGlob(cd->context->globalState,id)->type, id);
 
   // Ensure we have an equals sign
   misc_match(cd, token, T_ASSIGN, "=");
@@ -229,7 +229,7 @@ static struct ASTnode *return_statement(Content *cd, struct _Writer *w, struct T
   int returntype, functype;
 
   // Can't return a value if function returns P_VOID
-  if (sym_getGlob(cd->context.globalState, cd->context.functionid)->type == P_VOID)
+  if (sym_getGlob(cd->context->globalState, cd->context->functionid)->type == P_VOID)
     fatal(cd, "Can't return from a void function");
 
   // Ensure we have 'return' '('
@@ -241,7 +241,7 @@ static struct ASTnode *return_statement(Content *cd, struct _Writer *w, struct T
 
   // Ensure this is compatible with the function's type
   returntype = tree->type;
-  functype = sym_getGlob(cd->context.globalState, cd->context.functionid)->type;
+  functype = sym_getGlob(cd->context->globalState, cd->context->functionid)->type;
   if (!types_compatible(w, &returntype, &functype, 1))
     fatal(cd, "Incompatible types");
 

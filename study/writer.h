@@ -4,8 +4,10 @@
 #include "common_headers.h"
 #include "writer_pri.h"
 CPP_START
-#include "stdarg.h"
+//#include "stdarg.h"
 
+#define WRITER_G_REG(w) w->context->_register
+#define WRITER_G_REG_CTX(w) w->context->_register->context 
 #define WRITER_TYPE_FILE 1
 #define WRITER_TYPE_TEXT 2
 

@@ -4,6 +4,7 @@
 CPP_START
 
 struct GlobalState;
+struct _Register;
 
 typedef struct
 {   
@@ -16,6 +17,7 @@ typedef struct
 
     int label; //the arm label
     struct GlobalState *globalState; // the global state. help do
+    struct _Register * _register;
 }WriterContext;
 
 CPP_END

@@ -84,6 +84,9 @@
             "args": [
                 "-g",
                 "${workspaceFolder}/study/*.c",
+                "${workspaceFolder}/study/content/*.c",
+                "${workspaceFolder}/study/writer/*.c",
+                "${workspaceFolder}/study/register/*.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}.exe"
             ],

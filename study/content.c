@@ -1,9 +1,11 @@
-#include "content_text.h"
-#include "content_file.h"
+#include "content/content_text.h"
+#include "content/content_file.h"
+#include "content.h"
 
 Content* content_new(int type,void* param){
     Content *delegate = (Content *)malloc(sizeof(Content));
-    memset(delegate, 0, sizeof(Content));
+    delegate->context = (ContentContext*)malloc(sizeof(ContentContext));
+    memset(delegate->context, 0, sizeof(ContentContext));
     switch (type)
     {
     case CONTENT_TYPE_FILE:
@@ -20,19 +22,21 @@ Content* content_new(int type,void* param){
         break;
     }
     char *p = (char *)param;
-    char* dst = (char*)malloc(strlen(p) + 1);
-    strcpy(dst, p);
-    dst[strlen(p)] = '\0';
 
-    delegate->context.param = dst;
-    delegate->context.type = type;
+    delegate->context->param = strdup(p);
+    delegate->context->type = type;
     return delegate;
 }
 void content_delete(Content* cd){
-    if(cd->context.type == CONTENT_TYPE_FILE || cd->context.type == CONTENT_TYPE_TEXT){
-        if(cd->context.param){
-            free(cd->context.param);
+    if(cd->context){
+        if(cd->context->type == CONTENT_TYPE_FILE || cd->context->type == CONTENT_TYPE_TEXT){
+            if(cd->context->param){
+                free(cd->context->param);
+                cd->context->param = NULL;
+            }
         }
+        free(cd->context);
+        cd->context = NULL;
     }
     free(cd);
 }

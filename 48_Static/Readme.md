@@ -58,7 +58,7 @@ read through `scan.c` for the changes.
 ## Parsing `static`
 
 The `static` keyword gets parsed in the same place as `extern`. We also
-want to reject any attempt to use the `static` keyword in a local context. So
+want to reject any attempt to use the `static` keyword in a local context-> So
 in `decl.c`, we modify `parse_type()`:
 
 ```c

@@ -5,10 +5,11 @@
 
 CPP_START
 
-#define CONTENT_TEXT_BUF_LEN 512 // max Length of symbols in input
+#define CONTENT_TEXT_BUF_LEN 512                  // max Length of symbols in input
 //extern_ char Text[TEXTLEN + 1];                 // Last identifier scanned
 struct Token;
 struct GlobalState;
+struct _Register;
 
 typedef struct
 {
@@ -26,7 +27,10 @@ typedef struct
    int functionid;         // Symbol id of the current function
 
    struct GlobalState *globalState; // the global state. help do
+   struct _Register * _register;
 } ContentContext;
+
+#define CONTENT_PARAM ContentContext* ctx
 
 CPP_END
 

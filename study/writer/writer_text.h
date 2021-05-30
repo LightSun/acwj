@@ -1,8 +1,8 @@
 
 #ifndef _WRITER_TEXT_H
 #define _WRITER_TEXT_H
-#include "common_headers.h"
-#include "writer_pri.h"
+#include "../common_headers.h"
+#include "../writer_pri.h"
 CPP_START
 
 int writer_text_start(WriterContext *context,int initSize);
