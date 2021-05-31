@@ -65,7 +65,7 @@ void register_x64_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
 
 // Load an integer literal value into a register.
 // Return the number of the register
-int register_x64_cgload(REGISTER_CONTEXT_PARAM, int value)
+int register_x64_cgloadint(REGISTER_CONTEXT_PARAM, int value)
 {
 
   // Get a new register
@@ -214,7 +214,7 @@ int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
     break;
 
   default:
-    fprintf(stderr, "Bad type in register_x64_cgstoreglob:", st->type);
+    fprintf(stderr, "Bad type in register_x64_cgstoreglob: %d", st->type);
     exit(1);
   }
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);

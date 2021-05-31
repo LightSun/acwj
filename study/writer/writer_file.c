@@ -5,13 +5,16 @@ int writer_file_start(WriterContext *context, int initSize){
     const char* file = (char*)context->param;
     context->file = fopen(file, "wb+");
     if(context->file == NULL){
-        printf("writer_file_start: failed, path: %s\n", file);
+        fprintf(stderr, "writer_file_start: failed, path: %s\n", file);
+        exit(1);
     }
     return context->file != NULL;
 }
 
 int writer_file_writeChars(WriterContext *context, const char *content){
-    return fputs(content, context->file);
+    int res = fputs(content, context->file);
+    printf("writer_file_writeChars: result = %d\n", res);
+    return res;
 }
 
 void writer_file_end(WriterContext *context){

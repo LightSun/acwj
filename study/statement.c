@@ -37,7 +37,6 @@ static struct ASTnode *print_statement(Content *cd, struct _Writer *w, struct To
 {
   struct ASTnode *tree;
   int lefttype, righttype;
-  int reg;
 
   // Match a 'print' as the first token
   misc_match(cd, token, T_PRINT, "print");

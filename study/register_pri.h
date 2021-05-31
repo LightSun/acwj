@@ -15,7 +15,7 @@ typedef struct
 
     // We have to store large integer literal values in memory.
     // Keep a list of them which will be output in the postamble
-    int intlist[REG_MAXINTS];
+    int* intlist;  //REG_MAXINTS
     int intslot;
 }RegisterContext;
 

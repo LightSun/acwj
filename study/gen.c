@@ -140,11 +140,11 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
   case A_DIVIDE:
     return (CONTENT_G_REG(cd)->register_cgdiv(WRITER_G_REG_CTX(w), leftreg, rightreg));
   case A_INTLIT:
-    return (CONTENT_G_REG(cd)->register_cgload(WRITER_G_REG_CTX(w), n->v.intvalue));
+    return (CONTENT_G_REG(cd)->register_cgloadint(WRITER_G_REG_CTX(w), n->v.intvalue));
 
   case A_IDENT:
   {
-    return CONTENT_G_REG(cd)->register_cgloadglob(WRITER_G_REG_CTX(w), n->v.id);
+    return (CONTENT_G_REG(cd)->register_cgloadglob(WRITER_G_REG_CTX(w), n->v.id));
   }
 
   case A_LVIDENT:
@@ -203,6 +203,7 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
     fprintf(stderr, "Unknown AST operator %d\n", n->op);
     exit(1);
   }
+  return (NOREG);
 }
 
 void gen_preamble(struct _Writer *w)

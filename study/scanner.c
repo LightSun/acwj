@@ -262,7 +262,7 @@ int scanner_scan(Content *cd, struct Token *t)
     }
     else
     {
-      printf("Unrecognised character", c);
+      printf("Unrecognised character. %c", c);
       exit(1);
     }
     break;

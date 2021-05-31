@@ -22,7 +22,7 @@ struct _SymTable {
 
 struct GlobalState
 {
-  SymTable syms[SYM_BOLS_COUNT]; // Global symbol table
+  SymTable** syms;                // Global symbol table. size is SYM_BOLS_COUNT
   int globs;                     // Position of next free global symbol slot
 };
 

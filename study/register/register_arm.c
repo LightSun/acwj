@@ -6,7 +6,7 @@
 
 // Allocate a free register. Return the number of
 // the register. Die if no available registers.
-static int register_alloc(REGISTER_CONTEXT_PARAM)
+static int register_arm_alloc(REGISTER_CONTEXT_PARAM)
 {
     for (int i = 0; i < REG_COUNT; i++)
     {
@@ -22,7 +22,7 @@ static int register_alloc(REGISTER_CONTEXT_PARAM)
 }
 // Return a register to the list of available registers.
 // Check to see if it's not already there.
-static void register_free(REGISTER_CONTEXT_PARAM, int reg)
+static void register_arm_free(REGISTER_CONTEXT_PARAM, int reg)
 {
     if (ctx->freereg[reg] != 0)
     {
@@ -63,7 +63,7 @@ static void set_int_offset(REGISTER_CONTEXT_PARAM, int val)
     //fprintf(Outfile, "\tldr\tr3, .L3+%d\n", offset);
     char buf[32];
     snprintf(buf, 32, "\tldr\tr3, .L3+%d\n", offset);
-    REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
+    REG_WRITE_BUF();
 }
 
 // Determine the offset of a variable from the .L2
@@ -77,7 +77,7 @@ static void set_var_offset(REGISTER_CONTEXT_PARAM, int id)
     // we get to our variable
     for (int i = 0; i < id; i++)
     {
-        if (gs->syms[i].stype == S_VARIABLE)
+        if (gs->syms[i]->stype == S_VARIABLE)
             offset += 4;
     }
     // Load r3 with this offset
@@ -113,9 +113,9 @@ void register_arm_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
     char buf[32];
     for (int i = 0; i < gs->globs; i++)
     {
-        if (gs->syms[i].stype == S_VARIABLE)
+        if (gs->syms[i]->stype == S_VARIABLE)
         {
-            snprintf(buf, 32, "\t.word %s\n", gs->syms[i].name);
+            snprintf(buf, 32, "\t.word %s\n", gs->syms[i]->name);
             REG_WRITE_BUF();
         }
     }
@@ -129,10 +129,10 @@ void register_arm_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
     }
 }
 
-int register_arm_cgload(REGISTER_CONTEXT_PARAM, int value)
+int register_arm_cgloadint(REGISTER_CONTEXT_PARAM, int value)
 {
     // Get a new register
-    int r = register_alloc(ctx);
+    int r = register_arm_alloc(ctx);
 
     char buf[32];
     // If the literal value is small, do it with one instruction
@@ -143,7 +143,7 @@ int register_arm_cgload(REGISTER_CONTEXT_PARAM, int value)
         set_int_offset(ctx, value);
         snprintf(buf, 32, "\tldr\t%s, [r3]\n", reglist[r]);
     }
-    REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
+    REG_WRITE_BUF();
     return (r);
 }
 int register_arm_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2)
@@ -152,7 +152,7 @@ int register_arm_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2)
     char buf[32];
     snprintf(buf, 32, "\tadd\t%s, %s, %s\n", reglist[r2], reglist[r1], reglist[r2]);
     REG_WRITE_BUF();
-    register_free(ctx, r1);
+    register_arm_free(ctx, r1);
     return (r2);
 }
 int register_arm_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2)
@@ -216,7 +216,7 @@ void register_arm_cgprintint(REGISTER_CONTEXT_PARAM, int r)
 //name: identifier name
 int register_arm_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id)
 {
-    int r = register_alloc(ctx);
+    int r = register_arm_alloc(ctx);
     //TODO Get the offset to the variable
     set_var_offset(ctx, sym_id);
 
@@ -261,21 +261,12 @@ void register_arm_cgglobsym(REGISTER_CONTEXT_PARAM, int sym_id)
     SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
     int typesize;
     // Get the size of the type
-    typesize = cgprimsize(st->type);
+    typesize = register_arm_cgprimsize(ctx,st->type);
 
     char buf[32];
     snprintf(buf, 32, "\t.comm\t%s,%d,%d\n", st->name, typesize, typesize);
     REG_WRITE_BUF();
 }
-
-//----------------- compare operator -------------------------
-int register_arm_cgequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
-int register_arm_cgnotequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
-int register_arm_cglessthan(REGISTER_CONTEXT_PARAM, int r1, int r2);
-int register_arm_cggreaterthan(REGISTER_CONTEXT_PARAM, int r1, int r2);
-
-int register_arm_cglessequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
-int register_arm_cggreaterequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
 
 //---------------- if statement ----------------
 // Generate a jump to a label
@@ -378,7 +369,7 @@ void register_arm_cgfuncpreamble(REGISTER_CONTEXT_PARAM, int sym_id)
              "\tsub\tsp, sp, #8\n"
              "\tstr\tr0, [fp, #-8]\n",
              st->name, st->name, st->name);
-    REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
+    REG_WRITE_BUF();
 }
 
 void register_arm_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int sym_id)

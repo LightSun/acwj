@@ -8,7 +8,7 @@ void register_arm_free_all(REGISTER_CONTEXT_PARAM);
 void register_arm_cgpreamble(REGISTER_CONTEXT_PARAM);
 void register_arm_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id);
 
-int register_arm_cgload(REGISTER_CONTEXT_PARAM, int value);
+int register_arm_cgloadint(REGISTER_CONTEXT_PARAM, int value);
 int register_arm_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_arm_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_arm_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2);
@@ -29,13 +29,13 @@ int register_arm_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id);
 void register_arm_cgglobsym(REGISTER_CONTEXT_PARAM, int sym_id);
 
 //----------------- compare operator -------------------------
-int register_arm_cgequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
+/* int register_arm_cgequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_arm_cgnotequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_arm_cglessthan(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_arm_cggreaterthan(REGISTER_CONTEXT_PARAM, int r1, int r2);
 
 int register_arm_cglessequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
-int register_arm_cggreaterequal(REGISTER_CONTEXT_PARAM, int r1, int r2);
+int register_arm_cggreaterequal(REGISTER_CONTEXT_PARAM, int r1, int r2); */
 
 //---------------- if statement ----------------
 // Generate a jump to a label

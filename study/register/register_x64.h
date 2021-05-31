@@ -6,7 +6,7 @@ CPP_START
 void register_x64_cgpreamble(REGISTER_CONTEXT_PARAM);
 void register_x64_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id);
 
-int register_x64_cgload(REGISTER_CONTEXT_PARAM, int value);
+int register_x64_cgloadint(REGISTER_CONTEXT_PARAM, int value);
 int register_x64_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_x64_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_x64_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2);
