@@ -25,7 +25,9 @@ typedef struct
 #define REG_G_GLOBAL_STATE(ctx) REG_G_WRITER_CTX(ctx)->globalState
 
 #define REG_WRITE_BUF() REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf)
-#define REG_SYM_TABLE(ctx, id) sym_getGlob(REG_G_GLOBAL_STATE(ctx), id)
+#define REG_WRITE_STR(s) REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), s)
+
+#define REG_G_SYM_TABLE(ctx, id) sym_getGlob(REG_G_GLOBAL_STATE(ctx), id)
 /* #define REG_WRITE_BUF(ctx, buf, fmt, ...) \
 do{ \
 va_list vArgList; \

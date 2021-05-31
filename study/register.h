@@ -46,7 +46,7 @@ struct _Register
     RegisterContext* context;
     // Print out the assembly preamble
     void (*register_cgpreamble)(REGISTER_CONTEXT_PARAM);
-    void (*register_cgpostamble)(REGISTER_CONTEXT_PARAM, int endLabel);
+    void (*register_cgpostamble)(REGISTER_CONTEXT_PARAM, int sym_id);
 
 // Load an integer literal value into a register.
 // Return the number of the register
@@ -61,14 +61,14 @@ struct _Register
     // Load a value from a variable into a register.
     // Return the number of the register
     //name: identifier name
-    int (*register_cgloadglob)(REGISTER_CONTEXT_PARAM, int pType, const char *name);
+    int (*register_cgloadglob)(REGISTER_CONTEXT_PARAM, int sym_id);
     // Store a register's value into a variable
     //name: identifier name
-    int (*register_cgstoreglob)(REGISTER_CONTEXT_PARAM, int r, int pType, const char *name);
+    int (*register_cgstoreglob)(REGISTER_CONTEXT_PARAM, int r, int sym_id);
     // Generate a global symbol
     //pType: one of Primitive types
     //name: identifier name
-    void (*register_cgglobsym)(REGISTER_CONTEXT_PARAM, int pType, const char *name);
+    void (*register_cgglobsym)(REGISTER_CONTEXT_PARAM, int sym_id);
 
     void (*register_free_all)();
 
@@ -91,9 +91,9 @@ struct _Register
     int (*register_cgcompare_and_set)(REGISTER_CONTEXT_PARAM, int asTop, int r1, int r2);
 
     //-------------- function -----------------------
-    void (*register_cgfuncpreamble)(REGISTER_CONTEXT_PARAM, const char *funcName);
+    void (*register_cgfuncpreamble)(REGISTER_CONTEXT_PARAM, int sym_id);
 
-    void (*register_cgfuncpostamble)(REGISTER_CONTEXT_PARAM, int endLabel);
+    void (*register_cgfuncpostamble)(REGISTER_CONTEXT_PARAM, int sym_id);
 
     //---------------- widen --------------------------
     int (*register_cgwiden)(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype);
@@ -105,10 +105,10 @@ struct _Register
  * To call a function with one argument, we need to copy the register with the argument value into %rdi.
  *  On return, we need to copy the returned value from %rax into the register that will have this new value:
  * */
-    int (*register_cgcall)(REGISTER_CONTEXT_PARAM, int reg, const char *symName);
+    int (*register_cgcall)(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
 
     //return
-    void (*register_cgreturn)(REGISTER_CONTEXT_PARAM, int reg, int pType, int endlabel);
+    void (*register_cgreturn)(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
 };
 
 Register* register_new(int type);

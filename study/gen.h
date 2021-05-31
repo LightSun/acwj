@@ -20,11 +20,11 @@ struct _Content;
 int gen_genAST(struct _Content* cd, struct ASTnode *n, struct _Writer *w, int reg, int parentASTop);
 
 void gen_preamble(struct _Writer *w);
-void gen_postamble(struct _Writer *w, int endlabel);
+void gen_postamble(struct _Writer *w, int sym_id);
 void gen_freeregs(struct _Writer *w);
 void gen_printint(struct _Writer *w, int reg);
 
-void gen_globsym(struct _Writer *w, int id, const char* symName);
+void gen_globsym(struct _Writer *w, int sym_id);
 //get the type size in bytes.
 int gen_primsize(struct _Writer *w, int type);
 

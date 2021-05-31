@@ -24,6 +24,7 @@ static void parseStatement(Content *cd, Writer *w){
             break;
         }
     }
+    gen_postamble(w, 0);
 
     cd->end(cd->context);
     w->end(w->context);

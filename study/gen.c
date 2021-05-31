@@ -115,9 +115,9 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
 
   case A_FUNCTION:
     // Generate the function's preamble before the code
-    CONTENT_G_REG(cd)->register_cgfuncpreamble(WRITER_G_REG_CTX(w), sym_getGlob(cd->context->globalState, n->v.id)->name);
+    CONTENT_G_REG(cd)->register_cgfuncpreamble(WRITER_G_REG_CTX(w),  n->v.id);
     gen_genAST(cd, n->left, w, NOREG, n->op);
-    CONTENT_G_REG(cd)->register_cgfuncpostamble(WRITER_G_REG_CTX(w), sym_getGlob(cd->context->globalState, n->v.id)->endlabel);
+    CONTENT_G_REG(cd)->register_cgfuncpostamble(WRITER_G_REG_CTX(w), n->v.id);
     return (NOREG);
   }
 
@@ -144,14 +144,12 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
 
   case A_IDENT:
   {
-    SymTable *st = sym_getGlob(cd->context->globalState, n->v.id);
-    return (CONTENT_G_REG(cd)->register_cgloadglob(WRITER_G_REG_CTX(w), st->type, st->name));
+    return CONTENT_G_REG(cd)->register_cgloadglob(WRITER_G_REG_CTX(w), n->v.id);
   }
 
   case A_LVIDENT:
   {
-    SymTable *st = sym_getGlob(cd->context->globalState, n->v.id);
-    return (CONTENT_G_REG(cd)->register_cgstoreglob(WRITER_G_REG_CTX(w), reg, st->type, st->name));
+    return (CONTENT_G_REG(cd)->register_cgstoreglob(WRITER_G_REG_CTX(w), reg, n->v.id));
   }
 
   case A_ASSIGN:
@@ -194,13 +192,12 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
     return (CONTENT_G_REG(cd)->register_cgwiden(WRITER_G_REG_CTX(w), leftreg, n->left->type, n->type));
 
   case A_RETURN:{
-    SymTable * st = sym_getGlob(cd->context->globalState, cd->context->functionid);
-    CONTENT_G_REG(cd)->register_cgreturn(WRITER_G_REG_CTX(w), leftreg, st->type, st->endlabel);
+    CONTENT_G_REG(cd)->register_cgreturn(WRITER_G_REG_CTX(w), leftreg, cd->context->functionid);
     return (NOREG);
   }
 
   case A_FUNCCALL:
-    return (CONTENT_G_REG(cd)->register_cgcall(WRITER_G_REG_CTX(w), leftreg, sym_getGlob(cd->context->globalState, n->v.id)->name));
+    return (CONTENT_G_REG(cd)->register_cgcall(WRITER_G_REG_CTX(w), leftreg, n->v.id));
 
   default:
     fprintf(stderr, "Unknown AST operator %d\n", n->op);
@@ -212,9 +209,9 @@ void gen_preamble(struct _Writer *w)
 {
   WRITER_G_REG(w)->register_cgpreamble(WRITER_G_REG_CTX(w));
 }
-void gen_postamble(struct _Writer *w, int endlabel)
+void gen_postamble(struct _Writer *w, int id)
 {
-  WRITER_G_REG(w)->register_cgpostamble(WRITER_G_REG_CTX(w), endlabel);
+  WRITER_G_REG(w)->register_cgpostamble(WRITER_G_REG_CTX(w), id);
 }
 void gen_freeregs(struct _Writer *w)
 {
@@ -225,9 +222,9 @@ void gen_printint(struct _Writer *w, int reg)
   WRITER_G_REG(w)->register_cgprintint(WRITER_G_REG_CTX(w), reg);
 }
 
-void gen_globsym(struct _Writer *w, int pType, const char *name)
+void gen_globsym(struct _Writer *w, int sym_id)
 {
-  WRITER_G_REG(w)->register_cgglobsym(WRITER_G_REG_CTX(w), pType, name);
+  WRITER_G_REG(w)->register_cgglobsym(WRITER_G_REG_CTX(w), sym_id);
 }
 
 int gen_primsize(struct _Writer *w,int type) {

@@ -4,7 +4,7 @@
 CPP_START
 // Print out the assembly preamble
 void register_x64_cgpreamble(REGISTER_CONTEXT_PARAM);
-void register_x64_cgpostamble(REGISTER_CONTEXT_PARAM, int endLabel);
+void register_x64_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id);
 
 int register_x64_cgload(REGISTER_CONTEXT_PARAM, int value);
 int register_x64_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2);
@@ -17,14 +17,14 @@ void register_x64_cgprintint(REGISTER_CONTEXT_PARAM, int r);
 // Load a value from a variable into a register.
 // Return the number of the register
 //name: identifier name
-int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int pType, const char *name);
+int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id);
 // Store a register's value into a variable
 //name: identifier name
-int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int pType, const char *name);
+int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id);
 // Generate a global symbol
 //pType: one of Primitive types
 //name: identifier name
-void register_x64_cgglobsym(REGISTER_CONTEXT_PARAM, int pType, const char *name);
+void register_x64_cgglobsym(REGISTER_CONTEXT_PARAM, int sym_id);
 
 void register_x64_free_all(REGISTER_CONTEXT_PARAM);
 
@@ -47,9 +47,9 @@ int register_x64_cgcompare_and_jump(REGISTER_CONTEXT_PARAM, int asTop, int r1, i
 int register_x64_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int asTop, int r1, int r2);
 
 //-------------- function -----------------------
-void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, const char *funcName);
+void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, int sym_id);
 
-void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int endLabel);
+void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int sym_id);
 
 //---------------- widen --------------------------
 int register_x64_cgwiden(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype);
@@ -61,10 +61,10 @@ int register_x64_cgprimsize(REGISTER_CONTEXT_PARAM, int pType);
  * To call a function with one argument, we need to copy the register with the argument value into %rdi.
  *  On return, we need to copy the returned value from %rax into the register that will have this new value:
  * */
-int register_x64_cgcall(REGISTER_CONTEXT_PARAM, int reg, const char *symName);
+int register_x64_cgcall(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
 
 //return
-void register_x64_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int pType, int endlabel);
+void register_x64_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
 
 CPP_END
 #endif
