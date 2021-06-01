@@ -77,7 +77,7 @@ static void set_var_offset(REGISTER_CONTEXT_PARAM, int id)
     // we get to our variable
     for (int i = 0; i < id; i++)
     {
-        if (gs->syms[i]->stype == S_VARIABLE)
+        if (gs->syms[i].stype == S_VARIABLE)
             offset += 4;
     }
     // Load r3 with this offset
@@ -113,9 +113,9 @@ void register_arm_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
     char buf[32];
     for (int i = 0; i < gs->globs; i++)
     {
-        if (gs->syms[i]->stype == S_VARIABLE)
+        if (gs->syms[i].stype == S_VARIABLE)
         {
-            snprintf(buf, 32, "\t.word %s\n", gs->syms[i]->name);
+            snprintf(buf, 32, "\t.word %s\n", gs->syms[i].name);
             REG_WRITE_BUF();
         }
     }
@@ -161,7 +161,7 @@ int register_arm_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2)
     char buf[32];
     snprintf(buf, 32, "\tsub\t%s, %s, %s\n", reglist[r1], reglist[r1], reglist[r2]);
     REG_WRITE_BUF();
-    register_free(ctx, r2);
+    register_arm_free(ctx, r2);
     return (r1);
 }
 int register_arm_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2)
@@ -169,7 +169,7 @@ int register_arm_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2)
     char buf[32];
     snprintf(buf, 32, "\tmul\t%s, %s, %s\n", reglist[r2], reglist[r1], reglist[r2]);
     REG_WRITE_BUF();
-    register_free(ctx, r1);
+    register_arm_free(ctx, r1);
     return (r2);
 }
 int register_arm_cgdiv(REGISTER_CONTEXT_PARAM, int r1, int r2)
@@ -208,7 +208,7 @@ void register_arm_cgprintint(REGISTER_CONTEXT_PARAM, int r)
 
     REG_WRITE_STR("\tbl\tprintint\n");
     REG_WRITE_STR("\tnop\n");
-    register_free(ctx, r);
+    register_arm_free(ctx, r);
 }
 
 // Load a value from a variable into a register.
@@ -343,7 +343,7 @@ int register_arm_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int asTop, int r1, in
     snprintf(buf, 32, "\tuxtb\t%s, %s\n", reglist[r2], reglist[r2]);
     REG_WRITE_BUF();
 
-    register_free(ctx, r1);
+    register_arm_free(ctx, r1);
     /* fprintf(Outfile, "\tcmp\t%s, %s\n", reglist[r1], reglist[r2]);
   fprintf(Outfile, "\t%s\t%s, #1\n", cmplist[ASTop - A_EQ], reglist[r2]);
   fprintf(Outfile, "\t%s\t%s, #0\n", invcmplist[ASTop - A_EQ], reglist[r2]);

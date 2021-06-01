@@ -216,7 +216,7 @@ void gen_postamble(struct _Writer *w, int id)
 }
 void gen_freeregs(struct _Writer *w)
 {
-  WRITER_G_REG(w)->register_free_all();
+  WRITER_G_REG(w)->register_free_all(WRITER_G_REG_CTX(w));
 }
 void gen_printint(struct _Writer *w, int reg)
 {

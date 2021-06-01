@@ -73,9 +73,9 @@ int register_x64_cgloadint(REGISTER_CONTEXT_PARAM, int value)
 
   // Print out the code to initialise it
   //fprintf(Outfile, "\tmovq\t$%d, %s\n", value, reglist[r]);
-  char buffer[32];
-  snprintf(buffer, 32, "\tmovq\t$%d, %s\n", value, reglist[r]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\tmovq\t$%d, %s\n", value, reglist[r]);
+  REG_WRITE_BUF();
   return (r);
 }
 
@@ -84,9 +84,9 @@ int register_x64_cgloadint(REGISTER_CONTEXT_PARAM, int value)
 int register_x64_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2)
 {
   //fprintf(Outfile, "\taddq\t%s, %s\n", reglist[r1], reglist[r2]);
-  char buffer[32];
-  snprintf(buffer, 32, "\taddq\t%s, %s\n", reglist[r1], reglist[r2]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\taddq\t%s, %s\n", reglist[r1], reglist[r2]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
   register_x64_free(ctx, r1);
   return (r2);

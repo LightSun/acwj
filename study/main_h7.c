@@ -42,8 +42,8 @@ static char *getFilePath(const char *dir, const char *rPath)
 static char *getCurrentFilePath(const char *rPath)
 {
     #ifdef _ABSOLUTE_EXE_PATH
-        //const char *buf = "E:/study/github/mine/acwj";
-        const char *buf = "E:/study/github/mine_clone/acwj";
+        const char *buf = "E:/study/github/mine/acwj";
+       // const char *buf = "E:/study/github/mine_clone/acwj";
     #else
         char buf[80];
         getcwd(buf, sizeof(buf));
@@ -51,14 +51,10 @@ static char *getCurrentFilePath(const char *rPath)
     #endif
     return getFilePath(buf, rPath);
 }
-
-static void printint(long x) {
-    printf("x = %ld", x);
-}
 int main(int argc, char **args)
 {
 
-    Register* reg = register_new(REGISTER_TYPE_X64);
+    Register* reg = register_new(REGISTER_TYPE_ARM);
     struct GlobalState* gs = sym_globalState_new();
     // For now, ensure that void printint() is defined //13
     sym_addglob(gs, "printint", P_CHAR, S_FUNCTION, 0);

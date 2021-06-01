@@ -83,7 +83,6 @@
            "command": "E:\\study\\cpp\\msys2_64\\mingw64\\bin\\gcc.exe",
             "args": [
                 "-g",
-                "-Wall",
                 "${workspaceFolder}/study/*.c",
                 "${workspaceFolder}/study/content/*.c",
                 "${workspaceFolder}/study/writer/*.c",

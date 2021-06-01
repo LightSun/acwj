@@ -1,8 +1,8 @@
 #include "common_headers.h"
 #ifndef _REGISTER_H
 #define _REGISTER_H
-#include "writer.h"
 #include "register_pri.h"
+#include "writer.h"
 CPP_START
 
 #define REGISTER_TYPE_X64 1
@@ -10,29 +10,29 @@ CPP_START
 
 #define REGISTER_ASSIGN_FUN(R, m, n) R->register_##m = register_##n##_##m;
 
-#define REGISTER_ASSIGN_FUNCS(R, arch)\
-REGISTER_ASSIGN_FUN(R, cgpreamble, arch)\
-REGISTER_ASSIGN_FUN(R, cgpostamble, arch)\
-REGISTER_ASSIGN_FUN(R, cgloadint, arch)\
-REGISTER_ASSIGN_FUN(R, cgadd, arch)\
-REGISTER_ASSIGN_FUN(R, cgsub, arch)\
-REGISTER_ASSIGN_FUN(R, cgmul, arch)\
-REGISTER_ASSIGN_FUN(R, cgdiv, arch)\
-REGISTER_ASSIGN_FUN(R, cgprintint, arch)\
-REGISTER_ASSIGN_FUN(R, cgloadglob, arch)\
-REGISTER_ASSIGN_FUN(R, cgstoreglob, arch)\
-REGISTER_ASSIGN_FUN(R, cgglobsym, arch)\
-REGISTER_ASSIGN_FUN(R, free_all, arch)\
-REGISTER_ASSIGN_FUN(R, cgjump, arch)\
-REGISTER_ASSIGN_FUN(R, cglabel, arch)\
-REGISTER_ASSIGN_FUN(R, cgcompare_and_jump, arch)\
-REGISTER_ASSIGN_FUN(R, cgcompare_and_set, arch)\
-REGISTER_ASSIGN_FUN(R, cgfuncpreamble, arch)\
-REGISTER_ASSIGN_FUN(R, cgfuncpostamble, arch)\
-REGISTER_ASSIGN_FUN(R, cgwiden, arch)\
-REGISTER_ASSIGN_FUN(R, cgprimsize, arch)\
-REGISTER_ASSIGN_FUN(R, cgcall, arch)\
-REGISTER_ASSIGN_FUN(R, cgreturn, arch)
+#define REGISTER_ASSIGN_FUNCS(R, arch)               \
+    REGISTER_ASSIGN_FUN(R, cgpreamble, arch)         \
+    REGISTER_ASSIGN_FUN(R, cgpostamble, arch)        \
+    REGISTER_ASSIGN_FUN(R, cgloadint, arch)          \
+    REGISTER_ASSIGN_FUN(R, cgadd, arch)              \
+    REGISTER_ASSIGN_FUN(R, cgsub, arch)              \
+    REGISTER_ASSIGN_FUN(R, cgmul, arch)              \
+    REGISTER_ASSIGN_FUN(R, cgdiv, arch)              \
+    REGISTER_ASSIGN_FUN(R, cgprintint, arch)         \
+    REGISTER_ASSIGN_FUN(R, cgloadglob, arch)         \
+    REGISTER_ASSIGN_FUN(R, cgstoreglob, arch)        \
+    REGISTER_ASSIGN_FUN(R, cgglobsym, arch)          \
+    REGISTER_ASSIGN_FUN(R, free_all, arch)           \
+    REGISTER_ASSIGN_FUN(R, cgjump, arch)             \
+    REGISTER_ASSIGN_FUN(R, cglabel, arch)            \
+    REGISTER_ASSIGN_FUN(R, cgcompare_and_jump, arch) \
+    REGISTER_ASSIGN_FUN(R, cgcompare_and_set, arch)  \
+    REGISTER_ASSIGN_FUN(R, cgfuncpreamble, arch)     \
+    REGISTER_ASSIGN_FUN(R, cgfuncpostamble, arch)    \
+    REGISTER_ASSIGN_FUN(R, cgwiden, arch)            \
+    REGISTER_ASSIGN_FUN(R, cgprimsize, arch)         \
+    REGISTER_ASSIGN_FUN(R, cgcall, arch)             \
+    REGISTER_ASSIGN_FUN(R, cgreturn, arch)
 
 /* 
 REGISTER_ASSIGN_FUN(R, cgequal, arch)\
@@ -42,17 +42,19 @@ REGISTER_ASSIGN_FUN(R, cggreaterthan, arch)\
 REGISTER_ASSIGN_FUN(R, cglessequal, arch)\
 REGISTER_ASSIGN_FUN(R, cggreaterequal, arch)\ */
 
-
 typedef struct _Register Register;
 struct _Register
 {
-    RegisterContext* context;
+    RegisterContext *context;
+
+    void (*register_free_all)(REGISTER_CONTEXT_PARAM);
+
     // Print out the assembly preamble
     void (*register_cgpreamble)(REGISTER_CONTEXT_PARAM);
     void (*register_cgpostamble)(REGISTER_CONTEXT_PARAM, int sym_id);
 
-// Load an integer literal value into a register.
-// Return the number of the register
+    // Load an integer literal value into a register.
+    // Return the number of the register
     int (*register_cgloadint)(REGISTER_CONTEXT_PARAM, int value);
     int (*register_cgadd)(REGISTER_CONTEXT_PARAM, int r1, int r2);
     int (*register_cgsub)(REGISTER_CONTEXT_PARAM, int r1, int r2);
@@ -73,10 +75,8 @@ struct _Register
     //name: identifier name
     void (*register_cgglobsym)(REGISTER_CONTEXT_PARAM, int sym_id);
 
-    void (*register_free_all)();
-
     //----------------- compare operator -------------------------
-   /*  int (*register_cgequal)(REGISTER_CONTEXT_PARAM, int r1, int r2);
+    /*  int (*register_cgequal)(REGISTER_CONTEXT_PARAM, int r1, int r2);
     int (*register_cgnotequal)(REGISTER_CONTEXT_PARAM, int r1, int r2);
     int (*register_cglessthan)(REGISTER_CONTEXT_PARAM, int r1, int r2);
     int (*register_cggreaterthan)(REGISTER_CONTEXT_PARAM, int r1, int r2);
@@ -114,8 +114,8 @@ struct _Register
     void (*register_cgreturn)(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
 };
 
-Register* register_new(int type);
-void register_delete(Register* r);
+Register *register_new(int type);
+void register_delete(Register *r);
 
 CPP_END
 
