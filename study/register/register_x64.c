@@ -1,7 +1,7 @@
+#include "register_x64.h"
 #include "../ast.h"
 #include "../register_pri.h"
 #include "../writer.h"
-#include "register_x64.h"
 // Code generator for x86-64
 // Copyright (c) 2019 Warren Toomey, GPL3
 
@@ -60,7 +60,7 @@ void register_x64_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
   register_x64_cglabel(ctx, REG_G_SYM_TABLE(ctx, sym_id)->endlabel);
   //fputs("\tpopq %rbp\n" "\tret\n", Outfile);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\tpopq %rbp\n"
-                                                            "\tret\n");
+                                                       "\tret\n");
 }
 
 // Load an integer literal value into a register.
@@ -162,7 +162,7 @@ int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id)
 {
   // Get a new register
   int r = register_x64_alloc(ctx);
-  SymTable* st = REG_G_SYM_TABLE(ctx, sym_id);
+  SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
 
   char buffer[64];
   // Print out the code to initialise it
@@ -179,7 +179,10 @@ int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id)
     break;
 
   case P_LONG:
-    //fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
+  case P_CHARPTR:
+  case P_INTPTR:
+  case P_LONGPTR:
+    // fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
     snprintf(buffer, 64, "\tmovq\t%s(\%%rip), %s\n", st->name, reglist[r]);
     break;
 
@@ -194,7 +197,7 @@ int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id)
 // Store a register's value into a variable
 int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
 {
-  SymTable* st = REG_G_SYM_TABLE(ctx, sym_id);
+  SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
   char buffer[64];
   switch (st->type)
   {
@@ -209,12 +212,15 @@ int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
     break;
 
   case P_LONG:
+  case P_CHARPTR:
+  case P_INTPTR:
+  case P_LONGPTR:
     //fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], Gsym[id].name);
     snprintf(buffer, 64, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], st->name);
     break;
 
   default:
-    fprintf(stderr, "Bad type in register_x64_cgstoreglob: %d", st->type);
+    fprintf(stderr, "Bad type in register_x64_cgstoreglob: %d\n", st->type);
     exit(1);
   }
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
@@ -224,7 +230,7 @@ int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
 // Generate a global symbol
 void register_x64_cgglobsym(REGISTER_CONTEXT_PARAM, int sym_id)
 {
-  SymTable* st = REG_G_SYM_TABLE(ctx, sym_id);
+  SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
   int typesize;
   typesize = register_x64_cgprimsize(ctx, st->type);
   //fprintf(Outfile, "\t.comm\t%s,%d,%d\n", Gsym[id].name, typesize, typesize);
@@ -368,7 +374,7 @@ int register_x64_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int ASTop, int r1, in
   return (r2);
 }
 
-void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM,int sym_id)
+void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, int sym_id)
 {
   /*  fprintf(Outfile,
           "\t.text\n"
@@ -377,7 +383,7 @@ void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM,int sym_id)
           "%s:\n" "\tpushq\t%%rbp\n"
           "\tmovq\t%%rsp, %%rbp\n", name, name, name); */
 
-  SymTable* st = REG_G_SYM_TABLE(ctx, sym_id);
+  SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
   char buffer[96];
   snprintf(buffer, 96, "\t.text\n"
                        "\t.globl\t%s\n"
@@ -394,8 +400,8 @@ void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
 {
   //fputs("\tmovl $0, %eax\n" "\tpopq     %rbp\n" "\tret\n", Outfile);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\tmovl $0, %eax\n"
-                                                            "\tpopq     %rbp\n"
-                                                            "\tret\n");
+                                                       "\tpopq     %rbp\n"
+                                                       "\tret\n");
 }
 
 //---------------------------------------------
@@ -411,15 +417,15 @@ int register_x64_cgwiden(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype
 //========================= add in lesson 13 ----------------------
 
 // Array of type sizes in P_XXX order.
-// 0 means no size. P_NONE, P_VOID, P_CHAR, P_INT, P_LONG
-static int psize[] = {0, 0, 1, 4, 8};
+// 0 means no size. P_NONE, P_VOID, P_CHAR, P_INT, P_LONG, PTR(3)
+static int psize[] =  { 0, 0, 1, 4, 8, 8, 8, 8 };
 
 // Given a P_XXX type value, return the
 // size of a primitive type in bytes.
 int register_x64_cgprimsize(REGISTER_CONTEXT_PARAM, int pType)
 {
   // Check the type is valid
-  if (pType < P_NONE || pType > P_LONG)
+  if (pType < P_NONE || pType > P_LONGPTR)
   {
     fprintf(stderr, "Bad type in cgprimsize()");
     exit(1);
@@ -430,7 +436,7 @@ int register_x64_cgprimsize(REGISTER_CONTEXT_PARAM, int pType)
 // Generate code to return a value from a function
 void register_x64_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id)
 {
-  SymTable* st = REG_G_SYM_TABLE(ctx, sym_id);
+  SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
   char buffer[32];
   //snprintf(buffer, 32, "\t.globl\t%s\n", funcName);
 
@@ -481,4 +487,48 @@ int register_x64_cgcall(REGISTER_CONTEXT_PARAM, int r, int sym_id)
 
   register_x64_free(ctx, r);
   return (outr);
+}
+
+//------------------------ get addr/de-ref-addr ------------
+
+// Generate code to load the address of a global
+// identifier into a variable. Return a new register
+int register_x64_cgaddress(REGISTER_CONTEXT_PARAM, int id)
+{
+  int r = register_x64_alloc(ctx);
+  //REG_G_SYM_TABLE(ctx, id)->name
+
+  //fprintf(Outfile, "\tleaq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
+  char buf[48];
+  snprintf(buf, 48, "\tleaq\t%s(%%rip), %s\n", REG_G_SYM_TABLE(ctx, id)->name, reglist[r]);
+  //The leaq instruction loads the address of the named identifie
+
+  REG_WRITE_BUF();
+  return (r);
+}
+// Dereference a pointer to get the value it
+// pointing at into the same register
+int register_x64_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType)
+{
+  switch (pType)
+  {
+  case P_CHARPTR:
+  {
+    //fprintf(Outfile, "\tmovzbq\t(%s), %s\n", reglist[r], reglist[r]);
+    char buf[32];
+    snprintf(buf, 32, "\tmovzbq\t(%s), %s\n", reglist[r], reglist[r]);
+    REG_WRITE_BUF();
+    break;
+  }
+  case P_INTPTR:
+  case P_LONGPTR:
+  {
+    //fprintf(Outfile, "\tmovq\t(%s), %s\n", reglist[r], reglist[r]);
+    char buf[32];
+    snprintf(buf, 32, "\tmovq\t(%s), %s\n", reglist[r], reglist[r]);
+    REG_WRITE_BUF();
+    break;
+  }
+  }
+  return (r);
 }

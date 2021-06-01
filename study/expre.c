@@ -196,7 +196,7 @@ struct ASTnode* expre_binexpr(struct _Content* cd, struct _Writer* w,struct Toke
 
   // Get the integer literal on the left.
   // Fetch the next token at the same time.
-  left = primary(cd, w, token);
+  left = prefix(cd, w, token);
 
   // If we hit a semicolon or ')', return just the left node
   tokentype = token->token;
@@ -243,3 +243,44 @@ struct ASTnode* expre_binexpr(struct _Content* cd, struct _Writer* w,struct Toke
   return (left);
 }
 
+
+// Parse a prefix expression and return 
+// a sub-tree representing it.
+struct ASTnode *prefix(struct _Content* cd, struct _Writer* w,struct Token* token) {
+  struct ASTnode *tree;
+  switch (token->token) {
+    case T_AMPER: //&
+      // Get the next token and parse it
+      // recursively as a prefix expression
+      scanner_scan(cd, token);
+      tree = prefix(cd, w, token);
+
+      // Ensure that it's an identifier
+      if (tree->op != A_IDENT)
+        fatal(cd, "& operator must be followed by an identifier");
+
+      // Now change the operator to A_ADDR and the type to
+      // a pointer to the original type
+      tree->op = A_ADDR; 
+      tree->type = pointer_to(tree->type);
+      break;
+
+    case T_STAR: //*
+      // Get the next token and parse it
+      // recursively as a prefix expression
+      scanner_scan(cd, token);
+      tree = prefix(cd, w, token);
+
+      // For now, ensure it's either another deref or an
+      // identifier
+      if (tree->op != A_IDENT && tree->op != A_DEREF)
+        fatal(cd, "* operator must be followed by an identifier or *");
+
+      // Prepend an A_DEREF operation to the tree
+      tree = expre_mkastunary(A_DEREF, value_at(tree->type), tree, 0);
+      break;
+    default:
+      tree = primary(cd, w, token);
+  }
+  return (tree);
+}

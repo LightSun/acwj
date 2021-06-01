@@ -20,5 +20,9 @@ struct ASTnode *expre_funccall(struct _Content *cd, struct _Writer* w, struct To
 
 struct ASTnode* expre_binexpr(struct _Content* cd, struct _Writer* w,struct Token* token, int ptp);
 
+// Parse a prefix expression and return 
+// a sub-tree representing it.
+struct ASTnode *prefix(struct _Content *cd, struct _Writer *w, struct Token *token);
+
 CPP_END
 #endif

@@ -394,7 +394,7 @@ static int psize[] = {0, 0, 1, 4, 4};
 int register_arm_cgprimsize(REGISTER_CONTEXT_PARAM, int pType)
 {
     // Check the type is valid
-    if (pType < P_NONE || pType > P_LONG)
+    if (pType < P_NONE || pType > P_LONGPTR)
     {
         fprintf(stderr, "Bad type in cgprimsize()");
         exit(1);
@@ -435,4 +435,15 @@ void register_arm_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id)
     REG_WRITE_BUF();
 
     register_arm_cgjump(ctx, REG_G_SYM_TABLE(ctx, sym_id)->endlabel);
+}
+
+//---------------------- pointer ---------------------
+//get addr
+int register_arm_cgaddress(REGISTER_CONTEXT_PARAM, int id){
+    //TODO need impl
+}
+// de - ref-addr
+int register_arm_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType){
+    //TODO need impl
+    return r;
 }

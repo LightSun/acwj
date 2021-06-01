@@ -32,7 +32,9 @@ CPP_START
     REGISTER_ASSIGN_FUN(R, cgwiden, arch)            \
     REGISTER_ASSIGN_FUN(R, cgprimsize, arch)         \
     REGISTER_ASSIGN_FUN(R, cgcall, arch)             \
-    REGISTER_ASSIGN_FUN(R, cgreturn, arch)
+    REGISTER_ASSIGN_FUN(R, cgreturn, arch)           \
+    REGISTER_ASSIGN_FUN(R, cgaddress, arch)          \
+    REGISTER_ASSIGN_FUN(R, cgderef, arch)
 
 /* 
 REGISTER_ASSIGN_FUN(R, cgequal, arch)\
@@ -112,6 +114,11 @@ struct _Register
 
     //return
     void (*register_cgreturn)(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
+
+    //get addr
+    int (*register_cgaddress)(REGISTER_CONTEXT_PARAM, int id);
+    // de - ref-addr
+    int (*register_cgderef)(REGISTER_CONTEXT_PARAM, int r, int pType);
 };
 
 Register *register_new(int type);

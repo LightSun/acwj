@@ -66,5 +66,10 @@ int register_arm_cgcall(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
 //return
 void register_arm_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
 
+//get addr
+int register_arm_cgaddress(REGISTER_CONTEXT_PARAM, int id);
+// de - ref-addr
+int register_arm_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType);
+
 CPP_END
 #endif

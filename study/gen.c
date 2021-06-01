@@ -1,9 +1,9 @@
 #include "gen.h"
 #include "ast.h"
+#include "content.h"
 #include "register.h"
 #include "sym.h"
 #include "writer.h"
-#include "content.h"
 //#include "token.h"
 
 // Generic code generator
@@ -17,7 +17,7 @@ static int label(struct _Writer *w)
 
 // Generate the code for an IF statement
 // and an optional ELSE clause
-static int genIFAST(struct _Content* cd, struct ASTnode *n, struct _Writer *w)
+static int genIFAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w)
 {
   int Lfalse, Lend;
 
@@ -63,7 +63,7 @@ static int genIFAST(struct _Content* cd, struct ASTnode *n, struct _Writer *w)
 
 // Generate the code for a WHILE statement
 // and an optional ELSE clause
-static int genWHILE(struct _Content* cd, struct ASTnode *n, struct _Writer *w)
+static int genWHILE(struct _Content *cd, struct ASTnode *n, struct _Writer *w)
 {
   int Lstart, Lend;
 
@@ -91,7 +91,7 @@ static int genWHILE(struct _Content* cd, struct ASTnode *n, struct _Writer *w)
 }
 
 //reg: normal reg or label reg
-int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
+int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
 {
   int leftreg, rightreg;
 
@@ -115,7 +115,7 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
 
   case A_FUNCTION:
     // Generate the function's preamble before the code
-    CONTENT_G_REG(cd)->register_cgfuncpreamble(WRITER_G_REG_CTX(w),  n->v.id);
+    CONTENT_G_REG(cd)->register_cgfuncpreamble(WRITER_G_REG_CTX(w), n->v.id);
     gen_genAST(cd, n->left, w, NOREG, n->op);
     CONTENT_G_REG(cd)->register_cgfuncpostamble(WRITER_G_REG_CTX(w), n->v.id);
     return (NOREG);
@@ -191,13 +191,20 @@ int gen_genAST(struct _Content* cd,struct ASTnode *n, struct _Writer *w, int reg
     // Widen the child's type to the parent's type
     return (CONTENT_G_REG(cd)->register_cgwiden(WRITER_G_REG_CTX(w), leftreg, n->left->type, n->type));
 
-  case A_RETURN:{
+  case A_RETURN:
+  {
     CONTENT_G_REG(cd)->register_cgreturn(WRITER_G_REG_CTX(w), leftreg, cd->context->functionid);
     return (NOREG);
   }
 
   case A_FUNCCALL:
     return (CONTENT_G_REG(cd)->register_cgcall(WRITER_G_REG_CTX(w), leftreg, n->v.id));
+
+  case A_ADDR:
+    return (CONTENT_G_REG(cd)->register_cgaddress(WRITER_G_REG_CTX(w), n->v.id));
+
+  case A_DEREF:
+    return (CONTENT_G_REG(cd)->register_cgderef(WRITER_G_REG_CTX(w), leftreg, n->left->type));
 
   default:
     fprintf(stderr, "Unknown AST operator %d\n", n->op);
@@ -228,6 +235,7 @@ void gen_globsym(struct _Writer *w, int sym_id)
   WRITER_G_REG(w)->register_cgglobsym(WRITER_G_REG_CTX(w), sym_id);
 }
 
-int gen_primsize(struct _Writer *w,int type) {
+int gen_primsize(struct _Writer *w, int type)
+{
   return (WRITER_G_REG(w)->register_cgprimsize(WRITER_G_REG_CTX(w), type));
 }

@@ -12,6 +12,10 @@ struct _Writer;
 // If onlyright is true, only widen left to right.
 int types_compatible(struct _Writer* w, int *left, int *right, int onlyright);
 
+int pointer_to(int type);
+
+int value_at(int type);
+
 CPP_END
 
 #endif

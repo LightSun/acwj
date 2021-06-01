@@ -29,7 +29,7 @@ static int next(Content *cd)
   int c;
 
   if (cd->context->putback)
-  {                          // Use the character put
+  {                           // Use the character put
     c = cd->context->putback; // back if there is one
     cd->context->putback = 0;
     return c;
@@ -158,17 +158,19 @@ static int keyword(char *s)
       return (T_VOID);
     break;
 
-   case 'r':
+  case 'r':
     if (!strcmp(s, "return"))
       return (T_RETURN);
-    break;  
+    break;
   }
   return (0);
 }
 
 // Reject the token that we just scanned
- void scanner_reject_token(Content *cd, struct Token *t) {
-  if (cd->context->rejtoken != NULL){
+void scanner_reject_token(Content *cd, struct Token *t)
+{
+  if (cd->context->rejtoken != NULL)
+  {
     fatal(cd, "Can't reject token twice");
   }
   cd->context->rejtoken = t;
@@ -179,9 +181,10 @@ static int keyword(char *s)
 // scan keyword string to 'cd->context->textBuf'
 int scanner_scan(Content *cd, struct Token *t)
 {
-  
+
   // If we have any rejected token, return it
-  if (cd->context->rejtoken != NULL) {
+  if (cd->context->rejtoken != NULL)
+  {
     t = cd->context->rejtoken;
     cd->context->rejtoken = NULL;
     return (1);
@@ -291,6 +294,18 @@ int scanner_scan(Content *cd, struct Token *t)
     }
     break;
 
+  case '&':
+    if ((c = next(cd)) == '&')
+    {
+      t->token = T_LOGAND;
+    }
+    else
+    {
+      putback(cd, c);
+      t->token = T_AMPER;
+    }
+    break;
+
   default:
 
     // If it's a digit, scan the
@@ -317,7 +332,7 @@ int scanner_scan(Content *cd, struct Token *t)
       break;
     }
 
-    fprintf(stderr,"Unrecognised character %c on line %d\n", c, cd->context->line);
+    fprintf(stderr, "Unrecognised character %c on line %d\n", c, cd->context->line);
     exit(1);
     //return 0;
   }

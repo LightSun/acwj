@@ -13,7 +13,9 @@ enum {
   P_VOID, 
   P_CHAR,
    P_INT,
-   P_LONG
+   P_LONG,
+// pointers 
+   P_VOIDPTR, P_CHARPTR, P_INTPTR, P_LONGPTR
 };
 
 // AST node types. The first few line up
@@ -41,6 +43,9 @@ enum {
 
    A_FUNCCALL, // function call
    A_RETURN,
+
+   A_ADDR, // &p
+   A_DEREF, // *p
 };
 
 // Abstract Syntax Tree structure

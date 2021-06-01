@@ -66,5 +66,11 @@ int register_x64_cgcall(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
 //return
 void register_x64_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
 
+//get addr
+int register_x64_cgaddress(REGISTER_CONTEXT_PARAM, int id);
+
+// de - ref-addr
+int register_x64_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType);
+
 CPP_END
 #endif

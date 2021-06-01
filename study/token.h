@@ -11,7 +11,7 @@ CPP_START
 // Tokens
 enum
 {
-  // + - * / int ; print
+  // EOF, + - * /
   T_EOF,
   T_PLUS,
   T_MINUS,
@@ -24,19 +24,22 @@ enum
   T_GT,
   T_LE,
   T_GE,
-  //int value  ;  = 
+  //int value  ;  =
   T_INTLIT,
-  T_SEMI,
+  T_SEMI, 
   T_ASSIGN,
   T_IDENT, // identifier
 
-// { }  ( )
-  T_LBRACE, T_RBRACE, T_LPAREN, T_RPAREN,
+  // { }  ( )
+  T_LBRACE,
+  T_RBRACE,
+  T_LPAREN,
+  T_RPAREN,
   // ============= keywords ====================
-  T_PRINT,   // print
-  
-  T_INT,    // int identifier prefix
-  T_CHAR,   
+  T_PRINT, // print
+
+  T_INT, // int identifier prefix
+  T_CHAR,
 
   T_IF,
   T_ELSE,
@@ -45,7 +48,10 @@ enum
   T_VOID,
 
   T_LONG,
-  T_RETURN 
+  T_RETURN,
+
+  T_AMPER,  // &
+  T_LOGAND, // &&
 };
 
 // Token structure
