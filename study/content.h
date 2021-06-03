@@ -9,6 +9,8 @@ CPP_START
 
 #define CONTENT_G_REG(c) c->context->_register
 #define CONTENT_G_REG_ctx(c) c->context->_register->context
+#define CONTENT_PUBLISH_ERROR(c, fmt, ...) globalContext_publishError(c->context->globalState->gContext, fmt, ##__VA_ARGS__)
+
 #define CONTENT_TYPE_FILE 1
 #define CONTENT_TYPE_TEXT 2
 

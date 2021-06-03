@@ -18,13 +18,7 @@ static void parseStatement(Content *cd, Writer *w){
 
     scanner_scan(cd, &token);
     gen_preamble(w);
-    while(1){
-        tree = decl_function(cd, w, &token);
-        gen_genAST(cd, tree, w, NOREG, 0);
-        if(token.token == T_EOF){
-            break;
-        }
-    }
+    decl_global(cd, w, &token);
     gen_postamble(w, 0);
 
     cd->end(cd->context);
@@ -76,11 +70,11 @@ int main(int argc, char **args)
        // char* outFile = getCurrentFilePath("/study/res/input08"); //func1 11
       //  char* outFile = getCurrentFilePath("/study/res/input10"); //12
        // char* outFile = getCurrentFilePath("/study/res/input14"); //13
-        char* outFile = getCurrentFilePath("/study/res/input15.c");
+        char* outFile = getCurrentFilePath("/study/res/input16.c");
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 
-        outFile = getCurrentFilePath("/study/note/out_15.s1");
+        outFile = getCurrentFilePath("/study/note/out_16.s");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -89,7 +83,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/note/out_15.s1");
+            char* outFile = getCurrentFilePath("/study/note/out_16.s");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }
@@ -101,14 +95,6 @@ int main(int argc, char **args)
     }
     GlobalContext gCtx;
     globalContext_init(&gCtx, gs, reg, cd, w);
-   /*  gCtx.writer = w;
-    gCtx.content = cd;
-
-    cd->context->globalState = gs;
-    w->context->globalState = gs;
-    cd->context->_register = reg;
-    w->context->_register = reg;
-    reg->context->writer = w; */
 
     parseStatement(cd, w);
 

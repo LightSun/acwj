@@ -1,6 +1,10 @@
 #include "ast.h"
 #include "gen.h"
 #include "writer.h"
+#include "token.h"
+#include "content.h"
+#include "sym.h"
+#include "scanner.h"
 
 // Given two primitive types, return true if they are compatible, false otherwise.
 // Also return either zero or an A_WIDEN
@@ -76,4 +80,39 @@ int value_at(int type) {
       exit(1);
   }
   return (newtype);
+}
+
+// Parse the current token and
+// return a primitive type enum value
+int parse_type(struct _Content *cd, struct Token *token)
+{
+  int type;
+  switch (token->token)
+  {
+  case T_VOID:
+    type = P_VOID;
+    break;
+  case T_CHAR:
+    type = P_CHAR;
+    break;
+  case T_INT:
+    type = P_INT;
+    break;
+  case T_LONG:
+    type = P_LONG;
+    break;
+  default:
+    CONTENT_PUBLISH_ERROR(cd, "Illegal type, token = %d", token->token);
+  }
+
+  //check next '*' exist or not
+  while (1)
+  {
+    scanner_scan(cd, token);
+    if(token->token != T_STAR)
+      break;
+    type = pointer_to(type);
+  }
+  // We leave with the next token already scanned
+  return type;
 }

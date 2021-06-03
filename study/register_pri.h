@@ -23,6 +23,7 @@ typedef struct
 #define REG_G_WRITER(ctx) ctx->writer
 #define REG_G_WRITER_CTX(ctx) ctx->writer->context
 #define REG_G_GLOBAL_STATE(ctx) REG_G_WRITER_CTX(ctx)->globalState
+#define REG_PUBLISH_ERROR(ctx, fmt, ...) WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), fmt, ##__VA_ARGS__);
 
 #define REG_WRITE_BUF() REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf)
 #define REG_WRITE_STR(s) REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), s)

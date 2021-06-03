@@ -82,7 +82,7 @@ static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, stru
     fprintf(stderr, "Undeclared variable %s\n", cd->context->textBuf);
     exit(1);
   }
-  right = expre_mkastleaf(A_LVIDENT, sym_getGlob(cd->context->globalState,id)->type, id);
+  right = expre_mkastleaf(A_LVIDENT, sym_getGlob(cd->context->globalState, id)->type, id);
 
   // Ensure we have an equals sign
   misc_match(cd, token, T_ASSIGN, "=");
@@ -260,6 +260,8 @@ static struct ASTnode *return_statement(Content *cd, struct _Writer *w, struct T
 // and return its AST
 static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct Token *token)
 {
+  int type;
+
   switch (token->token)
   {
   case T_PRINT:
@@ -268,7 +270,13 @@ static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct T
   case T_CHAR:
   case T_INT:
   case T_LONG:
-    decl_var(cd, w, token);
+    // The beginning of a variable declaration.
+    // Parse the type and get the identifier.
+    // Then parse the rest of the declaration.
+    // XXX: These are globals at present.
+    type = parse_type(cd, token);
+    misc_ident(cd, token);
+    decl_var(cd, w, token, type);
     return (NULL); // No AST generated here
 
   case T_IDENT:
@@ -308,8 +316,7 @@ struct ASTnode *statement_parse(Content *cd, struct _Writer *w, struct Token *to
     tree = single_statement(cd, w, token);
 
     // Some statements must be followed by a semicolon
-    if (tree != NULL && (tree->op == A_PRINT || tree->op == A_ASSIGN 
-          || tree->op == A_RETURN ||  tree->op == A_FUNCCALL))
+    if (tree != NULL && (tree->op == A_PRINT || tree->op == A_ASSIGN || tree->op == A_RETURN || tree->op == A_FUNCCALL))
     {
       misc_semi(cd, token);
     }

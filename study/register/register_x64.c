@@ -30,8 +30,6 @@ static int register_x64_alloc(REGISTER_CONTEXT_PARAM)
       return (i);
     }
   }
-  //fprintf(stderr, "Out of registers!\n");
-  //exit(1);
   WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Out of registers!\n");
 }
 
@@ -41,8 +39,7 @@ static void register_x64_free(REGISTER_CONTEXT_PARAM, int reg)
 {
   if (ctx->freereg[reg] != 0)
   {
-    fprintf(stderr, "Error trying to free register %d\n", reg);
-    exit(1);
+    REG_PUBLISH_ERROR(ctx, "Error trying to free register %d\n", reg);
   }
   ctx->freereg[reg] = 1;
 }
@@ -58,10 +55,6 @@ void register_x64_cgpreamble(REGISTER_CONTEXT_PARAM)
 void register_x64_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
 {
 
-  register_x64_cglabel(ctx, REG_G_SYM_TABLE(ctx, sym_id)->endlabel);
-  //fputs("\tpopq %rbp\n" "\tret\n", Outfile);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\tpopq %rbp\n"
-                                                       "\tret\n");
 }
 
 // Load an integer literal value into a register.
@@ -87,7 +80,7 @@ int register_x64_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2)
   //fprintf(Outfile, "\taddq\t%s, %s\n", reglist[r1], reglist[r2]);
   char buf[32];
   snprintf(buf, 32, "\taddq\t%s, %s\n", reglist[r1], reglist[r2]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
+  REG_WRITE_BUF();
 
   register_x64_free(ctx, r1);
   return (r2);
@@ -98,9 +91,9 @@ int register_x64_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2)
 int register_x64_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2)
 {
   //fprintf(Outfile, "\tsubq\t%s, %s\n", reglist[r2], reglist[r1]);
-  char buffer[32];
-  snprintf(buffer, 32, "\tsubq\t%s, %s\n", reglist[r2], reglist[r1]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\tsubq\t%s, %s\n", reglist[r2], reglist[r1]);
+  REG_WRITE_BUF();
 
   register_x64_free(ctx, r2);
   return (r1);
@@ -111,9 +104,9 @@ int register_x64_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2)
 int register_x64_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2)
 {
   //fprintf(Outfile, "\timulq\t%s, %s\n", reglist[r1], reglist[r2]);
-  char buffer[32];
-  snprintf(buffer, 32, "\timulq\t%s, %s\n", reglist[r1], reglist[r2]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\timulq\t%s, %s\n", reglist[r1], reglist[r2]);
+  REG_WRITE_BUF();
 
   register_x64_free(ctx, r1);
   return (r2);
@@ -188,8 +181,7 @@ int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id)
     break;
 
   default:
-    fprintf(stderr, "Bad type in register_x64_cgloadglob:", st->type);
-    exit(1);
+    WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Bad type in register_x64_cgloadglob:", st->type);
   }
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
   return (r);
@@ -221,8 +213,7 @@ int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
     break;
 
   default:
-    fprintf(stderr, "Bad type in register_x64_cgstoreglob: %d\n", st->type);
-    exit(1);
+    WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Bad type in register_x64_cgstoreglob: %d\n", st->type);
   }
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
   return (r);
@@ -322,8 +313,7 @@ int register_x64_cgcompare_and_jump(REGISTER_CONTEXT_PARAM, int ASTop, int r1, i
   // Check the range of the AST operation
   if (ASTop < A_EQ || ASTop > A_GE)
   {
-    fprintf(stderr, "Bad ASTop in register_x64_cgcompare_and_jump()");
-    exit(1);
+    REG_PUBLISH_ERROR(ctx, "Bad ASTop in register_x64_cgcompare_and_jump()");
   }
 
   /*  fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
@@ -353,8 +343,8 @@ int register_x64_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int ASTop, int r1, in
   // Check the range of the AST operation
   if (ASTop < A_EQ || ASTop > A_GE)
   {
-    fprintf(stderr, "Bad ASTop in cgcompare_and_set()");
-    exit(1);
+   // WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Bad ASTop in cgcompare_and_set()");
+   REG_PUBLISH_ERROR(ctx, "Bad ASTop in cgcompare_and_set()");
   }
 
   /* fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
@@ -399,9 +389,10 @@ void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, int sym_id)
 
 void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
 {
-  //fputs("\tmovl $0, %eax\n" "\tpopq     %rbp\n" "\tret\n", Outfile);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\tmovl $0, %eax\n"
-                                                       "\tpopq     %rbp\n"
+  //cglabel(Gsym[id].endlabel);
+  //fputs("\tpopq	%rbp\n" "\tret\n", Outfile);
+  register_x64_cglabel(ctx, SYM_END_LABEL(REG_G_GLOBAL_STATE(ctx), sym_id));
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\tpopq     %rbp\n"
                                                        "\tret\n");
 }
 
@@ -428,8 +419,7 @@ int register_x64_cgprimsize(REGISTER_CONTEXT_PARAM, int pType)
   // Check the type is valid
   if (pType < P_NONE || pType > P_LONGPTR)
   {
-    fprintf(stderr, "Bad type in cgprimsize()");
-    exit(1);
+    REG_PUBLISH_ERROR(ctx, "Bad type(%d) in cgprimsize()", pType);
   }
   return (psize[pType]);
 }
@@ -460,8 +450,7 @@ void register_x64_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id)
     break;
 
   default:
-    fprintf(stderr, "Bad function type in cgreturn:", st->type);
-    exit(1);
+    REG_PUBLISH_ERROR(ctx, "Bad function type(%d) in cgreturn:", st->type);
   }
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
   register_x64_cgjump(ctx, st->endlabel);

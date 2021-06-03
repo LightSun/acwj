@@ -226,6 +226,10 @@ int scanner_scan(Content *cd, struct Token *t)
     t->token = T_SEMI;
     break;
 
+  case ',':
+    t->token = T_COMMA;
+    break;
+
   case '{':
     printf("scanner_scan >> { \n");
     t->token = T_LBRACE;

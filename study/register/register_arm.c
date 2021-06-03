@@ -16,8 +16,7 @@ static int register_arm_alloc(REGISTER_CONTEXT_PARAM)
             return (i);
         }
     }
-    fprintf(stderr, "Out of registers");
-    exit(1);
+    REG_PUBLISH_ERROR(ctx, "Out of registers");
     return (NOREG); // Keep -Wall happy
 }
 // Return a register to the list of available registers.
@@ -26,8 +25,7 @@ static void register_arm_free(REGISTER_CONTEXT_PARAM, int reg)
 {
     if (ctx->freereg[reg] != 0)
     {
-        fprintf(stderr, "Error trying to free register = %d", reg);
-        exit(1);
+        REG_PUBLISH_ERROR(ctx, "Error trying to free register = %d", reg);
     }
     ctx->freereg[reg] = 1;
 }
@@ -54,8 +52,7 @@ static void set_int_offset(REGISTER_CONTEXT_PARAM, int val)
         offset = 4 * ctx->intslot;
         if (ctx->intslot == REG_MAXINTS)
         {
-            fprintf(stderr, "Out of int slots in set_int_offset()");
-            exit(1);
+            REG_PUBLISH_ERROR(ctx, "Out of int slots in set_int_offset()");
         }
         ctx->intlist[ctx->intslot++] = val;
     }
@@ -247,8 +244,7 @@ int register_arm_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
         snprintf(buf, 32, "\tstr\t%s, [r3]\n", reglist[r]);
         break;
     default:
-        fprintf(stderr, "Bad type in cgloadglob: %d", st->type);
-        exit(1);
+        REG_PUBLISH_ERROR(ctx, "Bad type in cgloadglob: %d", st->type);
     }
     REG_WRITE_BUF();
     return (r);
@@ -261,7 +257,7 @@ void register_arm_cgglobsym(REGISTER_CONTEXT_PARAM, int sym_id)
     SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
     int typesize;
     // Get the size of the type
-    typesize = register_arm_cgprimsize(ctx,st->type);
+    typesize = register_arm_cgprimsize(ctx, st->type);
 
     char buf[32];
     snprintf(buf, 32, "\t.comm\t%s,%d,%d\n", st->name, typesize, typesize);
@@ -294,8 +290,7 @@ int register_arm_cgcompare_and_jump(REGISTER_CONTEXT_PARAM, int asTop, int r1, i
     // Check the range of the AST operation
     if (asTop < A_EQ || asTop > A_GE)
     {
-        fprintf(stderr, "Bad ASTop in cgcompare_and_set()");
-        exit(1);
+        REG_PUBLISH_ERROR(ctx, "Bad ASTop in cgcompare_and_set()");
     }
     char buf[32];
     snprintf(buf, 32, "\tcmp\t%s, %s\n", reglist[r1], reglist[r2]);
@@ -327,8 +322,7 @@ int register_arm_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int asTop, int r1, in
     // Check the range of the AST operation
     if (asTop < A_EQ || asTop > A_GE)
     {
-        fprintf(stderr, "Bad ASTop in cgcompare_and_set()");
-        exit(1);
+        REG_PUBLISH_ERROR(ctx, "Bad ASTop(%d) in cgcompare_and_set()", asTop);
     }
     char buf[32];
     snprintf(buf, 32, "\tcmp\t%s, %s\n", reglist[r1], reglist[r2]);
@@ -396,8 +390,7 @@ int register_arm_cgprimsize(REGISTER_CONTEXT_PARAM, int pType)
     // Check the type is valid
     if (pType < P_NONE || pType > P_LONGPTR)
     {
-        fprintf(stderr, "Bad type in cgprimsize()");
-        exit(1);
+        REG_PUBLISH_ERROR(ctx, "Bad type in cgprimsize()");
     }
     return (psize[pType]);
 }
@@ -427,10 +420,10 @@ int register_arm_cgcall(REGISTER_CONTEXT_PARAM, int r, int sym_id)
 //return
 void register_arm_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id)
 {
-   /*  fprintf(Outfile, "\tmov\tr0, %s\n", reglist[reg]);
+    /*  fprintf(Outfile, "\tmov\tr0, %s\n", reglist[reg]);
     cgjump(Gsym[id].endlabel); */
 
-     char buf[32];
+    char buf[32];
     snprintf(buf, 32, "\tmov\tr0, %s\n", reglist[reg]);
     REG_WRITE_BUF();
 
@@ -439,11 +432,13 @@ void register_arm_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id)
 
 //---------------------- pointer ---------------------
 //get addr
-int register_arm_cgaddress(REGISTER_CONTEXT_PARAM, int id){
+int register_arm_cgaddress(REGISTER_CONTEXT_PARAM, int id)
+{
     //TODO need impl
 }
 // de - ref-addr
-int register_arm_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType){
+int register_arm_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType)
+{
     //TODO need impl
     return r;
 }

@@ -9,9 +9,11 @@ struct _Writer;
 struct Token;
 struct ASTnode;
 
-void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token);
+void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int type);
 
-struct ASTnode* decl_function(struct _Content *cd, struct _Writer *w, struct Token *token);
+struct ASTnode* decl_function(struct _Content *cd, struct _Writer *w, struct Token *token, int type);
+
+void decl_global(struct _Content *cd, struct _Writer *w, struct Token *token);
 
 CPP_END
 #endif

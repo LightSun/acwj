@@ -14,4 +14,18 @@ AF: auxiliary carry  半进位标志
 
 rdi:  目的变址 寄存器
 
+//https://blog.csdn.net/luoyhang003/article/details/46786591
+movb（8位）、movw（16位）、movl（32位）、movq（64位）
 
+寄存器	    16位	32位	64位
+累加寄存器	AX  	EAX	    RAX
+基址寄存器	BX	    EBX 	RBX
+计数寄存器	CX	    ECX	    RCX
+数据寄存器	DX	    EDX	    RDX
+堆栈基指针	BP	    EBP	    RBP
+变址寄存器	SI  	ESI	    RSI
+堆栈顶指针	SP	    ESP	    RSP
+指令寄存器	IP	    EIP	    RIP
+
+============= ARM =======================
+https://blog.csdn.net/qq_41838541/article/details/108265464
