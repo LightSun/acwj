@@ -91,7 +91,7 @@ void decl_global(struct _Content *cd, struct _Writer *w, struct Token *token) {
     // to see either a '(' for a function declaration
     // or a ',' or ';' for a variable declaration.
     // Text is filled in by the ident() call.
-    type = parse_type(cd, token);
+    type = types_parse_type(cd, token);
     misc_ident(cd, token);
     if (token->token == T_LPAREN) {
 

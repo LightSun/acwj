@@ -15,11 +15,11 @@ struct _Content;
 // If onlyright is true, only widen left to right.
 int types_compatible(struct _Writer* w, int *left, int *right, int onlyright);
 
-int parse_type(struct _Content *cd, struct Token *token);
+int types_parse_type(struct _Content *cd, struct Token *token);
 
-int pointer_to(int type);
+int types_pointer_to(int type);
 
-int value_at(int type);
+int types_value_at(int type);
 
 struct ASTnode *types_modify_type(struct ASTnode *tree, struct _Writer *w, int rtype, int op);
 

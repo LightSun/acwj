@@ -272,7 +272,7 @@ static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct T
     // Parse the type and get the identifier.
     // Then parse the rest of the declaration.
     // XXX: These are globals at present.
-    type = parse_type(cd, token);
+    type = types_parse_type(cd, token);
     misc_ident(cd, token);
     decl_var(cd, w, token, type);
     return (NULL); // No AST generated here

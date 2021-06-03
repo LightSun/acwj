@@ -76,7 +76,7 @@ int types_compatible(struct _Writer *w, int *left, int *right, int onlyright)
 
 // Given a primitive type, return
 // the type which is a pointer to it
-int pointer_to(int type)
+int types_pointer_to(int type)
 {
   int newtype;
   switch (type)
@@ -94,7 +94,7 @@ int pointer_to(int type)
     newtype = P_LONGPTR;
     break;
   default:
-    fprintf(stderr, "Unrecognised in pointer_to: type = ", type);
+    fprintf(stderr, "Unrecognised in types_pointer_to(...): type = ", type);
     exit(1);
   }
   return (newtype);
@@ -102,7 +102,7 @@ int pointer_to(int type)
 
 // Given a primitive pointer type, return
 // the type which it points to
-int value_at(int type)
+int types_value_at(int type)
 {
   int newtype;
   switch (type)
@@ -120,7 +120,7 @@ int value_at(int type)
     newtype = P_LONG;
     break;
   default:
-    fprintf(stderr, "Unrecognised in value_at: type", type);
+    fprintf(stderr, "Unrecognised in types_value_at(): type", type);
     exit(1);
   }
   return (newtype);
@@ -128,7 +128,7 @@ int value_at(int type)
 
 // Parse the current token and
 // return a primitive type enum value
-int parse_type(struct _Content *cd, struct Token *token)
+int types_parse_type(struct _Content *cd, struct Token *token)
 {
   int type;
   switch (token->token)
@@ -155,7 +155,7 @@ int parse_type(struct _Content *cd, struct Token *token)
     scanner_scan(cd, token);
     if (token->token != T_STAR)
       break;
-    type = pointer_to(type);
+    type = types_pointer_to(type);
   }
   // We leave with the next token already scanned
   return type;
@@ -207,7 +207,7 @@ struct ASTnode *types_modify_type(struct ASTnode *tree, struct _Writer *w, int r
     // of the original type is >1: scale the left
     if (inttype(ltype) && ptrtype(rtype))
     {
-      rsize = WRITER_G_REG(w)->register_cgprimsize(WRITER_G_REG_CTX(w), value_at(rtype));
+      rsize = WRITER_G_REG(w)->register_cgprimsize(WRITER_G_REG_CTX(w), types_value_at(rtype));
       if (rsize > 1)
         return (expre_mkastunary(A_SCALE, rtype, tree, rsize));
     }

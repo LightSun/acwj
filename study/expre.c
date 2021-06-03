@@ -251,7 +251,7 @@ struct ASTnode *prefix(struct _Content* cd, struct _Writer* w,struct Token* toke
       // Now change the operator to A_ADDR and the type to
       // a pointer to the original type
       tree->op = A_ADDR; 
-      tree->type = pointer_to(tree->type);
+      tree->type = types_pointer_to(tree->type);
       break;
 
     case T_STAR: //*
@@ -266,7 +266,7 @@ struct ASTnode *prefix(struct _Content* cd, struct _Writer* w,struct Token* toke
         fatal(cd, "* operator must be followed by an identifier or *");
 
       // Prepend an A_DEREF operation to the tree
-      tree = expre_mkastunary(A_DEREF, value_at(tree->type), tree, 0);
+      tree = expre_mkastunary(A_DEREF, types_value_at(tree->type), tree, 0);
       break;
     default:
       tree = primary(cd, w, token);
