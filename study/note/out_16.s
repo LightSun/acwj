@@ -45,15 +45,11 @@ main:
 	movzbl	f(%rip), %r8  # f = r8 =*e
 
 	movq	%r8, %rdi
-	call	printint   # print f
+	call	printint
 	movq	%rax, %r9
-
-	movq	$0, %r8   # return 0
-	movl	%r8d, %eax 
+	movq	$0, %r8
+	movl	%r8d, %eax
 	jmp	L1
-	movl $0, %eax
+L1:
 	popq     %rbp
-	ret
-L0:
-	popq %rbp
 	ret

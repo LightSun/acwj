@@ -74,7 +74,7 @@ int main(int argc, char **args)
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 
-        outFile = getCurrentFilePath("/study/note/out_16.s");
+        outFile = getCurrentFilePath("/study/note/out_16.s2");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -83,7 +83,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/note/out_16.s");
+            char* outFile = getCurrentFilePath("/study/note/out_16.s2");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }
