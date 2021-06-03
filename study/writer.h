@@ -10,6 +10,8 @@ CPP_START
 #define WRITER_G_REG(w) w->context->_register
 #define WRITER_G_REG_CTX(w) w->context->_register->context 
 #define WRITER_PUBLISH_ERROR(w, fmt, ...) globalContext_publishError(w->context->globalState->gContext, fmt, ##__VA_ARGS__)
+#define WRITER_PRIMITIVE_SIZE(w, type) WRITER_G_REG(w)->register_cgprimsize(WRITER_G_REG_CTX(w), type)
+#define WRITER_REG_CALL(w, name, ...) WRITER_G_REG(w)->register_##name(WRITER_G_REG_CTX(w), ##__VA_ARGS__)
 
 #define WRITER_TYPE_FILE 1
 #define WRITER_TYPE_TEXT 2

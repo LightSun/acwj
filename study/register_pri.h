@@ -29,14 +29,24 @@ typedef struct
 #define REG_WRITE_STR(s) REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), s)
 
 #define REG_G_SYM_TABLE(ctx, id) sym_getGlob(REG_G_GLOBAL_STATE(ctx), id)
-/* #define REG_WRITE_BUF(ctx, buf, fmt, ...) \
+/*
+#define REG_WRITE_BUF(ctx, buf, fmt, ...) \
 do{ \
 va_list vArgList; \
 va_start(vArgList, fmt);\
 int i =_vsnprintf(buf, sizeof(buf), fmt, vArgList); \
 va_end(vArgList); \ 
 REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);\
-}while(0); */
+}while(0); 
+*/
+#define REG_WRITE_FMT_BUF(size, fmt, ...) \
+do{\
+char buf[size]; \
+snprintf(buf, size, fmt, ##__VA_ARGS__); \
+REG_WRITE_BUF(); \
+}while(0);
+
+#define REG_WRITE_FMT_BUF_32(fmt, ...) REG_WRITE_FMT_BUF(32, fmt, ##__VA_ARGS__)
 
 CPP_END
 #endif

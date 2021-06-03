@@ -5,6 +5,7 @@
 #include "sym.h"
 #include "types.h"
 #include "utils.h"
+#include "global_context.h"
 
 /**
  compound_statement: '{' '}'          // empty, i.e. no statement
@@ -65,7 +66,6 @@ static struct ASTnode *print_statement(Content *cd, struct _Writer *w, struct To
 static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, struct Token *token)
 {
   struct ASTnode *left, *right, *tree;
-  int lefttype, righttype;
   int id;
 
   // Ensure we have an identifier
@@ -76,11 +76,12 @@ static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, stru
   if (token->token == T_LPAREN)
     return (expre_funccall(cd, w, token));
 
-  // Check it's been defined then make a leaf node for it
+  // Not a function call, on with an assignment then!
+  // Check the identifier has been defined then make a leaf node for it
+  // XXX Add structural type test
   if ((id = sym_findglob(cd->context->globalState, cd->context->textBuf)) == -1)
   {
-    fprintf(stderr, "Undeclared variable %s\n", cd->context->textBuf);
-    exit(1);
+    CONTENT_PUBLISH_ERROR(cd, "Undeclared variable %s", cd->context->textBuf);
   }
   right = expre_mkastleaf(A_LVIDENT, sym_getGlob(cd->context->globalState, id)->type, id);
 
@@ -91,14 +92,11 @@ static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, stru
   left = expre_binexpr(cd, w, token, 0);
 
   // Ensure the two types are compatible.
-  lefttype = left->type;
-  righttype = right->type;
-  if (!types_compatible(w, &lefttype, &righttype, 1))
-    fatal(cd, "Incompatible types");
-
-  // Widen the left if required.
-  if (lefttype)
-    left = expre_mkastunary(lefttype, right->type, left, 0);
+  left = types_modify_type(left, w, right->type, 0);
+  if (left == NULL)
+  {
+    CONTENT_PUBLISH_ERROR(cd, "Incompatible expression in assignment");
+  }
 
   // Make an assignment AST tree
   tree = expre_mkastnode(A_ASSIGN, P_INT, left, NULL, right, 0);

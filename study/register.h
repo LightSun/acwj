@@ -34,7 +34,8 @@ CPP_START
     REGISTER_ASSIGN_FUN(R, cgcall, arch)             \
     REGISTER_ASSIGN_FUN(R, cgreturn, arch)           \
     REGISTER_ASSIGN_FUN(R, cgaddress, arch)          \
-    REGISTER_ASSIGN_FUN(R, cgderef, arch)
+    REGISTER_ASSIGN_FUN(R, cgderef, arch)            \
+    REGISTER_ASSIGN_FUN(R, cgshlconst, arch)
 
 /* 
 REGISTER_ASSIGN_FUN(R, cgequal, arch)\
@@ -57,7 +58,7 @@ struct _Register
 
     // Load an integer literal value into a register.
     // Return the number of the register
-    int (*register_cgloadint)(REGISTER_CONTEXT_PARAM, int value);
+    int (*register_cgloadint)(REGISTER_CONTEXT_PARAM, int value, int type);
     int (*register_cgadd)(REGISTER_CONTEXT_PARAM, int r1, int r2);
     int (*register_cgsub)(REGISTER_CONTEXT_PARAM, int r1, int r2);
     int (*register_cgmul)(REGISTER_CONTEXT_PARAM, int r1, int r2);
@@ -119,6 +120,9 @@ struct _Register
     int (*register_cgaddress)(REGISTER_CONTEXT_PARAM, int id);
     // de - ref-addr
     int (*register_cgderef)(REGISTER_CONTEXT_PARAM, int r, int pType);
+
+    // <<
+    int (*register_cgshlconst)(REGISTER_CONTEXT_PARAM, int r, int val);
 };
 
 Register *register_new(int type);

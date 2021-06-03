@@ -10,33 +10,20 @@
 #include "misc.h"
 
 //grammer
-/**
- compound_statement: '{' '}'          // empty, i.e. no statement
-      |      '{' statement '}'
-      |      '{' statement statements '}'
-      ;
-
- statement: print_statement
-      |     declaration
-      |     assignment_statement
-      |     if_statement
-      ;
-
- print_statement: 'print' expression ';'  ;
-
- declaration: 'int' identifier ';'  ;
-
- assignment_statement: identifier '=' expression ';'   ;
-
- if_statement: if_head
-      |        if_head 'else' compound_statement
-      ;
-
- if_head: 'if' '(' true_false_expression ')' compound_statement  ;
-
- identifier: T_IDENT ;
- * 
-*/
+/// compound_statement:          // empty, i.e. no statement
+//      |      statement
+//      |      statement statements
+//      ;
+//
+// statement: print_statement
+//      |     declaration
+//      |     assignment_statement
+//      |     function_call
+//      |     if_statement
+//      |     while_statement
+//      |     for_statement
+//      |     return_statement
+//      ;
 
 // AST tree functions
 // Copyright (c) 2019 Warren Toomey, GPL3
@@ -164,8 +151,7 @@ static int arithop(struct _Content* cd, int tokentype) {
   if (tokentype > T_EOF && tokentype < T_INTLIT){
     return(tokentype);
   }
-  fprintf(stderr, "unknown token in arithop() on line %d\n", cd->context->line);
-  exit(1);
+  CONTENT_PUBLISH_ERROR(cd, "unknown token in arithop() on line %d\n", cd->context->line);
 }
 
 // Operator precedence for each token. Must
@@ -182,8 +168,7 @@ static int OpPrec[] = {
 static int op_precedence(struct _Content* cd, int tokentype) {
   int prec = OpPrec[tokentype];
   if (prec == 0) {
-    fprintf(stderr, "syntax error on line %d, token %d\n", cd->context->line, tokentype);
-    exit(1);
+    CONTENT_PUBLISH_ERROR(cd, "syntax error on line %d, token %d\n", cd->context->line, tokentype);
   }
   return (prec);
 }
@@ -191,7 +176,8 @@ static int op_precedence(struct _Content* cd, int tokentype) {
 // ptp:  the previous token's precedence.
 struct ASTnode* expre_binexpr(struct _Content* cd, struct _Writer* w,struct Token* token, int ptp) {
   struct ASTnode *left, *right;
-  int lefttype, righttype;
+  struct ASTnode *ltemp, *rtemp;
+  int aSTop;
   int tokentype;
 
   // Get the integer literal on the left.
@@ -213,18 +199,21 @@ struct ASTnode* expre_binexpr(struct _Content* cd, struct _Writer* w,struct Toke
     // precedence of our token to build a sub-tree
     right = expre_binexpr(cd, w, token, OpPrec[tokentype]);
 
-    // Ensure the two types are compatible.
-    lefttype = left->type;
-    righttype = right->type;
-    if(!types_compatible(w, &lefttype, &righttype, 0)){
-      fatal(cd, "Incompatible types");
+    // Ensure the two types are compatible by trying
+    // to modify each tree to match the other's type.
+    aSTop = arithop(cd, tokentype);
+    ltemp = types_modify_type(left, w, right->type, aSTop);
+    rtemp = types_modify_type(right, w, left->type, aSTop);
+
+    if(ltemp == NULL && rtemp == NULL){
+      CONTENT_PUBLISH_ERROR(cd, "Incompatible types in binary expression");
     }
-    // Widen either side if required. type vars are A_WIDEN now
-    if(lefttype){
-      left = expre_mkastunary(lefttype, right->type, left, 0);
+    
+    if(ltemp != NULL){
+      left = ltemp;
     }
-    if(righttype){
-      right = expre_mkastunary(righttype, left->type, right, 0);
+    if(rtemp != NULL){
+      right = rtemp;
     }
 
      // Join that sub-tree with ours. Convert the token

@@ -140,7 +140,7 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int re
   case A_DIVIDE:
     return (CONTENT_G_REG(cd)->register_cgdiv(WRITER_G_REG_CTX(w), leftreg, rightreg));
   case A_INTLIT:
-    return (CONTENT_G_REG(cd)->register_cgloadint(WRITER_G_REG_CTX(w), n->v.intvalue));
+    return (CONTENT_G_REG(cd)->register_cgloadint(WRITER_G_REG_CTX(w), n->v.intvalue, n->type));
 
   case A_IDENT:
   {
@@ -206,9 +206,26 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int re
   case A_DEREF:
     return (CONTENT_G_REG(cd)->register_cgderef(WRITER_G_REG_CTX(w), leftreg, n->left->type));
 
+  case A_SCALE:
+    // Small optimisation: use shift if the
+    // scale value is a known power of two
+    switch (n->v.size)
+    {
+    case 2:
+      return (WRITER_REG_CALL(w, cgshlconst, leftreg, 1));
+    case 4:
+      return (WRITER_REG_CALL(w, cgshlconst, leftreg, 2));
+    case 8:
+      return (WRITER_REG_CALL(w, cgshlconst, leftreg, 3));
+    default:
+      // Load a register with the size and
+      // multiply the leftreg by this size
+      rightreg = (WRITER_REG_CALL(w, cgloadint, n->v.size, P_INT));
+      return (WRITER_REG_CALL(w, cgmul, leftreg, rightreg));
+    }
+
   default:
-    fprintf(stderr, "Unknown AST operator %d\n", n->op);
-    exit(1);
+    CONTENT_PUBLISH_ERROR(cd, "Unknown AST operator %d", n->op);
   }
   return (NOREG);
 }

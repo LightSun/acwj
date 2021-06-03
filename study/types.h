@@ -21,6 +21,8 @@ int pointer_to(int type);
 
 int value_at(int type);
 
+struct ASTnode *types_modify_type(struct ASTnode *tree, struct _Writer *w, int rtype, int op);
+
 CPP_END
 
 #endif

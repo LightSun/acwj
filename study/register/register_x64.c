@@ -54,12 +54,12 @@ void register_x64_cgpreamble(REGISTER_CONTEXT_PARAM)
 // Print out the assembly postamble
 void register_x64_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
 {
-
 }
 
 // Load an integer literal value into a register.
-// Return the number of the register
-int register_x64_cgloadint(REGISTER_CONTEXT_PARAM, int value)
+// Return the number of the register.
+// For x86-64, we don't need to worry about the type.
+int register_x64_cgloadint(REGISTER_CONTEXT_PARAM, int value, int type)
 {
 
   // Get a new register
@@ -343,8 +343,8 @@ int register_x64_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int ASTop, int r1, in
   // Check the range of the AST operation
   if (ASTop < A_EQ || ASTop > A_GE)
   {
-   // WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Bad ASTop in cgcompare_and_set()");
-   REG_PUBLISH_ERROR(ctx, "Bad ASTop in cgcompare_and_set()");
+    // WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Bad ASTop in cgcompare_and_set()");
+    REG_PUBLISH_ERROR(ctx, "Bad ASTop in cgcompare_and_set()");
   }
 
   /* fprintf(Outfile, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
@@ -410,7 +410,7 @@ int register_x64_cgwiden(REGISTER_CONTEXT_PARAM, int r, int oldtype, int newtype
 
 // Array of type sizes in P_XXX order.
 // 0 means no size. P_NONE, P_VOID, P_CHAR, P_INT, P_LONG, PTR(3)
-static int psize[] =  { 0, 0, 1, 4, 8, 8, 8, 8 };
+static int psize[] = {0, 0, 1, 4, 8, 8, 8, 8};
 
 // Given a P_XXX type value, return the
 // size of a primitive type in bytes.
@@ -520,5 +520,15 @@ int register_x64_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType)
     break;
   }
   }
+  return (r);
+}
+
+// Shift a register left by a constant. '<<'
+int register_x64_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val)
+{
+  //fprintf(Outfile, "\tsalq\t$%d, %s\n", val, reglist[r]);
+  char buf[32];
+  snprintf(buf, 32, "\tsalq\t$%d, %s\n", val, reglist[r]);
+  REG_WRITE_BUF();
   return (r);
 }

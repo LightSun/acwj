@@ -37,8 +37,8 @@ static char *getFilePath(const char *dir, const char *rPath)
 static char *getCurrentFilePath(const char *rPath)
 {
     #ifdef _ABSOLUTE_EXE_PATH
-        const char *buf = "E:/study/github/mine/acwj";
-       // const char *buf = "E:/study/github/mine_clone/acwj";
+       // const char *buf = "E:/study/github/mine/acwj";
+        const char *buf = "E:/study/github/mine_clone/acwj";
     #else
         char buf[80];
         getcwd(buf, sizeof(buf));
@@ -74,7 +74,7 @@ int main(int argc, char **args)
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 
-        outFile = getCurrentFilePath("/study/note/out_16.s2");
+        outFile = getCurrentFilePath("/study/note/out_17.s");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -83,7 +83,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/note/out_16.s2");
+            char* outFile = getCurrentFilePath("/study/note/out_17.s");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }

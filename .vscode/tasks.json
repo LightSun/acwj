@@ -176,5 +176,28 @@
             },
             "detail": "反汇编linux_1"
         },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: compie '.s' to 'exe'",
+           "command": "E:\\study\\cpp\\msys2_64\\mingw64\\bin\\gcc.exe",
+            "args": [    
+                "-g",
+                "${workspaceFolder}/study/lib/printint.c",
+                "${workspaceFolder}/study/note/${fileBasenameNoExtension}.s",
+                "-o",
+                "${workspaceFolder}/study/note/${fileBasenameNoExtension}.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "编译汇编(.s)->exe"
+        },
     ]
 }

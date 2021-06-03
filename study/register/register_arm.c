@@ -126,7 +126,7 @@ void register_arm_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
     }
 }
 
-int register_arm_cgloadint(REGISTER_CONTEXT_PARAM, int value)
+int register_arm_cgloadint(REGISTER_CONTEXT_PARAM, int value, int type)
 {
     // Get a new register
     int r = register_arm_alloc(ctx);
@@ -434,11 +434,42 @@ void register_arm_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id)
 //get addr
 int register_arm_cgaddress(REGISTER_CONTEXT_PARAM, int id)
 {
-    //TODO need impl
+    // Get a new register
+    int r = register_arm_alloc(ctx);
+
+    // Get the offset to the variable
+    set_var_offset(ctx, id);
+    //fprintf(Outfile, "\tmov\t%s, r3\n", reglist[r]);
+    REG_WRITE_FMT_BUF_32("\tmov\t%s, r3\n", reglist[r]);
+    return (r);
 }
 // de - ref-addr
 int register_arm_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType)
 {
-    //TODO need impl
+    switch (pType)
+    {
+    case P_CHARPTR:
+        //fprintf(Outfile, "\tldrb\t%s, [%s]\n", reglist[r], reglist[r]);
+        REG_WRITE_FMT_BUF_32("\tldrb\t%s, [%s]\n", reglist[r], reglist[r]);
+        break;
+
+    case P_INTPTR:
+        //fprintf(Outfile, "\tldr\t%s, [%s]\n", reglist[r], reglist[r]);
+        REG_WRITE_FMT_BUF_32("\tldr\t%s, [%s]\n", reglist[r], reglist[r]);
+        break;
+
+    case P_LONGPTR:
+        //fprintf(Outfile, "\tldr\t%s, [%s]\n", reglist[r], reglist[r]);
+        REG_WRITE_FMT_BUF_32("\tldr\t%s, [%s]\n", reglist[r], reglist[r]);
+        break;
+    }
+    return (r);
+}
+
+// <<
+int register_arm_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val)
+{
+    // fprintf(Outfile, "\tlsl\t%s, %s, #%d\n", reglist[r], reglist[r], val);
+    REG_WRITE_FMT_BUF_32("\tlsl\t%s, %s, #%d\n", reglist[r], reglist[r], val);
     return r;
 }

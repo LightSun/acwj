@@ -8,7 +8,7 @@ void register_arm_free_all(REGISTER_CONTEXT_PARAM);
 void register_arm_cgpreamble(REGISTER_CONTEXT_PARAM);
 void register_arm_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id);
 
-int register_arm_cgloadint(REGISTER_CONTEXT_PARAM, int value);
+int register_arm_cgloadint(REGISTER_CONTEXT_PARAM, int value, int type);
 int register_arm_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_arm_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_arm_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2);
@@ -70,6 +70,9 @@ void register_arm_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id);
 int register_arm_cgaddress(REGISTER_CONTEXT_PARAM, int id);
 // de - ref-addr
 int register_arm_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType);
+
+// <<
+int register_arm_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val);
 
 CPP_END
 #endif
