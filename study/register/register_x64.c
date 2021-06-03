@@ -227,10 +227,24 @@ void register_x64_cgglobsym(REGISTER_CONTEXT_PARAM, int sym_id)
   typesize = register_x64_cgprimsize(ctx, st->type);
   //fprintf(Outfile, "\t.comm\t%s,%d,%d\n", Gsym[id].name, typesize, typesize);
 
-  char buffer[32];
-  snprintf(buffer, 32, "\t.comm\t%s,%d,%d\n", st->name, typesize, typesize);
+  REG_WRITE_FMT_BUF_32("\t.data\n"
+                       "\t.globl\t%s\n",
+                       st->name);
 
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  switch (typesize)
+  {
+  case 1:
+    REG_WRITE_FMT_BUF_32("%s:\t.byte\t0\n", st->name);
+    break;
+  case 4:
+    REG_WRITE_FMT_BUF_32("%s:\t.long\t0\n", st->name);
+    break;
+  case 8:
+    REG_WRITE_FMT_BUF_32("%s:\t.quad\t0\n", st->name);
+    break;
+  default:
+    REG_PUBLISH_ERROR(ctx, "Unknown typesize in register_x64_cgglobsym(): %d", typesize);
+  }
 }
 
 //--------------------- compare operator -------------------
