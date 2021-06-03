@@ -30,8 +30,9 @@ static int register_x64_alloc(REGISTER_CONTEXT_PARAM)
       return (i);
     }
   }
-  fprintf(stderr, "Out of registers!\n");
-  exit(1);
+  //fprintf(stderr, "Out of registers!\n");
+  //exit(1);
+  WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Out of registers!\n");
 }
 
 // Return a register to the list of available registers.

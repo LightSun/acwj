@@ -6,6 +6,7 @@
 #include "decl.h"
 #include "sym.h"
 #include "register.h"
+#include "global_context.h"
 
 static void parseStatement(Content *cd, Writer *w){
     struct Token token;
@@ -42,8 +43,8 @@ static char *getFilePath(const char *dir, const char *rPath)
 static char *getCurrentFilePath(const char *rPath)
 {
     #ifdef _ABSOLUTE_EXE_PATH
-       // const char *buf = "E:/study/github/mine/acwj";
-        const char *buf = "E:/study/github/mine_clone/acwj";
+        const char *buf = "E:/study/github/mine/acwj";
+       // const char *buf = "E:/study/github/mine_clone/acwj";
     #else
         char buf[80];
         getcwd(buf, sizeof(buf));
@@ -79,7 +80,7 @@ int main(int argc, char **args)
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 
-        outFile = getCurrentFilePath("/study/note/out_15.s");
+        outFile = getCurrentFilePath("/study/note/out_15.s1");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -88,7 +89,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/note/out_15.s");
+            char* outFile = getCurrentFilePath("/study/note/out_15.s1");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }
@@ -98,17 +99,19 @@ int main(int argc, char **args)
             w = writer_new(WRITER_TYPE_FILE, args[2]);
         }
     }
+    GlobalContext gCtx;
+    globalContext_init(&gCtx, gs, reg, cd, w);
+   /*  gCtx.writer = w;
+    gCtx.content = cd;
+
     cd->context->globalState = gs;
     w->context->globalState = gs;
     cd->context->_register = reg;
     w->context->_register = reg;
-    reg->context->writer = w;
+    reg->context->writer = w; */
 
     parseStatement(cd, w);
-    content_delete(cd);
-    writer_delete(w);
 
-    sym_globalState_delete(gs);
-    register_delete(reg);
+    globalContext_destroy(&gCtx);
     return 0;
 }

@@ -20,10 +20,14 @@ struct _SymTable {
   int endlabel;		            	// For S_FUNCTIONs, the end label
 };
 
+struct _GlobalContext;
+
 struct GlobalState
 {
   SymTable* syms;                // Global symbol table. size is SYM_BOLS_COUNT
   int globs;                     // Position of next free global symbol slot
+
+  struct _GlobalContext *gContext;
 };
 
 struct GlobalState* sym_globalState_new();
