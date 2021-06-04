@@ -37,8 +37,8 @@ static char *getFilePath(const char *dir, const char *rPath)
 static char *getCurrentFilePath(const char *rPath)
 {
     #ifdef _ABSOLUTE_EXE_PATH
-       // const char *buf = "E:/study/github/mine/acwj";
-        const char *buf = "E:/study/github/mine_clone/acwj";
+        const char *buf = "E:/study/github/mine/acwj";
+       // const char *buf = "E:/study/github/mine_clone/acwj";
     #else
         char buf[80];
         getcwd(buf, sizeof(buf));

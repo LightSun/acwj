@@ -179,8 +179,6 @@ struct ASTnode *types_modify_type(struct ASTnode *tree, struct _Writer *w, int r
     // Get the sizes for each type
     lsize = WRITER_G_REG(w)->register_cgprimsize(WRITER_G_REG_CTX(w), ltype);
     rsize = WRITER_G_REG(w)->register_cgprimsize(WRITER_G_REG_CTX(w), rtype);
-   // lsize = genprimsize(ltype);
-  //  rsize = genprimsize(rtype);
 
     // Tree's size is too big
     if (lsize > rsize)

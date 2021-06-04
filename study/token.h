@@ -11,8 +11,9 @@ CPP_START
 // Tokens
 enum
 {
-  // EOF, + - * /
+  // EOF, =, + - * /
   T_EOF,
+  T_ASSIGN, //lower precedences than '+-*/'
   T_PLUS,
   T_MINUS,
   T_STAR,
@@ -24,10 +25,9 @@ enum
   T_GT,
   T_LE,
   T_GE,
-  //int value  ;  =
+  //int value  ; 
   T_INTLIT,
   T_SEMI, 
-  T_ASSIGN,
   T_IDENT, // identifier
 
   // { }  ( )

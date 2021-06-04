@@ -41,7 +41,7 @@ enum
   A_INTLIT,
   //identifier
   A_IDENT,
-  //used to store value to register var
+  //used to store value to register var. like left-value
   A_LVIDENT,
   //assign
   A_ASSIGN,
@@ -70,6 +70,7 @@ struct ASTnode
 {
   int op;               // "Operation" to be performed on this tree. ast op like A_WHILE and etc.
   int type;             // Type of any expression this tree generates. like P_INT and etc.
+  int rvalue;           // right value
   struct ASTnode *left; // Left and right child trees
   struct ASTnode *mid;
   struct ASTnode *right;

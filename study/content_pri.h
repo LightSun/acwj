@@ -26,6 +26,8 @@ typedef struct
    struct Token *rejtoken; // A pointer to a rejected token
    int functionid;         // Symbol id of the current function
 
+   int dumpAST;  // if need dump ast
+
    struct GlobalState *globalState; // the global state. help do
    struct _Register * _register;
 } ContentContext;
