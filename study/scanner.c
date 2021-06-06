@@ -114,11 +114,6 @@ static int keyword(char *s)
 {
   switch (*s)
   {
-  case 'p':
-    if (!strcmp(s, "print"))
-      return (T_PRINT);
-    break;
-
   case 'i':
     if (!strcmp(s, "if"))
       return (T_IF);
@@ -224,10 +219,6 @@ int scanner_scan(Content *cd, struct Token *t)
   case ';':
     printf("scanner_scan >> ; \n");
     t->token = T_SEMI;
-    break;
-
-  case ',':
-    t->token = T_COMMA;
     break;
 
   case '{':

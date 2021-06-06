@@ -74,5 +74,8 @@ int register_arm_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType);
 // <<
 int register_arm_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val);
 
+// a = *b
+int register_arm_cgstorederef(REGISTER_CONTEXT_PARAM, int leftReg, int rightReg, int type);
+
 CPP_END
 #endif

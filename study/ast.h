@@ -26,7 +26,9 @@ enum
 // with the related tokens
 enum
 {
-  A_ADD = 1,
+  //assign
+  A_ASSIGN = 1,
+  A_ADD ,
   A_SUBTRACT,
   A_MULTIPLY,
   A_DIVIDE,
@@ -37,32 +39,20 @@ enum
   A_GT,
   A_LE,
   A_GE,
-  //int value
-  A_INTLIT,
-  //identifier
-  A_IDENT,
-  //used to store value to register var. like left-value
-  A_LVIDENT,
-  //assign
-  A_ASSIGN,
-  // print,   complex statement  ,if
-  A_PRINT,
-  A_GLUE,
+  A_INTLIT, //int value
+  A_IDENT,   //identifier
+  A_GLUE, // complex statement
+
   A_IF,
-  //while
   A_WHILE,
-
   A_FUNCTION,
-
   A_WIDEN, //sometimes: need widen. like char to int
-
-  A_FUNCCALL, // function call
   A_RETURN,
 
-  A_ADDR,  // &p
+  A_FUNCCALL, // function call
   A_DEREF, // *p
-
-  A_SCALE, // its value is scaled by the size of a type.
+  A_ADDR,  // &p
+  A_SCALE, // its value is scaled by the size of a type. like  '<<'
 };
 
 // Abstract Syntax Tree structure
@@ -85,6 +75,9 @@ struct ASTnode
 // Use NOREG when the AST generation
 // functions have no register to return
 #define NOREG -1
+
+#define NOLABEL	 0		// Use NOLABEL when we have no label to
+				// pass to genAST()
 
 CPP_END
 

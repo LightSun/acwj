@@ -27,6 +27,7 @@ typedef struct
    int functionid;         // Symbol id of the current function
 
    int dumpAST;  // if need dump ast
+   int dumpId;   // dump label id
 
    struct GlobalState *globalState; // the global state. help do
    struct _Register * _register;

@@ -37,8 +37,8 @@ static char *getFilePath(const char *dir, const char *rPath)
 static char *getCurrentFilePath(const char *rPath)
 {
     #ifdef _ABSOLUTE_EXE_PATH
-        const char *buf = "E:/study/github/mine/acwj";
-       // const char *buf = "E:/study/github/mine_clone/acwj";
+       // const char *buf = "E:/study/github/mine/acwj";
+        const char *buf = "E:/study/github/mine_clone/acwj";
     #else
         char buf[80];
         getcwd(buf, sizeof(buf));
@@ -70,11 +70,11 @@ int main(int argc, char **args)
        // char* outFile = getCurrentFilePath("/study/res/input08"); //func1 11
       //  char* outFile = getCurrentFilePath("/study/res/input10"); //12
        // char* outFile = getCurrentFilePath("/study/res/input14"); //13
-        char* outFile = getCurrentFilePath("/study/res/input16.c");
+        char* outFile = getCurrentFilePath("/study/res/input18a.c");
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 
-        outFile = getCurrentFilePath("/study/note/out_17.s");
+        outFile = getCurrentFilePath("/study/note/out_18a.s");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -83,7 +83,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/note/out_17.s");
+            char* outFile = getCurrentFilePath("/study/note/out_18a.s");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }
@@ -93,6 +93,9 @@ int main(int argc, char **args)
             w = writer_new(WRITER_TYPE_FILE, args[2]);
         }
     }
+    //true to dump ast
+    cd->context->dumpAST = 1;
+
     GlobalContext gCtx;
     globalContext_init(&gCtx, gs, reg, cd, w);
 

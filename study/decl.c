@@ -35,7 +35,7 @@ struct ASTnode *decl_function(struct _Content *cd, struct _Writer *w, struct Tok
   // to the symbol table, and set the Functionid global
   // to the function's symbol-id
   endlabel = (w->context->label++);
-  
+
   nameslot = sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_FUNCTION, endlabel);
   cd->context->functionid = nameslot;
 
@@ -81,13 +81,18 @@ void decl_global(struct _Content *cd, struct _Writer *w, struct Token *token)
     // Text is filled in by the ident() call.
     type = types_parse_type(cd, token);
     misc_ident(cd, token);
-    if (token->token == T_LPAREN)
+    if (token->token == T_LPAREN) //(
     {
 
       // Parse the function declaration and
       // generate the assembly code for it
       tree = decl_function(cd, w, token, type);
-      gen_genAST(cd, tree, w, NOREG, 0);
+      if (cd->context->dumpAST)
+      {
+        expre_dumpAST(cd, tree, NOLABEL, 0);
+        fprintf(stdout, "\n\n");
+      }
+      gen_genAST(cd, tree, w, NOLABEL, 0);
     }
     else
     {

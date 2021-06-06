@@ -25,6 +25,8 @@ enum
   T_GT,
   T_LE,
   T_GE,
+  //type words
+  T_VOID,  T_CHAR, T_INT,  T_LONG,
   //int value  ; 
   T_INTLIT,
   T_SEMI, 
@@ -35,24 +37,19 @@ enum
   T_RBRACE,
   T_LPAREN,
   T_RPAREN,
-  // ============= keywords ====================
-  T_PRINT, // print
+   
+  T_AMPER,  // &
+  T_LOGAND, // &&
 
-  T_INT, // int identifier prefix
-  T_CHAR,
-
+//other keywords
   T_IF,
   T_ELSE,
   T_WHILE,
   T_FOR,
-  T_VOID,
-
-  T_LONG,
   T_RETURN,
 
-  T_AMPER,  // &
-  T_LOGAND, // &&
-  T_COMMA , // ,
+ 
+  //T_COMMA , // ,
 };
 
 // Token structure

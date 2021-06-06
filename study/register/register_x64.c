@@ -546,3 +546,33 @@ int register_x64_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val)
   REG_WRITE_BUF();
   return (r);
 }
+
+
+// a = *b
+int register_x64_cgstorederef(REGISTER_CONTEXT_PARAM, int r1, int r2, int type){
+
+  char buf[32];
+  switch (type) {
+    case P_CHAR:
+      //fprintf(Outfile, "\tmovb\t%s, (%s)\n", breglist[r1], reglist[r2]);
+      snprintf(buf, 32, "\tmovb\t%s, (%s)\n", breglist[r1], reglist[r2]);
+      REG_WRITE_BUF();
+      break;
+
+    case P_INT:
+     // fprintf(Outfile, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
+      snprintf(buf, 32, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
+      REG_WRITE_BUF();
+      break;
+
+    case P_LONG:
+     // fprintf(Outfile, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
+      snprintf(buf, 32, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
+      REG_WRITE_BUF();
+      break;
+
+    default:
+      REG_PUBLISH_ERROR(ctx, "Can't cgstorederef on type = %d", type);
+  }
+  return (r1);
+}

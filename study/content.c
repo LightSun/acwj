@@ -25,6 +25,7 @@ Content* content_new(int type,void* param){
 
     delegate->context->param = strdup(p);
     delegate->context->type = type;
+    delegate->context->dumpId = 1;
     return delegate;
 }
 void content_delete(Content* cd){

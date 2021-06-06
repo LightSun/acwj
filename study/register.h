@@ -35,7 +35,8 @@ CPP_START
     REGISTER_ASSIGN_FUN(R, cgreturn, arch)           \
     REGISTER_ASSIGN_FUN(R, cgaddress, arch)          \
     REGISTER_ASSIGN_FUN(R, cgderef, arch)            \
-    REGISTER_ASSIGN_FUN(R, cgshlconst, arch)
+    REGISTER_ASSIGN_FUN(R, cgshlconst, arch)         \
+    REGISTER_ASSIGN_FUN(R, cgstorederef, arch)
 
 /* 
 REGISTER_ASSIGN_FUN(R, cgequal, arch)\
@@ -123,6 +124,9 @@ struct _Register
 
     // <<
     int (*register_cgshlconst)(REGISTER_CONTEXT_PARAM, int r, int val);
+
+    //assigning to an identifier through a pointer. a = *b
+    int (*register_cgstorederef)(REGISTER_CONTEXT_PARAM, int leftReg, int rightReg, int type);
 };
 
 Register *register_new(int type);

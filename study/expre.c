@@ -8,6 +8,7 @@
 #include "types.h"
 #include "utils.h"
 #include "writer.h"
+#include "ast.h"
 
 //grammer
 /// compound_statement:          // empty, i.e. no statement
@@ -140,7 +141,7 @@ static struct ASTnode *primary(struct _Content *cd, struct _Writer *w, struct To
     id = sym_findglob(cd->context->globalState, cd->context->textBuf);
     if (id == -1)
     {
-      fatals(cd, "Unknown variable %s.", cd->context->textBuf);
+      CONTENT_PUBLISH_ERROR(cd, "Unknown variable %s.", cd->context->textBuf);
     }
 
     // Make a leaf AST node for it
@@ -148,8 +149,7 @@ static struct ASTnode *primary(struct _Content *cd, struct _Writer *w, struct To
     break;
 
   default:
-    fprintf(stderr, "syntax error on line %d\n", cd->context->line);
-    exit(1);
+    CONTENT_PUBLISH_ERROR(cd, "called primary() >>> syntax error, token = %d", token->token);
   }
   scanner_scan(cd, token);
   return n;
@@ -218,9 +218,9 @@ struct ASTnode *expre_binexpr(struct _Content *cd, struct _Writer *w, struct Tok
 
   // Get the integer literal on the left.
   // Fetch the next token at the same time.
-  left = prefix(cd, w, token);
+  left = expre_prefix(cd, w, token);
 
-  // If we hit a semicolon or ')', return just the left node
+  // If we hit a semicolon(;) or ')', return just the left node
   tokentype = token->token;
   if (tokentype == T_SEMI || tokentype == T_RPAREN)
   {
@@ -301,10 +301,13 @@ struct ASTnode *expre_binexpr(struct _Content *cd, struct _Writer *w, struct Tok
   left->rvalue = 1; 
   return(left);
 }
-
+// prefix_expression: primary
+//     | '*' prefix_expression
+//     | '&' prefix_expression
+//     ;
 // Parse a prefix expression and return
 // a sub-tree representing it.
-struct ASTnode *prefix(struct _Content *cd, struct _Writer *w, struct Token *token)
+struct ASTnode *expre_prefix(struct _Content *cd, struct _Writer *w, struct Token *token)
 {
   struct ASTnode *tree;
   switch (token->token)
@@ -313,7 +316,7 @@ struct ASTnode *prefix(struct _Content *cd, struct _Writer *w, struct Token *tok
     // Get the next token and parse it
     // recursively as a prefix expression
     scanner_scan(cd, token);
-    tree = prefix(cd, w, token);
+    tree = expre_prefix(cd, w, token);
 
     // Ensure that it's an identifier
     if (tree->op != A_IDENT)
@@ -331,7 +334,7 @@ struct ASTnode *prefix(struct _Content *cd, struct _Writer *w, struct Token *tok
     // Get the next token and parse it
     // recursively as a prefix expression
     scanner_scan(cd, token);
-    tree = prefix(cd, w, token);
+    tree = expre_prefix(cd, w, token);
 
     // For now, ensure it's either another deref or an
     // identifier
@@ -345,4 +348,109 @@ struct ASTnode *prefix(struct _Content *cd, struct _Writer *w, struct Token *tok
     tree = primary(cd, w, token);
   }
   return (tree);
+}
+
+//----------------------------- dump ------------------------------------------
+
+// Generate and return a new label number
+// just for AST dumping purposes
+static int gendumplabel(struct _Content *cd) {
+  return (cd->context->dumpId++);
+}
+
+// Given an AST tree, print it out and follow the
+// traversal of the tree that genAST() follows
+void expre_dumpAST(struct _Content *cd, struct ASTnode *n, int label, int level) {
+  int Lfalse, Lstart, Lend;
+
+
+  switch (n->op) {
+    case A_IF:
+      Lfalse = gendumplabel(cd);
+      for (int i=0; i < level; i++) fprintf(stdout, " ");
+      fprintf(stdout, "A_IF");
+      if (n->right) { Lend = gendumplabel(cd);
+        fprintf(stdout, ", end L%d", Lend);
+      }
+      fprintf(stdout, "\n");
+      expre_dumpAST(cd, n->left, Lfalse, level+2);
+      expre_dumpAST(cd, n->mid, NOLABEL, level+2);
+      if (n->right) expre_dumpAST(cd, n->right, NOLABEL, level+2);
+      return;
+
+    case A_WHILE:
+      Lstart = gendumplabel(cd);
+      for (int i=0; i < level; i++) fprintf(stdout, " ");
+      fprintf(stdout, "A_WHILE, start L%d\n", Lstart);
+      
+      Lend = gendumplabel(cd);
+      expre_dumpAST(cd, n->left, Lend, level+2);
+      expre_dumpAST(cd, n->right, NOLABEL, level+2);
+      return;
+  }
+
+  // Reset level to -2 for A_GLUE
+  if (n->op==A_GLUE) level= -2;
+
+  // General AST node handling
+  if (n->left) expre_dumpAST(cd, n->left, NOLABEL, level+2);
+  if (n->right) expre_dumpAST(cd, n->right, NOLABEL, level+2);
+
+
+  for (int i=0; i < level; i++) fprintf(stdout, " ");
+
+  switch (n->op) {
+    case A_GLUE:
+      fprintf(stdout, "\n\n"); return;
+    case A_FUNCTION:
+      fprintf(stdout, "A_FUNCTION %s\n", SYM_NAME(cd->context->globalState, n->v.id)); return;
+    case A_ADD:
+      fprintf(stdout, "A_ADD\n"); return;
+    case A_SUBTRACT:
+      fprintf(stdout, "A_SUBTRACT\n"); return;
+    case A_MULTIPLY:
+      fprintf(stdout, "A_MULTIPLY\n"); return;
+    case A_DIVIDE:
+      fprintf(stdout, "A_DIVIDE\n"); return;
+    case A_EQ:
+      fprintf(stdout, "A_EQ\n"); return;
+    case A_NE:
+      fprintf(stdout, "A_NE\n"); return;
+    case A_LT:
+      fprintf(stdout, "A_LE\n"); return;
+    case A_GT:
+      fprintf(stdout, "A_GT\n"); return;
+    case A_LE:
+      fprintf(stdout, "A_LE\n"); return;
+    case A_GE:
+      fprintf(stdout, "A_GE\n"); return;
+    case A_INTLIT:
+      fprintf(stdout, "A_INTLIT %d\n", n->v.intvalue); return;
+    case A_IDENT:
+      if (n->rvalue)
+        fprintf(stdout, "A_IDENT rval %s\n",SYM_NAME(cd->context->globalState, n->v.id));
+      else
+        fprintf(stdout, "A_IDENT %s\n", SYM_NAME(cd->context->globalState, n->v.id));
+      return;
+    case A_ASSIGN:
+      fprintf(stdout, "A_ASSIGN\n"); return;
+    case A_WIDEN:
+      fprintf(stdout, "A_WIDEN\n"); return;
+    case A_RETURN:
+      fprintf(stdout, "A_RETURN\n"); return;
+    case A_FUNCCALL:
+      fprintf(stdout, "A_FUNCCALL %s\n", SYM_NAME(cd->context->globalState, n->v.id)); return;
+    case A_ADDR:
+      fprintf(stdout, "A_ADDR %s\n", SYM_NAME(cd->context->globalState, n->v.id)); return;
+    case A_DEREF:
+      if (n->rvalue)
+        fprintf(stdout, "A_DEREF rval\n");
+      else
+        fprintf(stdout, "A_DEREF\n");
+      return;
+    case A_SCALE:
+      fprintf(stdout, "A_SCALE %d\n", n->v.size); return;
+    default:
+      CONTENT_PUBLISH_ERROR(cd, "Unknown expre_dumpAST operator = %d", n->op);
+  }
 }

@@ -72,7 +72,11 @@ int register_x64_cgaddress(REGISTER_CONTEXT_PARAM, int id);
 // de - ref-addr
 int register_x64_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType);
 
+// << 
 int register_x64_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val);
+
+// a = *b
+int register_x64_cgstorederef(REGISTER_CONTEXT_PARAM, int leftReg, int rightReg, int type);
 
 CPP_END
 #endif

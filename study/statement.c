@@ -1,108 +1,38 @@
 #include "statement.h"
 #include "decl.h"
 #include "expre.h"
+#include "global_context.h"
 #include "misc.h"
 #include "sym.h"
 #include "types.h"
 #include "utils.h"
-#include "global_context.h"
+#include "writer.h"
 
 /**
- compound_statement: '{' '}'          // empty, i.e. no statement
-      |      '{' statement '}'
-      |      '{' statement statements '}'
-      ;
+// compound_statement:          // empty, i.e. no statement
+//      |      statement
+//      |      statement statements
+//      ;
+//
+// statement: declaration
+//      |     expression_statement
+//      |     function_call
+//      |     if_statement
+//      |     while_statement
+//      |     for_statement
+//      |     return_statement
+//      ;
 
- statement: print_statement
-      |     declaration
-      |     assignment_statement
-      |     if_statement
-      ;
 
- print_statement: 'print' expression ';'  ;
-
- declaration: 'int' identifier ';'  ;
-
- assignment_statement: identifier '=' expression ';'   ;
-
- if_statement: if_head
-      |        if_head 'else' compound_statement
-      ;
-
- if_head: 'if' '(' true_false_expression ')' compound_statement  ;
-
- identifier: T_IDENT ;
+// if_statement: if_head
+//      |        if_head 'else' compound_statement
+//      ;
+//
+// if_head: 'if' '(' true_false_expression ')' compound_statement  ;
  */
 
-static struct ASTnode *print_statement(Content *cd, struct _Writer *w, struct Token *token)
-{
-  struct ASTnode *tree;
-  int lefttype, righttype;
 
-  // Match a 'print' as the first token
-  misc_match(cd, token, T_PRINT, "print");
-
-  // Parse the following expression
-  tree = expre_binexpr(cd, w, token, 0);
-
-  // Ensure the two types are compatible.
-  lefttype = P_INT;
-  righttype = tree->type;
-  if (!types_compatible(w, &lefttype, &righttype, 0))
-  {
-    fatal(cd, "Incompatible types");
-  }
-
-  // Widen the tree if required.
-  if (righttype)
-    tree = expre_mkastunary(righttype, P_INT, tree, 0);
-
-  //make an print ast tree
-  tree = expre_mkastunary(A_PRINT, P_NONE, tree, 0);
-
-  return tree;
-}
-
-static struct ASTnode *assignment_statement(Content *cd, struct _Writer *w, struct Token *token)
-{
-  struct ASTnode *left, *right, *tree;
-  int id;
-
-  // Ensure we have an identifier
-  misc_ident(cd, token);
-
-  // This could be a variable or a function call.
-  // If next token is '(', it's a function call
-  if (token->token == T_LPAREN)
-    return (expre_funccall(cd, w, token));
-
-  // Not a function call, on with an assignment then!
-  // Check the identifier has been defined then make a leaf node for it
-  // XXX Add structural type test
-  if ((id = sym_findglob(cd->context->globalState, cd->context->textBuf)) == -1)
-  {
-    CONTENT_PUBLISH_ERROR(cd, "Undeclared variable %s", cd->context->textBuf);
-  }
-  right = expre_mkastleaf(A_LVIDENT, sym_getGlob(cd->context->globalState, id)->type, id);
-
-  // Ensure we have an equals sign
-  misc_match(cd, token, T_ASSIGN, "=");
-
-  // Parse the following expression
-  left = expre_binexpr(cd, w, token, 0);
-
-  // Ensure the two types are compatible.
-  left = types_modify_type(left, w, right->type, 0);
-  if (left == NULL)
-  {
-    CONTENT_PUBLISH_ERROR(cd, "Incompatible expression in assignment");
-  }
-
-  // Make an assignment AST tree
-  tree = expre_mkastnode(A_ASSIGN, P_INT, left, NULL, right, 0);
-
-  return tree;
-}
+static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct Token *token);
 
 // Parse an IF statement including
 // any optional ELSE clause
@@ -122,10 +52,9 @@ struct ASTnode *if_statement(Content *cd, struct _Writer *w, struct Token *token
 
   if (condAST->op < A_EQ || condAST->op > A_GE)
   {
-    printf("Bad comparison operator");
-    exit(1);
+    WRITER_PUBLISH_ERROR(w, "Bad comparison operator");
   }
-  misc_rparen(cd, token);
+  misc_rparen(cd, token); // )
 
   // Get the AST for the compound statement
   trueAST = statement_parse(cd, w, token);
@@ -142,7 +71,6 @@ struct ASTnode *if_statement(Content *cd, struct _Writer *w, struct Token *token
   return (expre_mkastnode(A_IF, P_NONE, condAST, trueAST, falseAST, 0));
 }
 
-static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct Token *token);
 
 // while_statement: 'while' '(' true_false_expression ')' compound_statement  ;
 // Parse a WHILE statement
@@ -161,8 +89,7 @@ struct ASTnode *while_statement(Content *cd, struct _Writer *w, struct Token *to
   condAST = expre_binexpr(cd, w, token, 0);
   if (condAST->op < A_EQ || condAST->op > A_GE)
   {
-    fprintf(stderr, "Bad comparison operator");
-    exit(1);
+    WRITER_PUBLISH_ERROR(w, "Bad comparison operator");
   }
   misc_rparen(cd, token);
 
@@ -193,8 +120,7 @@ static struct ASTnode *for_statement(Content *cd, struct _Writer *w, struct Toke
   condAST = expre_binexpr(cd, w, token, 0);
   if (condAST->op < A_EQ || condAST->op > A_GE)
   {
-    fprintf(stderr, "Bad comparison operator");
-    exit(1);
+    WRITER_PUBLISH_ERROR(w, "Bad comparison operator");
   }
   misc_semi(cd, token);
 
@@ -223,11 +149,10 @@ static struct ASTnode *for_statement(Content *cd, struct _Writer *w, struct Toke
 static struct ASTnode *return_statement(Content *cd, struct _Writer *w, struct Token *token)
 {
   struct ASTnode *tree;
-  int returntype, functype;
 
   // Can't return a value if function returns P_VOID
   if (sym_getGlob(cd->context->globalState, cd->context->functionid)->type == P_VOID)
-    fatal(cd, "Can't return from a void function");
+    WRITER_PUBLISH_ERROR(w, "Can't return from a void function");
 
   // Ensure we have 'return' '('
   misc_match(cd, token, T_RETURN, "return");
@@ -237,14 +162,11 @@ static struct ASTnode *return_statement(Content *cd, struct _Writer *w, struct T
   tree = expre_binexpr(cd, w, token, 0);
 
   // Ensure this is compatible with the function's type
-  returntype = tree->type;
-  functype = sym_getGlob(cd->context->globalState, cd->context->functionid)->type;
-  if (!types_compatible(w, &returntype, &functype, 1))
-    fatal(cd, "Incompatible types");
-
-  // Widen the left if required.
-  if (returntype)
-    tree = expre_mkastunary(returntype, functype, tree, 0);
+  tree = types_modify_type(tree, w, SYM_TYPE(cd->context->globalState, cd->context->functionid), 0);
+  if (tree == NULL)
+  {
+    WRITER_PUBLISH_ERROR(w, "Incompatible types");
+  }
 
   // Add on the A_RETURN node
   tree = expre_mkastunary(A_RETURN, P_NONE, tree, 0);
@@ -262,9 +184,6 @@ static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct T
 
   switch (token->token)
   {
-  case T_PRINT:
-    return (print_statement(cd, w, token));
-
   case T_CHAR:
   case T_INT:
   case T_LONG:
@@ -276,9 +195,6 @@ static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct T
     misc_ident(cd, token);
     decl_var(cd, w, token, type);
     return (NULL); // No AST generated here
-
-  case T_IDENT:
-    return (assignment_statement(cd, w, token));
 
   case T_IF:
     return (if_statement(cd, w, token));
@@ -293,9 +209,11 @@ static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct T
     return (return_statement(cd, w, token));
 
   default:
-    fprintf(stderr, "Syntax error, token = %d", token->token);
-    exit(1);
+      // For now, see if this is an expression.
+      // This catches assignment statements.
+      return (expre_binexpr(cd, w, token , 0));
   }
+  return (NULL);
 }
 
 // Parse a compound statement with "{ + }"
@@ -314,7 +232,7 @@ struct ASTnode *statement_parse(Content *cd, struct _Writer *w, struct Token *to
     tree = single_statement(cd, w, token);
 
     // Some statements must be followed by a semicolon
-    if (tree != NULL && (tree->op == A_PRINT || tree->op == A_ASSIGN || tree->op == A_RETURN || tree->op == A_FUNCCALL))
+    if (tree != NULL && (tree->op == A_ASSIGN || tree->op == A_RETURN || tree->op == A_FUNCCALL))
     {
       misc_semi(cd, token);
     }

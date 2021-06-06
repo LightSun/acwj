@@ -141,6 +141,7 @@ int register_arm_cgloadint(REGISTER_CONTEXT_PARAM, int value, int type)
         snprintf(buf, 32, "\tldr\t%s, [r3]\n", reglist[r]);
     }
     REG_WRITE_BUF();
+
     return (r);
 }
 int register_arm_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2)
@@ -485,4 +486,29 @@ int register_arm_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val)
     // fprintf(Outfile, "\tlsl\t%s, %s, #%d\n", reglist[r], reglist[r], val);
     REG_WRITE_FMT_BUF_32("\tlsl\t%s, %s, #%d\n", reglist[r], reglist[r], val);
     return r;
+}
+
+// a = *b
+int register_arm_cgstorederef(REGISTER_CONTEXT_PARAM, int r1, int r2, int type)
+{
+    char buf[32];
+    switch (type)
+    {
+    case P_CHAR:
+        // fprintf(Outfile, "\tstrb\t%s, [%s]\n", reglist[r1], reglist[r2]);
+        snprintf(buf, 32, "\tstrb\t%s, [%s]\n", reglist[r1], reglist[r2]);
+        REG_WRITE_BUF();
+        break;
+
+    case P_INT:
+    case P_LONG:
+        // fprintf(Outfile, "\tstr\t%s, [%s]\n", reglist[r1], reglist[r2]);
+        snprintf(buf, 32, "\tstr\t%s, [%s]\n", reglist[r1], reglist[r2]);
+        REG_WRITE_BUF();
+        break;
+
+    default:
+        REG_PUBLISH_ERROR(ctx, "Can't cgstoderef on type:", type);
+    }
+    return (r1);
 }

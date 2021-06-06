@@ -10,7 +10,7 @@
 // Copyright (c) 2019 Warren Toomey, GPL3
 
 // Generate and return a new label number
-static int label(struct _Writer *w)
+static int genlabel(struct _Writer *w)
 {
   return (w->context->label++);
 }
@@ -26,9 +26,9 @@ static int genIFAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w)
   // for the end of the overall IF statement.
   // When there is no ELSE clause, Lfalse _is_
   // the ending label!
-  Lfalse = label(w);
+  Lfalse = genlabel(w);
   if (n->right)
-    Lend = label(w);
+    Lend = genlabel(w);
 
   // Generate the condition code followed
   // by a zero jump to the false label.
@@ -53,7 +53,7 @@ static int genIFAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w)
   // end label
   if (n->right)
   {
-    gen_genAST(cd, n->right, w, NOREG, n->op);
+    gen_genAST(cd, n->right, w, NOLABEL, n->op);
     gen_freeregs(w);
     CONTENT_G_REG(cd)->register_cglabel(WRITER_G_REG_CTX(w), Lend);
   }
@@ -69,8 +69,8 @@ static int genWHILE(struct _Content *cd, struct ASTnode *n, struct _Writer *w)
 
   // Generate the start and end labels
   // and output the start label
-  Lstart = label(w);
-  Lend = label(w);
+  Lstart = genlabel(w);
+  Lend = genlabel(w);
   CONTENT_G_REG(cd)->register_cglabel(WRITER_G_REG_CTX(w), Lstart);
 
   // Generate the condition code followed
@@ -80,7 +80,7 @@ static int genWHILE(struct _Content *cd, struct ASTnode *n, struct _Writer *w)
   gen_freeregs(w);
 
   // Generate the compound statement for the body
-  gen_genAST(cd, n->right, w, NOREG, n->op);
+  gen_genAST(cd, n->right, w, NOLABEL, n->op);
   gen_freeregs(w);
 
   // Finally output the jump back to the condition,
@@ -90,8 +90,10 @@ static int genWHILE(struct _Content *cd, struct ASTnode *n, struct _Writer *w)
   return (NOREG);
 }
 
-//reg: normal reg or label reg
-int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int reg, int parentASTop)
+// Given an AST, an optional label, and the AST op
+// of the parent, generate assembly code recursively.
+// Return the register id with the tree's final value.
+int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int label, int parentASTop)
 {
   int leftreg, rightreg;
 
@@ -107,16 +109,16 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int re
   case A_GLUE:
     // Do each child statement, and free the
     // registers after each child
-    gen_genAST(cd, n->left, w, NOREG, n->op);
+    gen_genAST(cd, n->left, w, NOLABEL, n->op);
     gen_freeregs(w);
-    gen_genAST(cd, n->right, w, NOREG, n->op);
+    gen_genAST(cd, n->right, w, NOLABEL, n->op);
     gen_freeregs(w);
     return (NOREG);
 
   case A_FUNCTION:
     // Generate the function's preamble before the code
     CONTENT_G_REG(cd)->register_cgfuncpreamble(WRITER_G_REG_CTX(w), n->v.id);
-    gen_genAST(cd, n->left, w, NOREG, n->op);
+    gen_genAST(cd, n->left, w, NOLABEL, n->op);
     CONTENT_G_REG(cd)->register_cgfuncpostamble(WRITER_G_REG_CTX(w), n->v.id);
     return (NOREG);
   }
@@ -125,9 +127,9 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int re
 
   // Get the left and right sub-tree values
   if (n->left)
-    leftreg = gen_genAST(cd, n->left, w, NOREG, n->op);
+    leftreg = gen_genAST(cd, n->left, w, NOLABEL, n->op);
   if (n->right)
-    rightreg = gen_genAST(cd, n->right, w, leftreg, n->op);
+    rightreg = gen_genAST(cd, n->right, w, NOLABEL, n->op);
 
   switch (n->op)
   {
@@ -144,26 +146,36 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int re
 
   case A_IDENT:
   {
-    return (CONTENT_G_REG(cd)->register_cgloadglob(WRITER_G_REG_CTX(w), n->v.id));
+    // Load our value if we are an rvalue
+    // or we are being dereferenced
+    if (n->rvalue || parentASTop == A_DEREF)
+    {
+
+      return (CONTENT_G_REG(cd)->register_cgloadglob(WRITER_G_REG_CTX(w), n->v.id));
+    }
+    else
+    {
+      return (NOREG);
+    }
   }
 
-  case A_LVIDENT:
+    /*  case A_LVIDENT:
   {
     return (CONTENT_G_REG(cd)->register_cgstoreglob(WRITER_G_REG_CTX(w), reg, n->v.id));
-  }
+  } */
 
   case A_ASSIGN:
-    // The work has already been done, return the result
-    return (rightreg);
-
-  case A_PRINT:
-  {
-    // Print the left-child's value
-    // and return no register
-    gen_printint(w, leftreg);
-    gen_freeregs(w);
-    return (NOREG);
-  }
+    // Are we assigning to an identifier or through a pointer?
+    switch (n->right->op)
+    {
+    case A_IDENT:
+      return (WRITER_REG_CALL(w, cgstoreglob, leftreg, n->right->v.id));
+    case A_DEREF:
+      return (WRITER_REG_CALL(w, cgstorederef, leftreg, rightreg, n->right->type));
+    default:
+      WRITER_PUBLISH_ERROR(w, "Can't A_ASSIGN in genAST(), op = %d", n->op);
+    }
+    break;
 
   case A_EQ:
     // return (register_cgequal(w, leftreg, rightreg));
@@ -182,7 +194,7 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int re
       // a compare followed by a jump. Otherwise, compare registers
       // and set one to 1 or 0 based on the comparison.
       if (parentASTop == A_IF || parentASTop == A_WHILE)
-        return (CONTENT_G_REG(cd)->register_cgcompare_and_jump(WRITER_G_REG_CTX(w), n->op, leftreg, rightreg, reg));
+        return (CONTENT_G_REG(cd)->register_cgcompare_and_jump(WRITER_G_REG_CTX(w), n->op, leftreg, rightreg, label));
       else
         return (CONTENT_G_REG(cd)->register_cgcompare_and_set(WRITER_G_REG_CTX(w), n->op, leftreg, rightreg));
     }
@@ -204,7 +216,14 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int re
     return (CONTENT_G_REG(cd)->register_cgaddress(WRITER_G_REG_CTX(w), n->v.id));
 
   case A_DEREF:
-    return (CONTENT_G_REG(cd)->register_cgderef(WRITER_G_REG_CTX(w), leftreg, n->left->type));
+    if (n->rvalue)
+    {
+      return (CONTENT_G_REG(cd)->register_cgderef(WRITER_G_REG_CTX(w), leftreg, n->left->type));
+    }
+    else
+    {
+      return (leftreg);
+    }
 
   case A_SCALE:
     // Small optimisation: use shift if the
