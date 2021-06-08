@@ -4,44 +4,55 @@
 
 CPP_START
 
-#define SYM_BOLS_COUNT        1024     // Number of symbol table entries
+#define SYM_BOLS_COUNT 1024 // Number of symbol table entries
 
 // Structural types
-enum {
-  S_VARIABLE, S_FUNCTION
+enum
+{
+  S_VARIABLE,
+  S_FUNCTION,
+  S_ARRAY
 };
 
 // Symbol table structure
 typedef struct _SymTable SymTable;
-struct _SymTable {
-  char *name;                   // Name of a symbol
-  int type;                     // Primitive type for the symbol
-  int stype;                    // Structural type for the symbol
-  int endlabel;		            	// For S_FUNCTIONs, the end label
+struct _SymTable
+{
+  char *name;   // Name of a symbol
+  int type;     // Primitive type for the symbol
+  int stype;    // Structural type for the symbol
+  int endlabel; // For S_FUNCTIONs, the end label
+  int size;     // Number of elements in the symbol
 };
 
 struct _GlobalContext;
 
 struct GlobalState
 {
-  SymTable* syms;                // Global symbol table. size is SYM_BOLS_COUNT
-  int globs;                     // Position of next free global symbol slot
+  SymTable *syms; // Global symbol table. size is SYM_BOLS_COUNT
+  int globs;      // Position of next free global symbol slot
 
   struct _GlobalContext *gContext;
 };
 
-struct GlobalState* sym_globalState_new();
-void sym_globalState_delete(struct GlobalState* gs);
+struct GlobalState *sym_globalState_new();
+void sym_globalState_delete(struct GlobalState *gs);
 
-int sym_findglob(struct GlobalState* gs,const char *s);
+int sym_findglob(struct GlobalState *gs, const char *s);
 
-int sym_addglob(struct GlobalState* gs, const char *name, int type, int stype, int endlabel);
+// Add a global symbol to the symbol table. Set up its:
+// + type: char, int etc.
+// + structural type: var, function, array etc.
+// + size: number of elements
+// + endlabel: if this is a function
+// Return the slot number in the symbol table
+int sym_addglob(struct GlobalState *gs, const char *name, int type, int stype, int endlabel, int size);
 
-SymTable* sym_getGlob(struct GlobalState* gs, int pos);
+SymTable *sym_getGlob(struct GlobalState *gs, int pos);
 
-#define SYM_NAME(gs, id)  sym_getGlob(gs, id)->name
-#define SYM_END_LABEL(gs, id)  sym_getGlob(gs, id)->endlabel
-#define SYM_TYPE(gs, id)  sym_getGlob(gs, id)->type
+#define SYM_NAME(gs, id) sym_getGlob(gs, id)->name
+#define SYM_END_LABEL(gs, id) sym_getGlob(gs, id)->endlabel
+#define SYM_TYPE(gs, id) sym_getGlob(gs, id)->type
 
 CPP_END
 

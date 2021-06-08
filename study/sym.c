@@ -36,10 +36,7 @@ static int newglob(struct GlobalState* gs) {
   return (p);
 }
 
-// Add a global symbol to the symbol table.
-// Also set up its type and structural type.
-// Return the slot number in the symbol table
-int sym_addglob(struct GlobalState* gs, const char *name, int type, int stype, int endlabel)
+int sym_addglob(struct GlobalState* gs, const char *name, int type, int stype, int endlabel, int size)
 {
   int y;
 
@@ -54,6 +51,7 @@ int sym_addglob(struct GlobalState* gs, const char *name, int type, int stype, i
   gs->syms[y].type = type;
   gs->syms[y].stype = stype;
   gs->syms[y].endlabel = endlabel;
+  gs->syms[y].size = size;
   return (y);
 }
 
