@@ -32,11 +32,12 @@ enum
   T_SEMI, 
   T_IDENT, // identifier
 
-  // { }  ( )
+  // { }  ( )  []
   T_LBRACE,
   T_RBRACE,
   T_LPAREN,
   T_RPAREN,
+  T_LBRACKET, T_RBRACKET,
    
   T_AMPER,  // &
   T_LOGAND, // &&

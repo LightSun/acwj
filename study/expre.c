@@ -43,6 +43,7 @@ struct ASTnode *expre_mkastnode(int op, int type, struct ASTnode *left, struct A
     exit(1);
   }
   // Copy in the field values and return it
+  n->rvalue = 0;
   n->op = op;
   n->type = type;
   n->left = left;
@@ -94,8 +95,63 @@ struct ASTnode *expre_funccall(struct _Content *cd, struct _Writer *w, struct To
   return (tree);
 }
 
-// Parsing of expressions
-// Copyright (c) 2019 Warren Toomey, GPL3
+// Parse the index into an array and
+// return an AST tree for it
+static struct ASTnode *array_access(struct _Content *cd, struct _Writer *w, struct Token *token)
+{
+  struct ASTnode *left, *right;
+  int id;
+
+  // Check that the identifier has been defined as an array
+  // then make a leaf node for it that points at the base
+  if ((id = sym_findglob(cd->context->globalState, cd->context->textBuf)) == -1)
+  {
+    CONTENT_PUBLISH_ERROR(cd, "Undeclared array '%s'", cd->context->textBuf);
+  }
+  SymTable* st = sym_getGlob(cd->context->globalState, id);
+  if(st->stype != S_ARRAY){
+    CONTENT_PUBLISH_ERROR(cd, "Undeclared array '%s'", cd->context->textBuf);
+  }
+
+  left = expre_mkastleaf(A_ADDR, st->type, id);
+
+  // Get the '['
+  scanner_scan(cd, token);
+
+  // Parse the following expression
+  right = expre_binexpr(cd, w, token, 0);
+
+  // Get the ']'
+  misc_match(cd, token, T_RBRACKET, "]");
+
+  // Ensure that this is of int type
+  if (!types_inttype(right->type))
+    CONTENT_PUBLISH_ERROR(cd, "Array index is not of integer type = %d", right->type);
+
+  // Scale the index by the size of the element's type
+  right = types_modify_type(right, w, left->type, A_ADD);
+
+  // Return an AST tree where the array's base has the offset
+  // added to it, and dereference the element. Still an lvalue
+  // at this point.
+  left = expre_mkastnode(A_ADD, st->type, left, NULL, right, 0);
+  left = expre_mkastunary(A_DEREF, types_value_at(left->type), left, 0);
+  return (left);
+}
+
+/**
+ primary_expression
+        : IDENTIFIER
+        | CONSTANT
+        | STRING_LITERAL
+        | '(' expression ')'
+        ;
+
+postfix_expression
+        : primary_expression
+        | postfix_expression '[' expression ']'
+          ...
+ * */
 
 // Parse a primary factor and return an
 // AST node representing it.
@@ -134,6 +190,12 @@ static struct ASTnode *primary(struct _Content *cd, struct _Writer *w, struct To
     {
       return (expre_funccall(cd, w, token));
     }
+    //if is a '[', access array element
+    if (token->token == T_LBRACKET)
+    {
+      return (array_access(cd, w, token));
+    }
+
     // Not a function call, so reject the new token
     scanner_reject_token(cd, token);
 

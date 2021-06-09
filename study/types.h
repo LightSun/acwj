@@ -17,6 +17,9 @@ int types_compatible(struct _Writer* w, int *left, int *right, int onlyright);
 
 int types_parse_type(struct _Content *cd, struct Token *token);
 
+int types_inttype(int type);
+int types_ptrtype(int type);
+
 int types_pointer_to(int type);
 
 int types_value_at(int type);

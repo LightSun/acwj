@@ -14,7 +14,7 @@ extern struct ASTnode *expre_mkastunary(int op, int type, struct ASTnode *left, 
 
 // Return true if a type is an int type
 // of any size, false otherwise
-static int inttype(int type)
+int types_inttype(int type)
 {
   if (type == P_CHAR || type == P_INT || type == P_LONG)
     return (1);
@@ -22,7 +22,7 @@ static int inttype(int type)
 }
 
 // Return true if a type is of pointer type
-static int ptrtype(int type)
+int types_ptrtype(int type)
 {
   if (type == P_VOIDPTR || type == P_CHARPTR ||
       type == P_INTPTR || type == P_LONGPTR)
@@ -169,7 +169,7 @@ struct ASTnode *types_modify_type(struct ASTnode *tree, struct _Writer *w, int r
   ltype = tree->type;
 
   // Compare scalar int types
-  if (inttype(ltype) && inttype(rtype))
+  if (types_inttype(ltype) && types_inttype(rtype))
   {
 
     // Both types same, nothing to do
@@ -190,7 +190,7 @@ struct ASTnode *types_modify_type(struct ASTnode *tree, struct _Writer *w, int r
   }
 
   // For pointers on the left
-  if (ptrtype(ltype))
+  if (types_ptrtype(ltype))
   {
     // OK is same type on right and not doing a binary op
     if (op == 0 && ltype == rtype)
@@ -203,7 +203,7 @@ struct ASTnode *types_modify_type(struct ASTnode *tree, struct _Writer *w, int r
 
     // Left is int type, right is pointer type and the size
     // of the original type is >1: scale the left
-    if (inttype(ltype) && ptrtype(rtype))
+    if (types_inttype(ltype) && types_ptrtype(rtype))
     {
       rsize = WRITER_G_REG(w)->register_cgprimsize(WRITER_G_REG_CTX(w), types_value_at(rtype));
       if (rsize > 1)

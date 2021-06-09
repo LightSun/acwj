@@ -231,19 +231,23 @@ void register_x64_cgglobsym(REGISTER_CONTEXT_PARAM, int sym_id)
                        "\t.globl\t%s\n",
                        st->name);
 
-  switch (typesize)
+  // Generate the space
+  for (size_t i = 0; i < st->size; i++)
   {
-  case 1:
-    REG_WRITE_FMT_BUF_32("%s:\t.byte\t0\n", st->name);
-    break;
-  case 4:
-    REG_WRITE_FMT_BUF_32("%s:\t.long\t0\n", st->name);
-    break;
-  case 8:
-    REG_WRITE_FMT_BUF_32("%s:\t.quad\t0\n", st->name);
-    break;
-  default:
-    REG_PUBLISH_ERROR(ctx, "Unknown typesize in register_x64_cgglobsym(): %d", typesize);
+    switch (typesize)
+    {
+    case 1:
+      REG_WRITE_FMT_BUF_32("%s:\t.byte\t0\n", st->name);
+      break;
+    case 4:
+      REG_WRITE_FMT_BUF_32("%s:\t.long\t0\n", st->name);
+      break;
+    case 8:
+      REG_WRITE_FMT_BUF_32("%s:\t.quad\t0\n", st->name);
+      break;
+    default:
+      REG_PUBLISH_ERROR(ctx, "Unknown typesize in register_x64_cgglobsym(): %d", typesize);
+    }
   }
 }
 
@@ -547,32 +551,33 @@ int register_x64_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val)
   return (r);
 }
 
-
 // a = *b
-int register_x64_cgstorederef(REGISTER_CONTEXT_PARAM, int r1, int r2, int type){
+int register_x64_cgstorederef(REGISTER_CONTEXT_PARAM, int r1, int r2, int type)
+{
 
   char buf[32];
-  switch (type) {
-    case P_CHAR:
-      //fprintf(Outfile, "\tmovb\t%s, (%s)\n", breglist[r1], reglist[r2]);
-      snprintf(buf, 32, "\tmovb\t%s, (%s)\n", breglist[r1], reglist[r2]);
-      REG_WRITE_BUF();
-      break;
+  switch (type)
+  {
+  case P_CHAR:
+    //fprintf(Outfile, "\tmovb\t%s, (%s)\n", breglist[r1], reglist[r2]);
+    snprintf(buf, 32, "\tmovb\t%s, (%s)\n", breglist[r1], reglist[r2]);
+    REG_WRITE_BUF();
+    break;
 
-    case P_INT:
-     // fprintf(Outfile, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
-      snprintf(buf, 32, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
-      REG_WRITE_BUF();
-      break;
+  case P_INT:
+    // fprintf(Outfile, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
+    snprintf(buf, 32, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
+    REG_WRITE_BUF();
+    break;
 
-    case P_LONG:
-     // fprintf(Outfile, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
-      snprintf(buf, 32, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
-      REG_WRITE_BUF();
-      break;
+  case P_LONG:
+    // fprintf(Outfile, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
+    snprintf(buf, 32, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
+    REG_WRITE_BUF();
+    break;
 
-    default:
-      REG_PUBLISH_ERROR(ctx, "Can't cgstorederef on type = %d", type);
+  default:
+    REG_PUBLISH_ERROR(ctx, "Can't cgstorederef on type = %d", type);
   }
   return (r1);
 }

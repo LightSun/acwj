@@ -264,17 +264,19 @@ void register_arm_cgglobsym(REGISTER_CONTEXT_PARAM, int sym_id)
     REG_WRITE_FMT_BUF_32("\t.data\n"
                          "\t.globl\t%s\n",
                          st->name);
-
-    switch (typesize)
+    for (size_t i = 0; i < st->size; i++)
     {
-    case 1:
-        REG_WRITE_FMT_BUF_32("%s:\t.byte\t0\n", st->name);
-        break;
-    case 4:
-        REG_WRITE_FMT_BUF_32("%s:\t.long\t0\n", st->name);
-        break;
-    default:
-        REG_PUBLISH_ERROR(ctx, "Unknown typesize in register_arm_cgglobsym(): %d", typesize);
+        switch (typesize)
+        {
+        case 1:
+            REG_WRITE_FMT_BUF_32("%s:\t.byte\t0\n", st->name);
+            break;
+        case 4:
+            REG_WRITE_FMT_BUF_32("%s:\t.long\t0\n", st->name);
+            break;
+        default:
+            REG_PUBLISH_ERROR(ctx, "Unknown typesize in register_arm_cgglobsym(): %d", typesize);
+        }
     }
 }
 

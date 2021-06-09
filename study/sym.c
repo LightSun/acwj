@@ -9,6 +9,14 @@ struct GlobalState* sym_globalState_new(){
 }
 void sym_globalState_delete(struct GlobalState* gs){
   //gs->globs = 0;
+  for (size_t i = 0; i < SYM_BOLS_COUNT; i++)
+  {
+    if(gs->syms[i].name){
+      free(gs->syms[i].name);
+      gs->syms[i].name = NULL;
+    }
+  }
+  
   free(gs->syms);
   free(gs);
 }

@@ -12,16 +12,41 @@
 
 extern struct ASTnode *statement_parse(struct _Content *cd, struct _Writer *w, struct Token *token);
 
+/**
+ *  variable_declaration: type identifier ';'
+        | type identifier '[' P_INTLIT ']' ';'
+        ;
+*/
 //may be a list of var.
 void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int type)
 {
   int id;
 
   // Text now has the identifier's name.
-  // Add it as a known identifier
-  // and generate its space in assembly
-  id = sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_VARIABLE, 0);
-  gen_globsym(w, id);
+  // If the next token is a '['
+  if (token->token == T_LBRACKET)
+  {
+    scanner_scan(cd, token);
+    //check we are in array size.
+    if (token->token == T_INTLIT)
+    {
+      // Add this as a known array and generate its space in assembly.
+      // We treat the array as a pointer to its elements' type
+      id = sym_addglob(cd->context->globalState, cd->context->textBuf, types_pointer_to(type), S_ARRAY, 0, token->intvalue);
+      gen_globsym(w, id);
+    }else{
+      //TODO
+    }
+    //ensure we are following ']'
+    scanner_scan(cd, token);
+    misc_match(cd, token, T_RBRACKET, "]");
+  }
+  else
+  {
+    id = sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_VARIABLE, 0, 0);
+    gen_globsym(w, id);
+  }
+  //end with ';'
   misc_semi(cd, token);
 }
 
@@ -36,7 +61,7 @@ struct ASTnode *decl_function(struct _Content *cd, struct _Writer *w, struct Tok
   // to the function's symbol-id
   endlabel = (w->context->label++);
 
-  nameslot = sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_FUNCTION, endlabel);
+  nameslot = sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_FUNCTION, endlabel, 0);
   cd->context->functionid = nameslot;
 
   // ( )

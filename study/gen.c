@@ -159,11 +159,6 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
     }
   }
 
-    /*  case A_LVIDENT:
-  {
-    return (CONTENT_G_REG(cd)->register_cgstoreglob(WRITER_G_REG_CTX(w), reg, n->v.id));
-  } */
-
   case A_ASSIGN:
     // Are we assigning to an identifier or through a pointer?
     switch (n->right->op)
