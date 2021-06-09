@@ -271,9 +271,9 @@ static int OpPrec[] = {
 static int op_precedence(struct _Content *cd, int tokentype)
 {
   int prec = OpPrec[tokentype];
-  if (prec == 0)
+  if (prec >= T_VOID)
   {
-    CONTENT_PUBLISH_ERROR(cd, "syntax error on line %d, token %d\n", cd->context->line, tokentype);
+    CONTENT_PUBLISH_ERROR(cd, "Token with no precedence in op_precedence:", tokentype);
   }
   return (prec);
 }
@@ -290,9 +290,9 @@ struct ASTnode *expre_binexpr(struct _Content *cd, struct _Writer *w, struct Tok
   // Fetch the next token at the same time.
   left = expre_prefix(cd, w, token);
 
-  // If we hit a semicolon(;) or ')', return just the left node
+  // If we hit a semicolon(;) or ')' or ']', return just the left node
   tokentype = token->token;
-  if (tokentype == T_SEMI || tokentype == T_RPAREN)
+  if (tokentype == T_SEMI || tokentype == T_RPAREN || tokentype == T_RBRACKET)
   {
     left->rvalue = 1;
     return (left);
@@ -359,7 +359,7 @@ struct ASTnode *expre_binexpr(struct _Content *cd, struct _Writer *w, struct Tok
     // Update the details of the current token.
     // If we hit a semicolon or ')', return just the left node
     tokentype = token->token;
-    if (tokentype == T_SEMI || tokentype == T_RPAREN)
+    if (tokentype == T_SEMI || tokentype == T_RPAREN || tokentype == T_RBRACKET)
     {
       left->rvalue = 1;
       return (left);

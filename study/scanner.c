@@ -195,47 +195,47 @@ int scanner_scan(Content *cd, struct Token *t)
   switch (c)
   {
   case EOF:
-    printf("scanner_scan >> EOF \n");
+    //printf("scanner_scan >> EOF \n");
     t->token = T_EOF;
     return (0);
 
   case '+':
-    printf("scanner_scan >> + \n");
+    //printf("scanner_scan >> + \n");
     t->token = T_PLUS;
     break;
   case '-':
-    printf("scanner_scan >> - \n");
+    //printf("scanner_scan >> - \n");
     t->token = T_MINUS;
     break;
   case '*':
-    printf("scanner_scan >> * \n");
+    //printf("scanner_scan >> * \n");
     t->token = T_STAR;
     break;
   case '/':
-    printf("scanner_scan >> / \n");
+    //printf("scanner_scan >> / \n");
     t->token = T_SLASH;
     break;
 
   case ';':
-    printf("scanner_scan >> ; \n");
+    //printf("scanner_scan >> ; \n");
     t->token = T_SEMI;
     break;
 
   case '{':
-    printf("scanner_scan >> { \n");
+    //printf("scanner_scan >> { \n");
     t->token = T_LBRACE;
     break;
   case '}':
-    printf("scanner_scan >> } \n");
+    //printf("scanner_scan >> } \n");
     t->token = T_RBRACE;
     break;
 
   case '(':
-    printf("scanner_scan >> ( \n");
+    //printf("scanner_scan >> ( \n");
     t->token = T_LPAREN;
     break;
   case ')':
-    printf("scanner_scan >> ) \n");
+    //printf("scanner_scan >> ) \n");
     t->token = T_RPAREN;
     break;
 
@@ -250,7 +250,7 @@ int scanner_scan(Content *cd, struct Token *t)
   case '=':
     if ((c = next(cd)) == '=')
     {
-      printf("scanner_scan >> == \n");
+      //printf("scanner_scan >> == \n");
       t->token = T_EQ;
     }
     else
@@ -317,7 +317,7 @@ int scanner_scan(Content *cd, struct Token *t)
     {
       t->intvalue = scanint(cd, c);
       t->token = T_INTLIT;
-      printf("scanner_scan >> %d \n", t->intvalue);
+     // printf("scanner_scan >> %d \n", t->intvalue);
       break;
     }
     else if (isalpha(c) || '_' == c)
