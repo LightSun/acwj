@@ -43,7 +43,8 @@ void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int t
   }
   else
   {
-    id = sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_VARIABLE, 0, 0);
+    //alloc one var .
+    id = sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_VARIABLE, 0, 1);
     gen_globsym(w, id);
   }
   //end with ';'
