@@ -152,38 +152,116 @@ void register_x64_cgprintint(REGISTER_CONTEXT_PARAM, int r)
 }
 
 //------------- from class 6 -------------------------
-int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id)
+int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id, int op)
 {
   // Get a new register
   int r = register_x64_alloc(ctx);
   SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
 
-  char buf[64];
-  // Print out the code to initialise it
+// Print out the code to initialise it
+#define BUF_LEN_LOAD_GLOB 128
+  char buf[BUF_LEN_LOAD_GLOB];
   switch (st->type)
   {
-  case P_CHAR:
-    //fprintf(Outfile, "\tmovzbq\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
-    snprintf(buf, 64, "\tmovzbq\t%s(\%%rip), %s\n", st->name, reglist[r]);
-    break;
+  case P_CHAR: //incb/decb/movzbq
+  {
+    switch (op)
+    {
+    case A_PREINC:
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tincb\t%s(\%%rip)\n", st->name);
+      REG_WRITE_BUF();
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tmovzbq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      break;
 
-  case P_INT:
-    //fprintf(Outfile, "\tmovzbl\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
-    snprintf(buf, 64, "\tmovzbl\t%s(\%%rip), %s\n", st->name, reglist[r]);
+    case A_PREDEC:
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tdecb\t%s(\%%rip)\n", st->name);
+      REG_WRITE_BUF();
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tmovzbq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      break;
+    case A_POSTINC:
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tmovzbq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      REG_WRITE_BUF();
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tincb\t%s(\%%rip)\n", st->name);
+      break;
+    case A_POSTDEC:
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tmovzbq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      REG_WRITE_BUF();
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tdecb\t%s(\%%rip)\n", st->name);
+      break;
+
+    default:
+      return r;
+    }
+  }
+  break;
+
+  case P_INT: //incl/decl/movslq
+    switch (op)
+    {
+    case A_PREINC:
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tincl\t%s(\%%rip)\n", st->name);
+      REG_WRITE_BUF();
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tmovslq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      break;
+
+    case A_PREDEC:
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tdecl\t%s(\%%rip)\n", st->name);
+      REG_WRITE_BUF();
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tmovslq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      break;
+    case A_POSTINC:
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tmovslq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      REG_WRITE_BUF();
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tincl\t%s(\%%rip)\n", st->name);
+      break;
+    case A_POSTDEC:
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tmovslq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      REG_WRITE_BUF();
+      snprintf(buf, BUF_LEN_LOAD_GLOB, "\tdecl\t%s(\%%rip)\n", st->name);
+      break;
+
+    default:
+      return r;
+    }
     break;
 
   case P_LONG:
   case P_CHARPTR:
   case P_INTPTR:
-  case P_LONGPTR:
-    // fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
-    snprintf(buf, 64, "\tmovq\t%s(\%%rip), %s\n", st->name, reglist[r]);
+  case P_LONGPTR: //incq, decq, movq
+    switch (op)
+    {
+    case A_PREINC:
+      snprintf(buf, 64, "\tincq\t%s(\%%rip)\n", st->name);
+      REG_WRITE_BUF();
+      snprintf(buf, 64, "\tmovq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      break;
+
+    case A_PREDEC:
+      snprintf(buf, 64, "\tdecq\t%s(\%%rip)\n", st->name);
+      REG_WRITE_BUF();
+      snprintf(buf, 64, "\tmovq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      break;
+    case A_POSTINC:
+      snprintf(buf, 64, "\tmovq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      REG_WRITE_BUF();
+      snprintf(buf, 64, "\tincq\t%s(\%%rip)\n", st->name);
+      break;
+    case A_POSTDEC:
+      snprintf(buf, 64, "\tmovq\t%s(%%rip), %s\n", st->name, reglist[r]);
+      REG_WRITE_BUF();
+      snprintf(buf, 64, "\tdecq\t%s(\%%rip)\n", st->name);
+      break;
+
+    default:
+      return r;
+    }
     break;
 
   default:
-    WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Bad type in register_x64_cgloadglob:", st->type);
+    WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Bad type(%d) in register_x64_cgloadglob:", st->type);
   }
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
+  REG_WRITE_BUF();
   return (r);
 }
 
@@ -395,11 +473,11 @@ void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, int sym_id)
   SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
   char buf[96];
   snprintf(buf, 96, "\t.text\n"
-                       "\t.globl\t%s\n"
-                       "\t.type\t%s, @function\n"
-                       "%s:\n"
-                       "\tpushq\t%%rbp\n"
-                       "\tmovq\t%%rsp, %%rbp\n",
+                    "\t.globl\t%s\n"
+                    "\t.type\t%s, @function\n"
+                    "%s:\n"
+                    "\tpushq\t%%rbp\n"
+                    "\tmovq\t%%rsp, %%rbp\n",
            st->name, st->name, st->name);
 
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
@@ -607,5 +685,117 @@ int register_x64_cgloadglobstr(REGISTER_CONTEXT_PARAM, int id)
   char buf[32];
   snprintf(buf, 32, "\tleaq\tL%d(\%%rip), %s\n", id, reglist[r]);
   REG_WRITE_BUF();
+  return (r);
+}
+
+//----------------------------
+int register_x64_cgand(REGISTER_CONTEXT_PARAM, int r1, int r2)
+{
+  char buf[32];
+  snprintf(buf, 32, "\tandq\t%s, %s\n", reglist[r1], reglist[r2]);
+  REG_WRITE_BUF();
+  register_x64_free(ctx, r1);
+  return (r2);
+}
+
+int register_x64_cgor(REGISTER_CONTEXT_PARAM, int r1, int r2)
+{
+  char buf[32];
+  snprintf(buf, 32, "\torq\t%s, %s\n", reglist[r1], reglist[r2]);
+  REG_WRITE_BUF();
+  register_x64_free(ctx, r1);
+  return (r2);
+}
+int register_x64_cgxor(REGISTER_CONTEXT_PARAM, int r1, int r2)
+{
+  char buf[32];
+  snprintf(buf, 32, "\txorq\t%s, %s\n", reglist[r1], reglist[r2]);
+  REG_WRITE_BUF();
+  register_x64_free(ctx, r1);
+  return (r2);
+}
+int register_x64_cgshl(REGISTER_CONTEXT_PARAM, int r1, int r2)
+{
+  char buf[32];
+  snprintf(buf, 32, "\tmovb\t%s, %%cl\n", breglist[r2]);
+  REG_WRITE_BUF();
+  snprintf(buf, 32, "\tshlq\t%%cl, %s\n", reglist[r1]);
+  REG_WRITE_BUF();
+
+  register_x64_free(ctx, r1);
+  return (r2);
+}
+
+int register_x64_cgshr(REGISTER_CONTEXT_PARAM, int r1, int r2)
+{
+  char buf[32];
+  snprintf(buf, 32, "\tmovb\t%s, %%cl\n", breglist[r2]);
+  REG_WRITE_BUF();
+  snprintf(buf, 32, "\tshrq\t%%cl, %s\n", reglist[r1]);
+  REG_WRITE_BUF();
+
+  register_x64_free(ctx, r1);
+  return (r2);
+}
+
+// Negate a register's value
+int register_x64_cgnegate(REGISTER_CONTEXT_PARAM, int r)
+{
+  // fprintf(Outfile, "\tnegq\t%s\n", reglist[r]); return (r);
+  char buf[32];
+  snprintf(buf, 32, "\tnegq\t%s\n", reglist[r]);
+  REG_WRITE_BUF();
+  return r;
+}
+
+// Invert a register's value
+int register_x64_cginvert(REGISTER_CONTEXT_PARAM, int r)
+{
+  char buf[32];
+  snprintf(buf, 32, "\tnotq\t%s\n", reglist[r]);
+  REG_WRITE_BUF();
+  return r;
+}
+// Logically negate a register's value
+int register_x64_cglognot(REGISTER_CONTEXT_PARAM, int r)
+{
+  // fprintf(Outfile, "\ttest\t%s, %s\n", reglist[r], reglist[r]);
+  // fprintf(Outfile, "\tsete\t%s\n", breglist[r]);
+  // fprintf(Outfile, "\tmovzbq\t%s, %s\n", breglist[r], reglist[r]);
+  char buf[32];
+  snprintf(buf, 32, "\ttest\t%s, %s\n", reglist[r], reglist[r]);
+  REG_WRITE_BUF();
+  snprintf(buf, 32, "\tsete\t%s\n", breglist[r]);
+  REG_WRITE_BUF();
+  snprintf(buf, 32, "\tnegq\t%s\n", reglist[r]);
+  REG_WRITE_BUF();
+  return (r);
+}
+
+int register_x64_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label)
+{
+  /*  fprintf(Outfile, "\ttest\t%s, %s\n", reglist[r], reglist[r]);
+  if (op == A_IF || op == A_WHILE)
+    fprintf(Outfile, "\tje\tL%d\n", label);
+  else {
+    fprintf(Outfile, "\tsetnz\t%s\n", breglist[r]);
+    fprintf(Outfile, "\tmovzbq\t%s, %s\n", breglist[r], reglist[r]);
+  } */
+  char buf[32];
+  snprintf(buf, 32, "\ttest\t%s, %s\n", reglist[r], reglist[r]);
+  REG_WRITE_BUF();
+  if (op == A_IF || op == A_WHILE)
+  {
+    snprintf(buf, 32, "\tje\tL%d\n", label);
+    REG_WRITE_BUF();
+  }
+  else
+  {
+    snprintf(buf, 32, "\tsetnz\t%s\n", breglist[r]);
+    REG_WRITE_BUF();
+    snprintf(buf, 32, "\tmovzbq\t%s, %s\n", breglist[r], reglist[r]);
+    REG_WRITE_BUF();
+  }
+
   return (r);
 }

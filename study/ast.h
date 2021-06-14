@@ -28,10 +28,12 @@ enum
 {
   //assign
   A_ASSIGN = 1,
-  A_ADD ,
-  A_SUBTRACT,
-  A_MULTIPLY,
-  A_DIVIDE,
+  A_LOGOR,  // ||
+  A_LOGAND, // &&
+  A_OR,     // |
+  A_XOR,    // ^
+  A_AND,    // &
+
   //==  !=  <  >  <=  >=
   A_EQ,
   A_NE,
@@ -39,21 +41,39 @@ enum
   A_GT,
   A_LE,
   A_GE,
+  A_LSHIFT, //  <<
+  A_RSHIFT, //  >>
+
+  // + - * /
+  A_ADD,
+  A_SUBTRACT,
+  A_MULTIPLY,
+  A_DIVIDE,
+
   A_INTLIT, //int value
   A_STRLIT, //string value
-  A_IDENT,   //identifier
-  A_GLUE, // complex statement
+  A_IDENT,  //identifier
+  A_GLUE,   // complex statement
 
   A_IF,
   A_WHILE,
   A_FUNCTION,
-  A_WIDEN, //sometimes: need widen. like char to int
+  A_WIDEN,    //sometimes: need widen. like char to int
   A_RETURN,
 
   A_FUNCCALL, // function call
-  A_DEREF, // *p
-  A_ADDR,  // &p
-  A_SCALE, // its value is scaled by the size of a type. like  '<<'
+  A_DEREF,    // *p
+  A_ADDR,     // &p
+  A_SCALE,    // its value is scaled by the size of a type. like  '<<'
+
+  A_PREINC,  // ++a
+  A_PREDEC,  // --a
+  A_POSTINC, // a++
+  A_POSTDEC, // a--
+  A_NEGATE,
+  A_INVERT,  // ~
+  A_LOGNOT,  // !
+  A_TOBOOL   // to boolean
 };
 
 // Abstract Syntax Tree structure
@@ -77,8 +97,8 @@ struct ASTnode
 // functions have no register to return
 #define NOREG -1
 
-#define NOLABEL	 0		// Use NOLABEL when we have no label to
-				// pass to genAST()
+#define NOLABEL 0 // Use NOLABEL when we have no label to \
+                  // pass to genAST()
 
 CPP_END
 

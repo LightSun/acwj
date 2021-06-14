@@ -83,5 +83,22 @@ void register_arm_cgglobstr(REGISTER_CONTEXT_PARAM, int label, const char *str);
 //given the label id of a global string. load its address into a new register.
 int register_arm_cgloadglobstr(REGISTER_CONTEXT_PARAM, int id);
 
+
+// & | ^  << >>
+int register_arm_cgand(REGISTER_CONTEXT_PARAM, int r1, int r2);
+int register_arm_cgor(REGISTER_CONTEXT_PARAM, int r1, int r2);
+int register_arm_cgxor(REGISTER_CONTEXT_PARAM, int r1, int r2);
+int register_arm_cgshl(REGISTER_CONTEXT_PARAM, int r1, int r2);
+int register_arm_cgshr(REGISTER_CONTEXT_PARAM, int r1, int r2);
+
+// Negate a register's value
+int register_arm_cgnegate(REGISTER_CONTEXT_PARAM, int r);
+// Invert a register's value
+int register_arm_cginvert(REGISTER_CONTEXT_PARAM, int r);
+// Logically negate a register's value
+int register_arm_cglognot(REGISTER_CONTEXT_PARAM, int r);
+
+int register_arm_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label);
+
 CPP_END
 #endif

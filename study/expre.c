@@ -97,7 +97,7 @@ struct ASTnode *expre_funccall(struct _Content *cd, struct _Writer *w, struct To
 
 // Parse the index into an array and
 // return an AST tree for it
-static struct ASTnode *array_access(struct _Content *cd, struct _Writer *w, struct Token *token)
+static struct ASTnode *expre_array_access(struct _Content *cd, struct _Writer *w, struct Token *token)
 {
   struct ASTnode *left, *right;
   int id;
@@ -138,6 +138,51 @@ static struct ASTnode *array_access(struct _Content *cd, struct _Writer *w, stru
   left = expre_mkastnode(A_ADD, st->type, left, NULL, right, 0);
   left = expre_mkastunary(A_DEREF, types_value_at(left->type), left, 0);
   return (left);
+}
+
+// Parse a postfix expression and return
+// an AST node representing it. The
+// identifier is already in Text.
+static struct ASTnode *expre_postfix(struct _Content *cd, struct _Writer *w, struct Token *token)
+{
+  struct ASTnode *n;
+  int id;
+
+  // Scan in the next token to see if we have a postfix expression
+  scanner_scan(cd, token);
+
+  // Function call/. ()
+  if (token->token == T_LPAREN)
+    return (expre_funccall(cd, w, token));
+
+  // An array reference. // [
+  if (token->token == T_LBRACKET)
+    return (expre_array_access(cd, w, token));
+
+  // A variable. Check that the variable exists.
+  id = sym_findglob(cd->context->globalState, cd->context->textBuf);
+  if (id == -1 || SYM_STYPE(cd->context->globalState, id) != S_VARIABLE)
+    WRITER_PUBLISH_ERROR(w, "Unknown variable = %s", cd->context->textBuf);
+
+  switch (token->token)
+  {
+    // Post-increment: skip over the token
+  case T_INC:
+    scanner_scan(cd, token);
+    n = expre_mkastleaf(A_POSTINC, SYM_TYPE(cd->context->globalState, id), id);
+    break;
+
+    // Post-decrement: skip over the token
+  case T_DEC:
+    scanner_scan(cd, token);
+    n = expre_mkastleaf(A_POSTDEC, SYM_TYPE(cd->context->globalState, id), id);
+    break;
+
+    // Just a variable reference
+  default:
+    n = expre_mkastleaf(A_IDENT, SYM_TYPE(cd->context->globalState, id), id);
+  }
+  return (n);
 }
 
 /**
@@ -187,36 +232,7 @@ static struct ASTnode *primary(struct _Content *cd, struct _Writer *w, struct To
     break;
 
   case T_IDENT:
-    /** can be: 
-   x= fred + jim;
-   x= fred(5) + jim;
-     * */
-    //this should be a var-del or func-call
-    scanner_scan(cd, token);
-    // It's a '(', so a function call
-    if (token->token == T_LPAREN)
-    {
-      return (expre_funccall(cd, w, token));
-    }
-    //if is a '[', access array element
-    if (token->token == T_LBRACKET)
-    {
-      return (array_access(cd, w, token));
-    }
-
-    // Not a function call, so reject the new token
-    scanner_reject_token(cd, token);
-
-    // Check that this identifier exists
-    id = sym_findglob(cd->context->globalState, cd->context->textBuf);
-    if (id == -1)
-    {
-      CONTENT_PUBLISH_ERROR(cd, "Unknown variable %s.", cd->context->textBuf);
-    }
-
-    // Make a leaf AST node for it
-    n = expre_mkastleaf(A_IDENT, sym_getGlob(cd->context->globalState, id)->type, id);
-    break;
+    return expre_postfix(cd, w, token);
 
   case T_LPAREN:
     // Beginning of a parenthesised expression, skip the '('.
@@ -249,7 +265,7 @@ static int arithop(struct _Content *cd, int tokentype)
 // We rely on a 1:1 mapping from token to AST operation
 static int binastop(struct _Content *cd, int tokentype)
 {
-  if (tokentype > T_EOF && tokentype < T_INTLIT)
+  if (tokentype > T_EOF && tokentype <= T_SLASH)
     return (tokentype);
   CONTENT_PUBLISH_ERROR(cd, "Syntax error, token = %d", tokentype);
   return (0); // Keep -Wall happy
@@ -267,18 +283,21 @@ static int rightassoc(int tokentype)
 // Operator precedence for each token. Must
 // match up with the order of tokens in defs.h
 static int OpPrec[] = {
-    0, 10,         // T_EOF,  T_ASSIGN
-    20, 20,        // T_PLUS, T_MINUS
-    30, 30,        // T_STAR, T_SLASH
-    40, 40,        // T_EQ, T_NE
-    50, 50, 50, 50 // T_LT, T_GT, T_LE, T_GE
+    0, 10, 20, 30,  // T_EOF, T_ASSIGN, T_LOGOR, T_LOGAND
+    40, 50, 60,     // T_OR, T_XOR, T_AMPER
+    70, 70,         // T_EQ, T_NE
+    80, 80, 80, 80, // T_LT, T_GT, T_LE, T_GE
+    90, 90,         // T_LSHIFT, T_RSHIFT
+    100, 100,       // T_PLUS, T_MINUS
+    110, 110        // T_STAR, T_SLASH
 };
 
 // Check that we have a binary operator and
 // return its precedence.
 static int op_precedence(struct _Content *cd, int tokentype)
 {
-  if (tokentype >= T_VOID){
+  if (tokentype >= T_VOID)
+  {
     CONTENT_PUBLISH_ERROR(cd, "Token with no precedence in op_precedence: token = %d", tokentype);
   }
   int prec = OpPrec[tokentype];
@@ -381,9 +400,13 @@ struct ASTnode *expre_binexpr(struct _Content *cd, struct _Writer *w, struct Tok
   left->rvalue = 1;
   return (left);
 }
+
 // prefix_expression: primary
-//     | '*' prefix_expression
-//     | '&' prefix_expression
+//     | '*'  prefix_expression
+//     | '&'  prefix_expression
+//     | '-'  prefix_expression
+//     | '++' prefix_expression
+//     | '--' prefix_expression
 //     ;
 // Parse a prefix expression and return
 // a sub-tree representing it.
@@ -424,6 +447,59 @@ struct ASTnode *expre_prefix(struct _Content *cd, struct _Writer *w, struct Toke
     // Prepend an A_DEREF operation to the tree
     tree = expre_mkastunary(A_DEREF, types_value_at(tree->type), tree, 0);
     break;
+
+  case T_INVERT: // ~
+    // Get the next token and parse it
+    // recursively as a prefix expression
+    scanner_scan(cd, token);
+    tree = expre_prefix(cd, w, token);
+
+    // Prepend a A_INVERT operation to the tree and
+    // make the child an rvalue.
+    tree->rvalue = 1;
+    tree = expre_mkastunary(A_INVERT, tree->type, tree, 0);
+    break;
+
+  case T_LOGNOT: // !
+    // Get the next token and parse it
+    // recursively as a prefix expression
+    scanner_scan(cd, token);
+    tree = expre_prefix(cd, w, token);
+
+    // Prepend a A_LOGNOT operation to the tree and
+    // make the child an rvalue.
+    tree->rvalue = 1;
+    tree = expre_mkastunary(A_LOGNOT, tree->type, tree, 0);
+    break;
+
+  case T_INC: //++
+    // Get the next token and parse it
+    // recursively as a prefix expression
+    scanner_scan(cd, token);
+    tree = expre_prefix(cd, w, token);
+
+    // For now, ensure it's an identifier
+    if (tree->op != A_IDENT)
+      WRITER_PUBLISH_ERROR(w, "++ operator must be followed by an identifier");
+
+    // Prepend an A_PREINC operation to the tree
+    tree = expre_mkastunary(A_PREINC, tree->type, tree, 0);
+    break;
+
+  case T_DEC: // --
+    // Get the next token and parse it
+    // recursively as a prefix expression
+    scanner_scan(cd, token);
+    tree = expre_prefix(cd, w, token);
+
+    // For now, ensure it's an identifier
+    if (tree->op != A_IDENT)
+      WRITER_PUBLISH_ERROR(w, "-- operator must be followed by an identifier");
+
+    // Prepend an A_PREDEC operation to the tree
+    tree = expre_mkastunary(A_PREDEC, tree->type, tree, 0);
+    break;
+
   default:
     tree = primary(cd, w, token);
   }
@@ -487,7 +563,9 @@ void expre_dumpAST(struct _Content *cd, struct ASTnode *n, int label, int level)
     expre_dumpAST(cd, n->right, NOLABEL, level + 2);
 
   for (int i = 0; i < level; i++)
+  {
     fprintf(stdout, " ");
+  }
 
   switch (n->op)
   {
@@ -498,7 +576,7 @@ void expre_dumpAST(struct _Content *cd, struct ASTnode *n, int label, int level)
   case A_FUNCTION:
     fprintf(stdout, "A_FUNCTION %s\n", SYM_NAME(cd->context->globalState, n->v.id));
     return;
-    
+
   case A_ADD:
     fprintf(stdout, "A_ADD\n");
     return;
@@ -569,6 +647,23 @@ void expre_dumpAST(struct _Content *cd, struct ASTnode *n, int label, int level)
   case A_SCALE:
     fprintf(stdout, "A_SCALE %d\n", n->v.size);
     return;
+
+  case A_PREINC:
+    fprintf(stdout, "A_PREINC %s\n", SYM_NAME(cd->context->globalState, n->v.id));
+    return;
+  case A_PREDEC:
+    fprintf(stdout, "A_PREDEC %s\n", SYM_NAME(cd->context->globalState, n->v.id));
+    return;
+  case A_POSTINC:
+    fprintf(stdout, "A_POSTINC\n");
+    return;
+  case A_POSTDEC:
+    fprintf(stdout, "A_POSTDEC\n");
+    return;
+  case A_NEGATE:
+    fprintf(stdout, "A_NEGATE\n");
+    return;
+
   default:
     CONTENT_PUBLISH_ERROR(cd, "Unknown expre_dumpAST operator = %d", n->op);
   }

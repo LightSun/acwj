@@ -527,3 +527,49 @@ int register_arm_cgloadglobstr(REGISTER_CONTEXT_PARAM, int id){
 
     return reg;
 }
+
+// & | ^  << >>
+int register_arm_cgand(REGISTER_CONTEXT_PARAM, int r1, int r2){
+     //TODO need impl
+    return r1;
+}
+int register_arm_cgor(REGISTER_CONTEXT_PARAM, int r1, int r2){
+  //TODO need impl
+    return r1;
+}
+
+int register_arm_cgxor(REGISTER_CONTEXT_PARAM, int r1, int r2){
+  //TODO need impl
+    return r1;
+}
+
+int register_arm_cgshl(REGISTER_CONTEXT_PARAM, int r1, int r2){
+  //TODO need impl
+    return r1;
+}
+int register_arm_cgshr(REGISTER_CONTEXT_PARAM, int r1, int r2){
+  //TODO need impl
+    return r1;
+}
+
+// Negate a register's value
+int register_arm_cgnegate(REGISTER_CONTEXT_PARAM, int r){
+  //TODO need impl
+    return r;
+}
+
+// Invert a register's value
+int register_arm_cginvert(REGISTER_CONTEXT_PARAM, int r){
+  //TODO need impl
+    return r;
+}
+// Logically negate a register's value
+int register_arm_cglognot(REGISTER_CONTEXT_PARAM, int r){
+  //TODO need impl
+    return r;
+}
+
+int register_arm_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label){
+      //TODO need impl
+    return r;
+}

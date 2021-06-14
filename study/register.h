@@ -38,7 +38,16 @@ CPP_START
     REGISTER_ASSIGN_FUN(R, cgshlconst, arch)         \
     REGISTER_ASSIGN_FUN(R, cgstorederef, arch)       \
     REGISTER_ASSIGN_FUN(R, cgglobstr, arch)          \
-    REGISTER_ASSIGN_FUN(R, cgloadglobstr, arch)
+    REGISTER_ASSIGN_FUN(R, cgloadglobstr, arch)      \
+    REGISTER_ASSIGN_FUN(R, cgand, arch)              \
+    REGISTER_ASSIGN_FUN(R, cgor, arch)               \
+    REGISTER_ASSIGN_FUN(R, cgxor, arch)              \
+    REGISTER_ASSIGN_FUN(R, cgshl, arch)              \
+    REGISTER_ASSIGN_FUN(R, cgshr, arch)              \
+    REGISTER_ASSIGN_FUN(R, cgnegate, arch)           \
+    REGISTER_ASSIGN_FUN(R, cginvert, arch)           \
+    REGISTER_ASSIGN_FUN(R, cglognot, arch)           \
+    REGISTER_ASSIGN_FUN(R, cgboolean, arch)
 
 /* 
 REGISTER_ASSIGN_FUN(R, cgequal, arch)\
@@ -72,7 +81,7 @@ struct _Register
     // Load a value from a variable into a register.
     // Return the number of the register
     //name: identifier name
-    int (*register_cgloadglob)(REGISTER_CONTEXT_PARAM, int sym_id);
+    int (*register_cgloadglob)(REGISTER_CONTEXT_PARAM, int sym_id, int op);
     // Store a register's value into a variable
     //name: identifier name
     int (*register_cgstoreglob)(REGISTER_CONTEXT_PARAM, int r, int sym_id);
@@ -135,6 +144,21 @@ struct _Register
 
     //given the label id of a global string. load its address into a new register.
     int (*register_cgloadglobstr)(REGISTER_CONTEXT_PARAM, int id);
+
+    // & | ^  <<  >>
+    int (*register_cgand)(REGISTER_CONTEXT_PARAM, int r1, int r2);
+    int (*register_cgor)(REGISTER_CONTEXT_PARAM, int r1, int r2);
+    int (*register_cgxor)(REGISTER_CONTEXT_PARAM, int r1, int r2);
+    int (*register_cgshl)(REGISTER_CONTEXT_PARAM, int r1, int r2);
+    int (*register_cgshr)(REGISTER_CONTEXT_PARAM, int r1, int r2);
+    // Negate a register's value
+    int (*register_cgnegate)(REGISTER_CONTEXT_PARAM, int r);
+    // Invert a register's value
+    int (*register_cginvert)(REGISTER_CONTEXT_PARAM, int r);
+    // Logically negate a register's value
+    int (*register_cglognot)(REGISTER_CONTEXT_PARAM, int r);
+
+    int (*register_cgboolean)(REGISTER_CONTEXT_PARAM, int r, int op, int label);
 };
 
 Register *register_new(int type);

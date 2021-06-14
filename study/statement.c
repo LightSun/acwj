@@ -52,7 +52,8 @@ struct ASTnode *if_statement(Content *cd, struct _Writer *w, struct Token *token
 
   if (condAST->op < A_EQ || condAST->op > A_GE)
   {
-    WRITER_PUBLISH_ERROR(w, "Bad comparison operator");
+   // WRITER_PUBLISH_ERROR(w, "Bad comparison operator");
+    condAST = expre_mkastunary(A_TOBOOL, condAST->type, condAST, 0);
   }
   misc_rparen(cd, token); // )
 
@@ -89,7 +90,8 @@ struct ASTnode *while_statement(Content *cd, struct _Writer *w, struct Token *to
   condAST = expre_binexpr(cd, w, token, 0);
   if (condAST->op < A_EQ || condAST->op > A_GE)
   {
-    WRITER_PUBLISH_ERROR(w, "Bad comparison operator");
+   // WRITER_PUBLISH_ERROR(w, "Bad comparison operator");
+   condAST = expre_mkastunary(A_TOBOOL, condAST->type, condAST, 0);
   }
   misc_rparen(cd, token);
 
@@ -120,7 +122,8 @@ static struct ASTnode *for_statement(Content *cd, struct _Writer *w, struct Toke
   condAST = expre_binexpr(cd, w, token, 0);
   if (condAST->op < A_EQ || condAST->op > A_GE)
   {
-    WRITER_PUBLISH_ERROR(w, "Bad comparison operator");
+   // WRITER_PUBLISH_ERROR(w, "Bad comparison operator");
+    condAST = expre_mkastunary(A_TOBOOL, condAST->type, condAST, 0);
   }
   misc_semi(cd, token);
 

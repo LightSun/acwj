@@ -142,8 +142,20 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
   case A_DIVIDE:
     return (CONTENT_G_REG(cd)->register_cgdiv(WRITER_G_REG_CTX(w), leftreg, rightreg));
 
+    // & | ^ << >>
+  case A_AND:
+    return WRITER_REG_CALL(w, cgand, leftreg, rightreg);
+  case A_OR:
+    return WRITER_REG_CALL(w, cgor, leftreg, rightreg);
+  case A_XOR:
+    return WRITER_REG_CALL(w, cgxor, leftreg, rightreg);
+  case A_LSHIFT:
+    return WRITER_REG_CALL(w, cgshl, leftreg, rightreg);
+  case A_RSHIFT:
+    return WRITER_REG_CALL(w, cgshr, leftreg, rightreg);
+
   case A_INTLIT:
-    return (CONTENT_G_REG(cd)->register_cgloadint(WRITER_G_REG_CTX(w), n->v.intvalue, n->type));
+    return (WRITER_REG_CALL(w, cgloadint, n->v.intvalue, n->type));
   case A_STRLIT:
     return (WRITER_REG_CALL(w, cgloadglobstr, n->v.id));
 
@@ -154,7 +166,7 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
     if (n->rvalue || parentASTop == A_DEREF)
     {
 
-      return (CONTENT_G_REG(cd)->register_cgloadglob(WRITER_G_REG_CTX(w), n->v.id));
+      return (WRITER_REG_CALL(w, cgloadglob, n->v.id, n->op));
     }
     else
     {
@@ -240,6 +252,29 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
       rightreg = (WRITER_REG_CALL(w, cgloadint, n->v.size, P_INT));
       return (WRITER_REG_CALL(w, cgmul, leftreg, rightreg));
     }
+
+  case A_POSTINC:
+    return (WRITER_REG_CALL(w, cgloadglob, n->v.id, n->op));
+  case A_POSTDEC:
+    return (WRITER_REG_CALL(w, cgloadglob, n->v.id, n->op));
+
+  case A_PREINC:
+    // Load and increment the variable's value into a register
+    return (WRITER_REG_CALL(w, cgloadglob, n->left->v.id, n->op));
+  case A_PREDEC:
+    // Load and decrement the variable's value into a register
+    return (WRITER_REG_CALL(w, cgloadglob, n->left->v.id, n->op));
+  case A_NEGATE:
+    return (WRITER_REG_CALL(w, cgnegate, leftreg));
+  case A_INVERT:
+    return (WRITER_REG_CALL(w, cginvert, leftreg));
+  case A_LOGNOT:
+    return (WRITER_REG_CALL(w, cglognot, leftreg));
+  case A_TOBOOL:
+    // If the parent AST node is an A_IF or A_WHILE, generate
+    // a compare followed by a jump. Otherwise, set the register
+    // to 0 or 1 based on it's zeroeness or non-zeroeness
+    return (WRITER_REG_CALL(w, cgboolean, leftreg, parentASTop, label));
 
   default:
     CONTENT_PUBLISH_ERROR(cd, "Unknown AST operator %d", n->op);
