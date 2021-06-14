@@ -40,6 +40,7 @@ enum
   A_LE,
   A_GE,
   A_INTLIT, //int value
+  A_STRLIT, //string value
   A_IDENT,   //identifier
   A_GLUE, // complex statement
 

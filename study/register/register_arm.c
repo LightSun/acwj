@@ -514,3 +514,16 @@ int register_arm_cgstorederef(REGISTER_CONTEXT_PARAM, int r1, int r2, int type)
     }
     return (r1);
 }
+
+//gen label for store string.
+void register_arm_cgglobstr(REGISTER_CONTEXT_PARAM, int label, const char *str){
+    //TODO need impl
+}
+
+//given the label id of a global string. load its address into a new register.
+int register_arm_cgloadglobstr(REGISTER_CONTEXT_PARAM, int id){
+    //TODO need impl
+    int reg = register_arm_alloc(ctx);
+
+    return reg;
+}

@@ -141,8 +141,11 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
     return (CONTENT_G_REG(cd)->register_cgmul(WRITER_G_REG_CTX(w), leftreg, rightreg));
   case A_DIVIDE:
     return (CONTENT_G_REG(cd)->register_cgdiv(WRITER_G_REG_CTX(w), leftreg, rightreg));
+
   case A_INTLIT:
     return (CONTENT_G_REG(cd)->register_cgloadint(WRITER_G_REG_CTX(w), n->v.intvalue, n->type));
+  case A_STRLIT:
+    return (WRITER_REG_CALL(w, cgloadglobstr, n->v.id));
 
   case A_IDENT:
   {
@@ -269,4 +272,12 @@ void gen_globsym(struct _Writer *w, int sym_id)
 int gen_primsize(struct _Writer *w, int type)
 {
   return (WRITER_G_REG(w)->register_cgprimsize(WRITER_G_REG_CTX(w), type));
+}
+
+int gen_globstr(struct _Writer *w, const char *strvalue)
+{
+  int l = genlabel(w);
+  // cgglobstr(l, strvalue);
+  WRITER_REG_CALL(w, cgglobstr, l, strvalue);
+  return (l);
 }

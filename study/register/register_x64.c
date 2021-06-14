@@ -116,17 +116,17 @@ int register_x64_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2)
 // return the number of the register with the result
 int register_x64_cgdiv(REGISTER_CONTEXT_PARAM, int r1, int r2)
 {
-  char buffer[32];
-  snprintf(buffer, 32, "\tmovq\t%s,%%rax\n", reglist[r1]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\tmovq\t%s,%%rax\n", reglist[r1]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\tcqo\n");
 
-  snprintf(buffer, 32, "\tidivq\t%s\n", reglist[r2]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  snprintf(buf, 32, "\tidivq\t%s\n", reglist[r2]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
-  snprintf(buffer, 32, "\tmovq\t%%rax,%s\n", reglist[r1]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  snprintf(buf, 32, "\tmovq\t%%rax,%s\n", reglist[r1]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
   /*  fprintf(Outfile, "\tmovq\t%s,%%rax\n", reglist[r1]);
   fprintf(Outfile, "\tcqo\n");
@@ -142,9 +142,9 @@ void register_x64_cgprintint(REGISTER_CONTEXT_PARAM, int r)
   /* fprintf(Outfile, "\tmovq\t%s, %%rdi\n", reglist[r]);
   fprintf(Outfile, "\tcall\tprintint\n"); */
 
-  char buffer[32];
-  snprintf(buffer, 32, "\tmovq\t%s, %%rdi\n", reglist[r]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\tmovq\t%s, %%rdi\n", reglist[r]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\tcall\tprintint\n");
 
@@ -158,18 +158,18 @@ int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id)
   int r = register_x64_alloc(ctx);
   SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
 
-  char buffer[64];
+  char buf[64];
   // Print out the code to initialise it
   switch (st->type)
   {
   case P_CHAR:
     //fprintf(Outfile, "\tmovzbq\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
-    snprintf(buffer, 64, "\tmovzbq\t%s(\%%rip), %s\n", st->name, reglist[r]);
+    snprintf(buf, 64, "\tmovzbq\t%s(\%%rip), %s\n", st->name, reglist[r]);
     break;
 
   case P_INT:
     //fprintf(Outfile, "\tmovzbl\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
-    snprintf(buffer, 64, "\tmovzbl\t%s(\%%rip), %s\n", st->name, reglist[r]);
+    snprintf(buf, 64, "\tmovzbl\t%s(\%%rip), %s\n", st->name, reglist[r]);
     break;
 
   case P_LONG:
@@ -177,13 +177,13 @@ int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id)
   case P_INTPTR:
   case P_LONGPTR:
     // fprintf(Outfile, "\tmovq\t%s(\%%rip), %s\n", Gsym[id].name, reglist[r]);
-    snprintf(buffer, 64, "\tmovq\t%s(\%%rip), %s\n", st->name, reglist[r]);
+    snprintf(buf, 64, "\tmovq\t%s(\%%rip), %s\n", st->name, reglist[r]);
     break;
 
   default:
     WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Bad type in register_x64_cgloadglob:", st->type);
   }
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
   return (r);
 }
 
@@ -191,17 +191,17 @@ int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id)
 int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
 {
   SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
-  char buffer[64];
+  char buf[64];
   switch (st->type)
   {
   case P_CHAR:
     // fprintf(Outfile, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], Gsym[id].name);
-    snprintf(buffer, 64, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], st->name);
+    snprintf(buf, 64, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], st->name);
     break;
 
   case P_INT:
     // fprintf(Outfile, "\tmovl\t%s, %s(\%%rip)\n", dreglist[r], Gsym[id].name);
-    snprintf(buffer, 64, "\tmovl\t%s, %s(\%%rip)\n", dreglist[r], st->name);
+    snprintf(buf, 64, "\tmovl\t%s, %s(\%%rip)\n", dreglist[r], st->name);
     break;
 
   case P_LONG:
@@ -209,13 +209,13 @@ int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
   case P_INTPTR:
   case P_LONGPTR:
     //fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], Gsym[id].name);
-    snprintf(buffer, 64, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], st->name);
+    snprintf(buf, 64, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], st->name);
     break;
 
   default:
     WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Bad type in register_x64_cgstoreglob: %d\n", st->type);
   }
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
   return (r);
 }
 
@@ -262,15 +262,15 @@ static int cgcompare(REGISTER_CONTEXT_PARAM, int r1, int r2, char *how)
   fprintf(Outfile, "\tandq\t$255,%s\n", reglist[r2]); 
   free_register(r1); */
 
-  char buffer[32];
-  snprintf(buffer, 32, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
+  REG_WRITE_BUF();
 
-  snprintf(buffer, 32, "\t%s\t%s\n", how, breglist[r2]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  snprintf(buf, 32, "\t%s\t%s\n", how, breglist[r2]);
+  REG_WRITE_BUF();
 
-  snprintf(buffer, 32, "\tandq\t$255,%s\n", reglist[r2]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  snprintf(buf, 32, "\tandq\t$255,%s\n", reglist[r2]);
+  REG_WRITE_BUF();
 
   register_x64_free(ctx, r1);
   return (r2);
@@ -306,17 +306,17 @@ int register_x64_cggreaterequal(REGISTER_CONTEXT_PARAM, int r1, int r2)
 void register_x64_cgjump(REGISTER_CONTEXT_PARAM, int l)
 {
   // fprintf(Outfile, "\tjmp\tL%d\n", l);
-  char buffer[32];
-  snprintf(buffer, 32, "\tjmp\tL%d\n", l);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\tjmp\tL%d\n", l);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 }
 
 void register_x64_cglabel(REGISTER_CONTEXT_PARAM, int l)
 {
   // fprintf(Outfile, "L%d:\n", l);
-  char buffer[32];
-  snprintf(buffer, 32, "L%d:\n", l);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "L%d:\n", l);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 }
 
 // List of inverted jump instructions,
@@ -338,12 +338,12 @@ int register_x64_cgcompare_and_jump(REGISTER_CONTEXT_PARAM, int ASTop, int r1, i
   fprintf(Outfile, "\t%s\tL%d\n", invcmplist[ASTop - A_EQ], label);
   freeall_registers(); */
 
-  char buffer[32];
-  snprintf(buffer, 32, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
-  snprintf(buffer, 32, "\t%s\tL%d\n", invcmplist[ASTop - A_EQ], label);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  snprintf(buf, 32, "\t%s\tL%d\n", invcmplist[ASTop - A_EQ], label);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
   register_x64_free_all(ctx);
   return (NOREG);
@@ -369,15 +369,15 @@ int register_x64_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int ASTop, int r1, in
   fprintf(Outfile, "\t%s\t%s\n", cmplist[ASTop - A_EQ], breglist[r2]);
   fprintf(Outfile, "\tmovzbq\t%s, %s\n", breglist[r2], reglist[r2]);
   free_register(r1); */
-  char buffer[32];
-  snprintf(buffer, 32, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\tcmpq\t%s, %s\n", reglist[r2], reglist[r1]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
-  snprintf(buffer, 32, "\t%s\t%s\n", cmplist[ASTop - A_EQ], breglist[r2]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  snprintf(buf, 32, "\t%s\t%s\n", cmplist[ASTop - A_EQ], breglist[r2]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
-  snprintf(buffer, 32, "\tmovzbq\t%s, %s\n", breglist[r2], reglist[r2]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  snprintf(buf, 32, "\tmovzbq\t%s, %s\n", breglist[r2], reglist[r2]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
   register_x64_free_all(ctx);
   return (r2);
@@ -393,8 +393,8 @@ void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, int sym_id)
           "\tmovq\t%%rsp, %%rbp\n", name, name, name); */
 
   SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
-  char buffer[96];
-  snprintf(buffer, 96, "\t.text\n"
+  char buf[96];
+  snprintf(buf, 96, "\t.text\n"
                        "\t.globl\t%s\n"
                        "\t.type\t%s, @function\n"
                        "%s:\n"
@@ -402,7 +402,7 @@ void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, int sym_id)
                        "\tmovq\t%%rsp, %%rbp\n",
            st->name, st->name, st->name);
 
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 }
 
 void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
@@ -446,31 +446,31 @@ int register_x64_cgprimsize(REGISTER_CONTEXT_PARAM, int pType)
 void register_x64_cgreturn(REGISTER_CONTEXT_PARAM, int reg, int sym_id)
 {
   SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
-  char buffer[32];
-  //snprintf(buffer, 32, "\t.globl\t%s\n", funcName);
+  char buf[32];
+  //snprintf(buf, 32, "\t.globl\t%s\n", funcName);
 
   // Generate code depending on the function's type
   switch (st->type)
   { // Gsym[id].type
   case P_CHAR:
     // fprintf(Outfile, "\tmovzbl\t%s, %%eax\n", breglist[reg]);
-    snprintf(buffer, 32, "\tmovzbl\t%s, %%eax\n", breglist[reg]);
+    snprintf(buf, 32, "\tmovzbl\t%s, %%eax\n", breglist[reg]);
     break;
 
   case P_INT:
     //fprintf(Outfile, "\tmovl\t%s, %%eax\n", dreglist[reg]);
-    snprintf(buffer, 32, "\tmovl\t%s, %%eax\n", dreglist[reg]);
+    snprintf(buf, 32, "\tmovl\t%s, %%eax\n", dreglist[reg]);
     break;
 
   case P_LONG:
     // fprintf(Outfile, "\tmovq\t%s, %%rax\n", reglist[reg]);
-    snprintf(buffer, 32, "\tmovq\t%s, %%rax\n", reglist[reg]);
+    snprintf(buf, 32, "\tmovq\t%s, %%rax\n", reglist[reg]);
     break;
 
   default:
     REG_PUBLISH_ERROR(ctx, "Bad function type(%d) in cgreturn:", st->type);
   }
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
   register_x64_cgjump(ctx, st->endlabel);
 }
 
@@ -483,15 +483,15 @@ int register_x64_cgcall(REGISTER_CONTEXT_PARAM, int r, int sym_id)
   fprintf(Outfile, "\tcall\t%s\n", Gsym[id].name);
   fprintf(Outfile, "\tmovq\t%%rax, %s\n", reglist[outr]); */
 
-  char buffer[32];
-  snprintf(buffer, 32, "\tmovq\t%s, %%rdi\n", reglist[r]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  char buf[32];
+  snprintf(buf, 32, "\tmovq\t%s, %%rdi\n", reglist[r]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
-  snprintf(buffer, 32, "\tcall\t%s\n", REG_G_SYM_TABLE(ctx, sym_id)->name);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  snprintf(buf, 32, "\tcall\t%s\n", REG_G_SYM_TABLE(ctx, sym_id)->name);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
-  snprintf(buffer, 32, "\tmovq\t%%rax, %s\n", reglist[outr]);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buffer);
+  snprintf(buf, 32, "\tmovq\t%%rax, %s\n", reglist[outr]);
+  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
   register_x64_free(ctx, r);
   return (outr);
@@ -580,4 +580,32 @@ int register_x64_cgstorederef(REGISTER_CONTEXT_PARAM, int r1, int r2, int type)
     REG_PUBLISH_ERROR(ctx, "Can't cgstorederef on type = %d", type);
   }
   return (r1);
+}
+
+//gen label for store string.
+void register_x64_cgglobstr(REGISTER_CONTEXT_PARAM, int l, const char *strvalue)
+{
+  char *cptr;
+  register_x64_cglabel(ctx, l);
+  char buf[32];
+  for (cptr = strvalue; *cptr; cptr++)
+  {
+    //fprintf(Outfile, "\t.byte\t%d\n", *cptr);
+    snprintf(buf, 32, "\t.byte\t%d\n", *cptr);
+    REG_WRITE_BUF();
+  }
+  //fprintf(Outfile, "\t.byte\t0\n");
+  REG_WRITE_STR("\t.byte\t0\n");
+}
+
+//load the string first addr to register,
+int register_x64_cgloadglobstr(REGISTER_CONTEXT_PARAM, int id)
+{
+  // Get a new register
+  int r = register_x64_alloc(ctx);
+  //fprintf(Outfile, "\tleaq\tL%d(\%%rip), %s\n", id, reglist[r]);
+  char buf[32];
+  snprintf(buf, 32, "\tleaq\tL%d(\%%rip), %s\n", id, reglist[r]);
+  REG_WRITE_BUF();
+  return (r);
 }

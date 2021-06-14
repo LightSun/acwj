@@ -27,8 +27,9 @@ enum
   T_GE,
   //type words
   T_VOID,  T_CHAR, T_INT,  T_LONG,
-  //int value  ; 
+  //int value  string value  ; 
   T_INTLIT,
+  T_STRLIT,
   T_SEMI, 
   T_IDENT, // identifier
 

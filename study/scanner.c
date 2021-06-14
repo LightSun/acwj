@@ -1,4 +1,5 @@
 #include "content.h"
+#include "register.h"
 #include "token.h"
 #include "utils.h"
 
@@ -106,6 +107,69 @@ static int scanident(Content *cd, int c, char *buf, int lim)
   buf[i] = '\0';
   return (i);
 }
+// Return the next character from a character
+// or string literal
+static int scanch(Content *cd)
+{
+  int c;
+
+  // Get the next input character and interpret
+  // metacharacters that start with a backslash
+  c = next(cd);
+  if (c == '\\')
+  {
+    switch (c = next(cd))
+    {
+    case 'a':
+      return '\a';
+    case 'b':
+      return '\b';
+    case 'f':
+      return '\f';
+    case 'n':
+      return '\n';
+    case 'r':
+      return '\r';
+    case 't':
+      return '\t';
+    case 'v':
+      return '\v';
+    case '\\':
+      return '\\';
+    case '"':
+      return '"';
+    case '\'':
+      return '\'';
+    default:
+      CONTENT_PUBLISH_ERROR(cd, "unknown escape sequence. c = %c", c);
+    }
+  }
+  return (c); // Just an ordinary old character!
+}
+// Scan in a string literal from the input file,
+// and store it in buf[]. Return the length of
+// the string.
+static int scanstr(Content *cd, char *buf)
+{
+  int i, c;
+
+  // Loop while we have enough buffer space
+  for (i = 0; i < CONTENT_TEXT_BUF_LEN - 1; i++)
+  {
+    // Get the next char and append to buf
+    // Return when we hit the ending double quote
+    if ((c = scanch(cd)) == '"')
+    {
+      buf[i] = 0;
+      return (i);
+    }
+    buf[i] = c;
+  }
+  // Ran out of buf[] space
+  CONTENT_PUBLISH_ERROR(cd, "String literal too long");
+  return (0);
+}
+
 // Given a word from the input, return the matching
 // keyword token number or 0 if it's not a keyword.
 // Switch on the first letter so that we don't have
@@ -309,6 +373,22 @@ int scanner_scan(Content *cd, struct Token *t)
     }
     break;
 
+  case '\'':
+    //it is a quote, scan in the literal character value and the end quote.
+    t->intvalue = scanch(cd);
+    t->token = T_INTLIT;
+    if (next(cd) != '\'')
+    {
+      CONTENT_PUBLISH_ERROR(cd, "Expected '\\'' at end of char literal");
+    }
+    break;
+
+  case '"':
+    //scan in a literal string.
+    scanstr(cd, cd->context->textBuf);
+    t->token = T_STRLIT;
+    break;
+
   default:
 
     // If it's a digit, scan the
@@ -317,7 +397,7 @@ int scanner_scan(Content *cd, struct Token *t)
     {
       t->intvalue = scanint(cd, c);
       t->token = T_INTLIT;
-     // printf("scanner_scan >> %d \n", t->intvalue);
+      // printf("scanner_scan >> %d \n", t->intvalue);
       break;
     }
     else if (isalpha(c) || '_' == c)
@@ -334,9 +414,7 @@ int scanner_scan(Content *cd, struct Token *t)
       t->token = T_IDENT;
       break;
     }
-
-    fprintf(stderr, "Unrecognised character %c on line %d\n", c, cd->context->line);
-    exit(1);
+    CONTENT_PUBLISH_ERROR(cd, "Unrecognised character %c", c);
     //return 0;
   }
 

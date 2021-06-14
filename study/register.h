@@ -36,7 +36,9 @@ CPP_START
     REGISTER_ASSIGN_FUN(R, cgaddress, arch)          \
     REGISTER_ASSIGN_FUN(R, cgderef, arch)            \
     REGISTER_ASSIGN_FUN(R, cgshlconst, arch)         \
-    REGISTER_ASSIGN_FUN(R, cgstorederef, arch)
+    REGISTER_ASSIGN_FUN(R, cgstorederef, arch)       \
+    REGISTER_ASSIGN_FUN(R, cgglobstr, arch)          \
+    REGISTER_ASSIGN_FUN(R, cgloadglobstr, arch)
 
 /* 
 REGISTER_ASSIGN_FUN(R, cgequal, arch)\
@@ -127,6 +129,12 @@ struct _Register
 
     //assigning to an identifier through a pointer. a = *b
     int (*register_cgstorederef)(REGISTER_CONTEXT_PARAM, int leftReg, int rightReg, int type);
+
+    //allocate label for string
+    void (*register_cgglobstr)(REGISTER_CONTEXT_PARAM, int label, const char *str);
+
+    //given the label id of a global string. load its address into a new register.
+    int (*register_cgloadglobstr)(REGISTER_CONTEXT_PARAM, int id);
 };
 
 Register *register_new(int type);

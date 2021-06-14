@@ -208,6 +208,8 @@ struct ASTnode *types_modify_type(struct ASTnode *tree, struct _Writer *w, int r
       rsize = WRITER_G_REG(w)->register_cgprimsize(WRITER_G_REG_CTX(w), types_value_at(rtype));
       if (rsize > 1)
         return (expre_mkastunary(A_SCALE, rtype, tree, rsize));
+      else
+        return (tree);
     }
   }
 

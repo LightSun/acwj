@@ -27,3 +27,14 @@
 L1:
 	popq     %rbp
 	ret
+
+
+## string literals
+```
+primary_expression
+	: IDENTIFIER
+	| CONSTANT
+	| STRING_LITERAL
+	| '(' expression ')'
+	;
+```

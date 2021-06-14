@@ -3,6 +3,7 @@
 	.globl	a
 	.data
 	.globl	b
+a:	.quad	0
 b:	.quad	0
 b:	.quad	0
 b:	.quad	0

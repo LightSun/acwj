@@ -28,5 +28,8 @@ void gen_globsym(struct _Writer *w, int sym_id);
 //get the type size in bytes.
 int gen_primsize(struct _Writer *w, int type);
 
+//gen label of string contant
+int gen_globstr(struct _Writer *w, const char *strvalue);
+
 CPP_END
 #endif

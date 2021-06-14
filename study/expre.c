@@ -108,8 +108,9 @@ static struct ASTnode *array_access(struct _Content *cd, struct _Writer *w, stru
   {
     CONTENT_PUBLISH_ERROR(cd, "Undeclared array '%s'", cd->context->textBuf);
   }
-  SymTable* st = sym_getGlob(cd->context->globalState, id);
-  if(st->stype != S_ARRAY){
+  SymTable *st = sym_getGlob(cd->context->globalState, id);
+  if (st->stype != S_ARRAY)
+  {
     CONTENT_PUBLISH_ERROR(cd, "Undeclared array '%s'", cd->context->textBuf);
   }
 
@@ -151,6 +152,8 @@ postfix_expression
         : primary_expression
         | postfix_expression '[' expression ']'
           ...
+          
+        ;
  * */
 
 // Parse a primary factor and return an
@@ -165,6 +168,11 @@ static struct ASTnode *primary(struct _Content *cd, struct _Writer *w, struct To
   // for any other token type.
   switch (token->token)
   {
+  case T_STRLIT:
+    id = gen_globstr(w, cd->context->textBuf);
+    n = expre_mkastleaf(A_STRLIT, P_CHARPTR, id);
+    break;
+
   case T_INTLIT:
     // For an INTLIT token, make a leaf AST node for it.
     // Make it a P_CHAR if it's within the P_CHAR range
@@ -270,10 +278,13 @@ static int OpPrec[] = {
 // return its precedence.
 static int op_precedence(struct _Content *cd, int tokentype)
 {
+  if (tokentype >= T_VOID){
+    CONTENT_PUBLISH_ERROR(cd, "Token with no precedence in op_precedence: token = %d", tokentype);
+  }
   int prec = OpPrec[tokentype];
-  if (prec >= T_VOID)
+  if (prec == 0)
   {
-    CONTENT_PUBLISH_ERROR(cd, "Token with no precedence in op_precedence:", tokentype);
+    CONTENT_PUBLISH_ERROR(cd, "Syntax error, token = %d", tokentype);
   }
   return (prec);
 }
@@ -483,9 +494,11 @@ void expre_dumpAST(struct _Content *cd, struct ASTnode *n, int label, int level)
   case A_GLUE:
     fprintf(stdout, "\n\n");
     return;
+
   case A_FUNCTION:
     fprintf(stdout, "A_FUNCTION %s\n", SYM_NAME(cd->context->globalState, n->v.id));
     return;
+    
   case A_ADD:
     fprintf(stdout, "A_ADD\n");
     return;
@@ -495,9 +508,11 @@ void expre_dumpAST(struct _Content *cd, struct ASTnode *n, int label, int level)
   case A_MULTIPLY:
     fprintf(stdout, "A_MULTIPLY\n");
     return;
+
   case A_DIVIDE:
     fprintf(stdout, "A_DIVIDE\n");
     return;
+
   case A_EQ:
     fprintf(stdout, "A_EQ\n");
     return;
@@ -516,9 +531,14 @@ void expre_dumpAST(struct _Content *cd, struct ASTnode *n, int label, int level)
   case A_GE:
     fprintf(stdout, "A_GE\n");
     return;
+
   case A_INTLIT:
     fprintf(stdout, "A_INTLIT %d\n", n->v.intvalue);
     return;
+  case A_STRLIT:
+    fprintf(stdout, "A_STRLIT rval label L%d\n", n->v.id);
+    return;
+
   case A_IDENT:
     if (n->rvalue)
       fprintf(stdout, "A_IDENT rval %s\n", SYM_NAME(cd->context->globalState, n->v.id));

@@ -77,5 +77,11 @@ int register_arm_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val);
 // a = *b
 int register_arm_cgstorederef(REGISTER_CONTEXT_PARAM, int leftReg, int rightReg, int type);
 
+//gen label for store string.
+void register_arm_cgglobstr(REGISTER_CONTEXT_PARAM, int label, const char *str);
+
+//given the label id of a global string. load its address into a new register.
+int register_arm_cgloadglobstr(REGISTER_CONTEXT_PARAM, int id);
+
 CPP_END
 #endif

@@ -6,7 +6,7 @@ CPP_START
 void register_x64_cgpreamble(REGISTER_CONTEXT_PARAM);
 void register_x64_cgpostamble(REGISTER_CONTEXT_PARAM, int sym_id);
 
-int register_x64_cgloadint(REGISTER_CONTEXT_PARAM, int value,  int type);
+int register_x64_cgloadint(REGISTER_CONTEXT_PARAM, int value, int type);
 int register_x64_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_x64_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2);
 int register_x64_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2);
@@ -72,11 +72,17 @@ int register_x64_cgaddress(REGISTER_CONTEXT_PARAM, int id);
 // de - ref-addr
 int register_x64_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType);
 
-// << 
+// <<
 int register_x64_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val);
 
 // a = *b
 int register_x64_cgstorederef(REGISTER_CONTEXT_PARAM, int leftReg, int rightReg, int type);
+
+//gen label for store string.
+void register_x64_cgglobstr(REGISTER_CONTEXT_PARAM, int label, const char *str);
+
+//given the label id of a global string. load its address into a new register.
+int register_x64_cgloadglobstr(REGISTER_CONTEXT_PARAM, int id);
 
 CPP_END
 #endif
