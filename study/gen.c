@@ -133,6 +133,7 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
 
   switch (n->op)
   {
+    // +-*/
   case A_ADD:
     return (CONTENT_G_REG(cd)->register_cgadd(WRITER_G_REG_CTX(w), leftreg, rightreg));
   case A_SUBTRACT:
@@ -153,6 +154,28 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
     return WRITER_REG_CALL(w, cgshl, leftreg, rightreg);
   case A_RSHIFT:
     return WRITER_REG_CALL(w, cgshr, leftreg, rightreg);
+
+  case A_EQ:
+    // return (register_cgequal(w, leftreg, rightreg));
+  case A_NE:
+    //return (register_cgnotequal(w, leftreg, rightreg));
+  case A_LT:
+    // return (register_cglessthan(w, leftreg, rightreg));
+  case A_GT:
+    // return (register_cggreaterthan(w, leftreg, rightreg));
+  case A_LE:
+    // return (register_cglessequal(w, leftreg, rightreg));
+  case A_GE:
+    // return (register_cggreaterequal(w, leftreg, rightreg));
+    {
+      // If the parent AST node is an A_IF or A_WHILE, generate
+      // a compare followed by a jump. Otherwise, compare registers
+      // and set one to 1 or 0 based on the comparison.
+      if (parentASTop == A_IF || parentASTop == A_WHILE)
+        return (CONTENT_G_REG(cd)->register_cgcompare_and_jump(WRITER_G_REG_CTX(w), n->op, leftreg, rightreg, label));
+      else
+        return (CONTENT_G_REG(cd)->register_cgcompare_and_set(WRITER_G_REG_CTX(w), n->op, leftreg, rightreg));
+    }
 
   case A_INTLIT:
     return (WRITER_REG_CALL(w, cgloadint, n->v.intvalue, n->type));
@@ -186,28 +209,6 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
       WRITER_PUBLISH_ERROR(w, "Can't A_ASSIGN in genAST(), op = %d", n->op);
     }
     break;
-
-  case A_EQ:
-    // return (register_cgequal(w, leftreg, rightreg));
-  case A_NE:
-    //return (register_cgnotequal(w, leftreg, rightreg));
-  case A_LT:
-    // return (register_cglessthan(w, leftreg, rightreg));
-  case A_GT:
-    // return (register_cggreaterthan(w, leftreg, rightreg));
-  case A_LE:
-    // return (register_cglessequal(w, leftreg, rightreg));
-  case A_GE:
-    // return (register_cggreaterequal(w, leftreg, rightreg));
-    {
-      // If the parent AST node is an A_IF or A_WHILE, generate
-      // a compare followed by a jump. Otherwise, compare registers
-      // and set one to 1 or 0 based on the comparison.
-      if (parentASTop == A_IF || parentASTop == A_WHILE)
-        return (CONTENT_G_REG(cd)->register_cgcompare_and_jump(WRITER_G_REG_CTX(w), n->op, leftreg, rightreg, label));
-      else
-        return (CONTENT_G_REG(cd)->register_cgcompare_and_set(WRITER_G_REG_CTX(w), n->op, leftreg, rightreg));
-    }
 
   case A_WIDEN:
     // Widen the child's type to the parent's type
@@ -264,6 +265,7 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
   case A_PREDEC:
     // Load and decrement the variable's value into a register
     return (WRITER_REG_CALL(w, cgloadglob, n->left->v.id, n->op));
+    
   case A_NEGATE:
     return (WRITER_REG_CALL(w, cgnegate, leftreg));
   case A_INVERT:

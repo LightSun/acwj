@@ -9,6 +9,7 @@
 #include "types.h"
 #include "utils.h"
 #include "writer.h"
+#include "gen.h"
 
 //grammer
 /// compound_statement:          // empty, i.e. no statement
@@ -196,9 +197,34 @@ static struct ASTnode *expre_postfix(struct _Content *cd, struct _Writer *w, str
 postfix_expression
         : primary_expression
         | postfix_expression '[' expression ']'
-          ...
-          
+        | postfix_expression '(' expression ')'
+        | postfix_expression '++'
+        | postfix_expression '--'
         ;
+
+prefix_expression
+        : postfix_expression
+        | '++' prefix_expression
+        | '--' prefix_expression
+        | prefix_operator prefix_expression
+        ;
+
+prefix_operator
+        : '&'
+        | '*'
+        | '-'
+        | '~'
+        | '!'
+        ;
+
+multiplicative_expression
+        : prefix_expression
+        | multiplicative_expression '*' prefix_expression
+        | multiplicative_expression '/' prefix_expression
+        | multiplicative_expression '%' prefix_expression
+        ;
+
+        etc.
  * */
 
 // Parse a primary factor and return an
@@ -448,6 +474,20 @@ struct ASTnode *expre_prefix(struct _Content *cd, struct _Writer *w, struct Toke
     tree = expre_mkastunary(A_DEREF, types_value_at(tree->type), tree, 0);
     break;
 
+  case T_MINUS: //- 
+    // Get the next token and parse it
+    // recursively as a prefix expression
+    scanner_scan(cd, token);
+    tree = expre_prefix(cd, w, token);
+
+    // Prepend a A_NEGATE operation to the tree and
+    // make the child an rvalue. Because chars are unsigned,
+    // also widen this to int so that it's signed
+    tree->rvalue = 1;
+    tree = types_modify_type(tree, w, P_INT, 0);
+    tree = expre_mkastunary(A_NEGATE, tree->type, tree, 0);
+    break;
+
   case T_INVERT: // ~
     // Get the next token and parse it
     // recursively as a prefix expression
@@ -623,6 +663,7 @@ void expre_dumpAST(struct _Content *cd, struct ASTnode *n, int label, int level)
     else
       fprintf(stdout, "A_IDENT %s\n", SYM_NAME(cd->context->globalState, n->v.id));
     return;
+
   case A_ASSIGN:
     fprintf(stdout, "A_ASSIGN\n");
     return;
@@ -635,6 +676,7 @@ void expre_dumpAST(struct _Content *cd, struct ASTnode *n, int label, int level)
   case A_FUNCCALL:
     fprintf(stdout, "A_FUNCCALL %s\n", SYM_NAME(cd->context->globalState, n->v.id));
     return;
+
   case A_ADDR:
     fprintf(stdout, "A_ADDR %s\n", SYM_NAME(cd->context->globalState, n->v.id));
     return;
@@ -644,6 +686,7 @@ void expre_dumpAST(struct _Content *cd, struct ASTnode *n, int label, int level)
     else
       fprintf(stdout, "A_DEREF\n");
     return;
+    
   case A_SCALE:
     fprintf(stdout, "A_SCALE %d\n", n->v.size);
     return;

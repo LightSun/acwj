@@ -70,9 +70,10 @@ enum
   A_PREDEC,  // --a
   A_POSTINC, // a++
   A_POSTDEC, // a--
-  A_NEGATE,
+
+  A_NEGATE,  //negate   
   A_INVERT,  // ~
-  A_LOGNOT,  // !
+  A_LOGNOT,  // !. logic not
   A_TOBOOL   // to boolean
 };
 

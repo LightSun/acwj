@@ -28,9 +28,11 @@ main:
 	andq	$255,%r9	 # Remove all other bits in %r9
 	movq	%r9, x(%rip) # Save the result in x	
 	movq	x(%rip), %r8
+
 	movq	%r8, %rdi   # rdi 目的变址 寄存器
 	call	printint    # Print x out
 	movq	$7, %r8
+	
 	movq	$9, %r9
 	cmpq	%r9, %r8
 	setle	%r9b

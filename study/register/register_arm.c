@@ -212,7 +212,7 @@ void register_arm_cgprintint(REGISTER_CONTEXT_PARAM, int r)
 // Load a value from a variable into a register.
 // Return the number of the register
 //name: identifier name
-int register_arm_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id)
+int register_arm_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id, int op)
 {
     int r = register_arm_alloc(ctx);
     //TODO Get the offset to the variable

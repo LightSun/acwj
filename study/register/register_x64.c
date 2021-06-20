@@ -159,6 +159,7 @@ int register_x64_cgloadglob(REGISTER_CONTEXT_PARAM, int sym_id, int op)
   SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
 
 // Print out the code to initialise it
+//lesson 21: https://github.com/LightSun/acwj/tree/master/21_More_Operators
 #define BUF_LEN_LOAD_GLOB 128
   char buf[BUF_LEN_LOAD_GLOB];
   switch (st->type)

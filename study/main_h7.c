@@ -71,11 +71,11 @@ int main(int argc, char **args)
        // char* outFile = getCurrentFilePath("/study/res/input08"); //func1 11
       //  char* outFile = getCurrentFilePath("/study/res/input10"); //12
        // char* outFile = getCurrentFilePath("/study/res/input14"); //13
-        char* outFile = getCurrentFilePath("/study/res/input20.c");
+        char* outFile = getCurrentFilePath("/study/res/input23.c");
         cd = content_new(CONTENT_TYPE_FILE, (void *)outFile);
         free(outFile);
 
-        outFile = getCurrentFilePath("/study/note/out_20_2.s");
+        outFile = getCurrentFilePath("/study/note/out_21_2.s");
         w = writer_new(WRITER_TYPE_FILE, outFile);
         free(outFile);
     }
@@ -84,7 +84,7 @@ int main(int argc, char **args)
         if (argc == 2)
         {
             cd = content_new(CONTENT_TYPE_FILE, args[1]);
-            char* outFile = getCurrentFilePath("/study/note/out_20_2.s");
+            char* outFile = getCurrentFilePath("/study/note/out_21_2.s");
             w = writer_new(WRITER_TYPE_FILE, outFile);
             free(outFile);
         }

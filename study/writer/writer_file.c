@@ -13,7 +13,9 @@ int writer_file_start(WriterContext *context, int initSize){
 
 int writer_file_writeChars(WriterContext *context, const char *content){
     int res = fputs(content, context->file);
-    printf("writer_file_writeChars: result = %d\n", res);
+    if(res != 0){
+        printf("writer_file_writeChars: result = %d\n", res);
+    }
     return res;
 }
 

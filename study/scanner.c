@@ -265,11 +265,28 @@ int scanner_scan(Content *cd, struct Token *t)
 
   case '+':
     //printf("scanner_scan >> + \n");
-    t->token = T_PLUS;
+    if ((c = next(cd)) == '+')
+    {
+      t->token = T_INC;
+    }
+    else
+    {
+      putback(cd, c);
+      t->token = T_PLUS;
+    }
     break;
+
   case '-':
     //printf("scanner_scan >> - \n");
-    t->token = T_MINUS;
+    if ((c = next(cd)) == '-')
+    {
+      t->token = T_DEC;
+    }
+    else
+    {
+      putback(cd, c);
+      t->token = T_MINUS;
+    }
     break;
   case '*':
     //printf("scanner_scan >> * \n");
@@ -311,6 +328,13 @@ int scanner_scan(Content *cd, struct Token *t)
     t->token = T_RBRACKET;
     break;
 
+  case '~':
+    t->token = T_INVERT;
+    break;
+  case '^':
+    t->token = T_XOR;
+    break;
+
   case '=':
     if ((c = next(cd)) == '=')
     {
@@ -332,8 +356,8 @@ int scanner_scan(Content *cd, struct Token *t)
     }
     else
     {
-      printf("Unrecognised character. %c", c);
-      exit(1);
+      putback(cd, c);
+      t->token = T_LOGNOT;
     }
     break;
 
@@ -341,6 +365,10 @@ int scanner_scan(Content *cd, struct Token *t)
     if ((c = next(cd)) == '=')
     {
       t->token = T_LE;
+    }
+    else if (c == '<')
+    {
+      t->token = T_LSHIFT;
     }
     else
     {
@@ -353,6 +381,10 @@ int scanner_scan(Content *cd, struct Token *t)
     if ((c = next(cd)) == '=')
     {
       t->token = T_GE;
+    }
+    else if (c == '>')
+    {
+      t->token = T_RSHIFT;
     }
     else
     {
@@ -370,6 +402,18 @@ int scanner_scan(Content *cd, struct Token *t)
     {
       putback(cd, c);
       t->token = T_AMPER;
+    }
+    break;
+
+  case '|':
+    if ((c = next(cd)) == '|')
+    {
+      t->token = T_LOGOR;
+    }
+    else
+    {
+      putback(cd, c);
+      t->token = T_OR;
     }
     break;
 
