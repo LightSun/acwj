@@ -1,12 +1,14 @@
 
 #include "register/register_x64.h"
 #include "register/register_arm.h"
+#include "register/register_common.h"
 #include "register.h"
 
 Register* register_new(int type){
     Register *reg = (Register*)malloc(sizeof(Register));
     reg->context = (RegisterContext*)malloc(sizeof(RegisterContext));
     memset(reg->context, 0, sizeof(RegisterContext));
+    reg->context->currSeg = E_no_seg;
     reg->context->intlist = (int*) malloc(sizeof(int) * REG_MAXINTS);
     switch (type)
     {

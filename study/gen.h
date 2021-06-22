@@ -31,5 +31,8 @@ int gen_primsize(struct _Writer *w, int type);
 //gen label of string contant
 int gen_globstr(struct _Writer *w, const char *strvalue);
 
+int gen_getLocalOffset(struct _Writer *w, int type, int isParam);
+void gen_resetlocals(struct _Writer *w);
+
 CPP_END
 #endif

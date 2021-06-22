@@ -188,8 +188,14 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
     // or we are being dereferenced
     if (n->rvalue || parentASTop == A_DEREF)
     {
-
-      return (WRITER_REG_CALL(w, cgloadglob, n->v.id, n->op));
+      if (SYM_IS_LOCAL(w->context->globalState, n->v.id))
+      {
+        return (WRITER_REG_CALL(w, cgloadlocal, n->v.id, n->op));
+      }
+      else
+      {
+        return (WRITER_REG_CALL(w, cgloadglob, n->v.id, n->op));
+      }
     }
     else
     {
@@ -202,7 +208,14 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
     switch (n->right->op)
     {
     case A_IDENT:
-      return (WRITER_REG_CALL(w, cgstoreglob, leftreg, n->right->v.id));
+      if (SYM_IS_LOCAL(w->context->globalState, n->right->v.id))
+      {
+        return (WRITER_REG_CALL(w, cgstorelocal, leftreg, n->right->v.id));
+      }
+      else
+      {
+        return (WRITER_REG_CALL(w, cgstoreglob, leftreg, n->right->v.id));
+      }
     case A_DEREF:
       return (WRITER_REG_CALL(w, cgstorederef, leftreg, rightreg, n->right->type));
     default:
@@ -265,7 +278,7 @@ int gen_genAST(struct _Content *cd, struct ASTnode *n, struct _Writer *w, int la
   case A_PREDEC:
     // Load and decrement the variable's value into a register
     return (WRITER_REG_CALL(w, cgloadglob, n->left->v.id, n->op));
-    
+
   case A_NEGATE:
     return (WRITER_REG_CALL(w, cgnegate, leftreg));
   case A_INVERT:
@@ -317,4 +330,14 @@ int gen_globstr(struct _Writer *w, const char *strvalue)
   // cgglobstr(l, strvalue);
   WRITER_REG_CALL(w, cgglobstr, l, strvalue);
   return (l);
+}
+
+int gen_getLocalOffset(struct _Writer *w, int type, int isparam)
+{
+  WRITER_REG_CALL(w, cggetlocaloffset, type, isparam);
+}
+
+void gen_resetlocals(struct _Writer *w)
+{
+  WRITER_REG_CALL(w, cgresetlocals);
 }

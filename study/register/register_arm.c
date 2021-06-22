@@ -516,12 +516,14 @@ int register_arm_cgstorederef(REGISTER_CONTEXT_PARAM, int r1, int r2, int type)
 }
 
 //gen label for store string.
-void register_arm_cgglobstr(REGISTER_CONTEXT_PARAM, int label, const char *str){
+void register_arm_cgglobstr(REGISTER_CONTEXT_PARAM, int label, const char *str)
+{
     //TODO need impl
 }
 
 //given the label id of a global string. load its address into a new register.
-int register_arm_cgloadglobstr(REGISTER_CONTEXT_PARAM, int id){
+int register_arm_cgloadglobstr(REGISTER_CONTEXT_PARAM, int id)
+{
     //TODO need impl
     int reg = register_arm_alloc(ctx);
 
@@ -529,47 +531,85 @@ int register_arm_cgloadglobstr(REGISTER_CONTEXT_PARAM, int id){
 }
 
 // & | ^  << >>
-int register_arm_cgand(REGISTER_CONTEXT_PARAM, int r1, int r2){
-     //TODO need impl
+int register_arm_cgand(REGISTER_CONTEXT_PARAM, int r1, int r2)
+{
+    //TODO need impl
     return r1;
 }
-int register_arm_cgor(REGISTER_CONTEXT_PARAM, int r1, int r2){
-  //TODO need impl
-    return r1;
-}
-
-int register_arm_cgxor(REGISTER_CONTEXT_PARAM, int r1, int r2){
-  //TODO need impl
+int register_arm_cgor(REGISTER_CONTEXT_PARAM, int r1, int r2)
+{
+    //TODO need impl
     return r1;
 }
 
-int register_arm_cgshl(REGISTER_CONTEXT_PARAM, int r1, int r2){
-  //TODO need impl
+int register_arm_cgxor(REGISTER_CONTEXT_PARAM, int r1, int r2)
+{
+    //TODO need impl
     return r1;
 }
-int register_arm_cgshr(REGISTER_CONTEXT_PARAM, int r1, int r2){
-  //TODO need impl
+
+int register_arm_cgshl(REGISTER_CONTEXT_PARAM, int r1, int r2)
+{
+    //TODO need impl
+    return r1;
+}
+int register_arm_cgshr(REGISTER_CONTEXT_PARAM, int r1, int r2)
+{
+    //TODO need impl
     return r1;
 }
 
 // Negate a register's value
-int register_arm_cgnegate(REGISTER_CONTEXT_PARAM, int r){
-  //TODO need impl
+int register_arm_cgnegate(REGISTER_CONTEXT_PARAM, int r)
+{
+    //TODO need impl
     return r;
 }
 
 // Invert a register's value
-int register_arm_cginvert(REGISTER_CONTEXT_PARAM, int r){
-  //TODO need impl
+int register_arm_cginvert(REGISTER_CONTEXT_PARAM, int r)
+{
+    //TODO need impl
     return r;
 }
 // Logically negate a register's value
-int register_arm_cglognot(REGISTER_CONTEXT_PARAM, int r){
-  //TODO need impl
+int register_arm_cglognot(REGISTER_CONTEXT_PARAM, int r)
+{
+    //TODO need impl
     return r;
 }
 
-int register_arm_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label){
-      //TODO need impl
+int register_arm_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label)
+{
+    //TODO need impl
     return r;
+}
+
+int register_arm_cggetlocaloffset(REGISTER_CONTEXT_PARAM, int type, int isParam)
+{
+    // For now just decrement the offset by a minimum of 4 bytes
+    // and allocate on the stack
+    ctx->localOffset += (register_arm_cgprimsize(ctx, type) > 4) ? register_arm_cgprimsize(ctx, type) : 4;
+    // printf("Returning offset %d for type %d\n", localOffset, type);
+    return (-ctx->localOffset);
+}
+
+void register_arm_cgtextseg(REGISTER_CONTEXT_PARAM){
+ //TODO need impl
+}
+void register_arm_cgdataseg(REGISTER_CONTEXT_PARAM){
+ //TODO need impl
+}
+
+// Load a value from a local variable into a register.
+// Return the number of the register. If the
+// operation is pre- or post-increment/decrement,
+// also perform this action.
+int register_arm_cgloadlocal(REGISTER_CONTEXT_PARAM, int id, int op){
+    
+}
+
+// Store a register's value into a local variable
+int register_arm_cgstorelocal(REGISTER_CONTEXT_PARAM, int r, int id){
+
 }

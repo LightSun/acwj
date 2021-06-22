@@ -76,7 +76,7 @@ struct ASTnode *expre_funccall(struct _Content *cd, struct _Writer *w, struct To
 
   // Check that the identifier has been defined,
   // then make a leaf node for it. XXX Add structural type test
-  if ((id = sym_findglob(cd->context->globalState, cd->context->textBuf)) == -1)
+  if ((id = sym_findSymbol(cd->context->globalState, cd->context->textBuf)) == -1)
   {
     fatals(cd, "Undeclared function", cd->context->textBuf);
   }
@@ -89,7 +89,7 @@ struct ASTnode *expre_funccall(struct _Content *cd, struct _Writer *w, struct To
   // Build the function call AST node. Store the
   // function's return type as this node's type.
   // Also record the function's symbol-id
-  tree = expre_mkastunary(A_FUNCCALL, sym_getGlob(cd->context->globalState, id)->type, tree, id);
+  tree = expre_mkastunary(A_FUNCCALL, sym_getSymbol(cd->context->globalState, id)->type, tree, id);
 
   // Get the ')'
   misc_rparen(cd, token);
@@ -105,11 +105,11 @@ static struct ASTnode *expre_array_access(struct _Content *cd, struct _Writer *w
 
   // Check that the identifier has been defined as an array
   // then make a leaf node for it that points at the base
-  if ((id = sym_findglob(cd->context->globalState, cd->context->textBuf)) == -1)
+  if ((id = sym_findSymbol(cd->context->globalState, cd->context->textBuf)) == -1)
   {
     CONTENT_PUBLISH_ERROR(cd, "Undeclared array '%s'", cd->context->textBuf);
   }
-  SymTable *st = sym_getGlob(cd->context->globalState, id);
+  SymTable *st = sym_getSymbol(cd->context->globalState, id);
   if (st->stype != S_ARRAY)
   {
     CONTENT_PUBLISH_ERROR(cd, "Undeclared array '%s'", cd->context->textBuf);
@@ -161,7 +161,7 @@ static struct ASTnode *expre_postfix(struct _Content *cd, struct _Writer *w, str
     return (expre_array_access(cd, w, token));
 
   // A variable. Check that the variable exists.
-  id = sym_findglob(cd->context->globalState, cd->context->textBuf);
+  id = sym_findSymbol(cd->context->globalState, cd->context->textBuf);
   if (id == -1 || SYM_STYPE(cd->context->globalState, id) != S_VARIABLE)
     WRITER_PUBLISH_ERROR(w, "Unknown variable = %s", cd->context->textBuf);
 

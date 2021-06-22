@@ -48,7 +48,6 @@ static void register_x64_free(REGISTER_CONTEXT_PARAM, int reg)
 void register_x64_cgpreamble(REGISTER_CONTEXT_PARAM)
 {
   register_x64_free_all(ctx);
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\t.text\n");
 }
 
 // Print out the assembly postamble
@@ -66,7 +65,6 @@ int register_x64_cgloadint(REGISTER_CONTEXT_PARAM, int value, int type)
   int r = register_x64_alloc(ctx);
 
   // Print out the code to initialise it
-  //fprintf(Outfile, "\tmovq\t$%d, %s\n", value, reglist[r]);
   char buf[32];
   snprintf(buf, 32, "\tmovq\t$%d, %s\n", value, reglist[r]);
   REG_WRITE_BUF();
@@ -77,7 +75,6 @@ int register_x64_cgloadint(REGISTER_CONTEXT_PARAM, int value, int type)
 // the number of the register with the result
 int register_x64_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2)
 {
-  //fprintf(Outfile, "\taddq\t%s, %s\n", reglist[r1], reglist[r2]);
   char buf[32];
   snprintf(buf, 32, "\taddq\t%s, %s\n", reglist[r1], reglist[r2]);
   REG_WRITE_BUF();
@@ -90,7 +87,6 @@ int register_x64_cgadd(REGISTER_CONTEXT_PARAM, int r1, int r2)
 // return the number of the register with the result
 int register_x64_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2)
 {
-  //fprintf(Outfile, "\tsubq\t%s, %s\n", reglist[r2], reglist[r1]);
   char buf[32];
   snprintf(buf, 32, "\tsubq\t%s, %s\n", reglist[r2], reglist[r1]);
   REG_WRITE_BUF();
@@ -103,7 +99,6 @@ int register_x64_cgsub(REGISTER_CONTEXT_PARAM, int r1, int r2)
 // the number of the register with the result
 int register_x64_cgmul(REGISTER_CONTEXT_PARAM, int r1, int r2)
 {
-  //fprintf(Outfile, "\timulq\t%s, %s\n", reglist[r1], reglist[r2]);
   char buf[32];
   snprintf(buf, 32, "\timulq\t%s, %s\n", reglist[r1], reglist[r2]);
   REG_WRITE_BUF();
@@ -302,13 +297,20 @@ int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
 void register_x64_cgglobsym(REGISTER_CONTEXT_PARAM, int sym_id)
 {
   SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
+  if(st->stype == S_FUNCTION){
+    return;
+  }
   int typesize;
+   // Get the size of the type
   typesize = register_x64_cgprimsize(ctx, st->type);
-  //fprintf(Outfile, "\t.comm\t%s,%d,%d\n", Gsym[id].name, typesize, typesize);
 
-  REG_WRITE_FMT_BUF_32("\t.data\n"
-                       "\t.globl\t%s\n",
-                       st->name);
+// Generate the global identity and the label
+  register_x64_cgdataseg(ctx);
+
+  REG_WRITE_BUF64_START;
+  REG_WRITE_BUF64("\t.global\t%s\n", st->name);
+  REG_WRITE_BUF64("%s:", st->name);
+
 
   // Generate the space
   for (size_t i = 0; i < st->size; i++)
@@ -464,24 +466,23 @@ int register_x64_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int ASTop, int r1, in
 
 void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, int sym_id)
 {
-  /*  fprintf(Outfile,
-          "\t.text\n"
-          "\t.globl\t%s\n"
-          "\t.type\t%s, @function\n"
-          "%s:\n" "\tpushq\t%%rbp\n"
-          "\tmovq\t%%rsp, %%rbp\n", name, name, name); */
-
   SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
-  char buf[96];
-  snprintf(buf, 96, "\t.text\n"
-                    "\t.globl\t%s\n"
-                    "\t.type\t%s, @function\n"
-                    "%s:\n"
-                    "\tpushq\t%%rbp\n"
-                    "\tmovq\t%%rsp, %%rbp\n",
-           st->name, st->name, st->name);
 
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
+  register_x64_cgtextseg(ctx);
+
+  // Align the stack pointer to be a multiple of 16
+  // less than its previous value
+  ctx->stackOffset = (ctx->localOffset + 15) & ~15;
+
+  char buf[128];
+  snprintf(buf, 128, "\t.globl\t%s\n"
+                     "\t.type\t%s, @function\n"
+                     "%s:\n"
+                     "\tpushq\t%%rbp\n"
+                     "\tmovq\t%%rsp, %%rbp\n"
+                     "\taddq\t$%d,%%rsp\n",
+           st->name, st->name, st->name, -ctx->stackOffset);
+  REG_WRITE_BUF();
 }
 
 void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
@@ -489,8 +490,12 @@ void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
   //cglabel(Gsym[id].endlabel);
   //fputs("\tpopq	%rbp\n" "\tret\n", Outfile);
   register_x64_cglabel(ctx, SYM_END_LABEL(REG_G_GLOBAL_STATE(ctx), sym_id));
-  REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), "\tpopq     %rbp\n"
-                                                       "\tret\n");
+  char buf[32];
+  snprintf(buf, 32, "\taddq\t$%d,%%rsp\n", ctx->stackOffset);
+  REG_WRITE_BUF();
+
+  REG_WRITE_STR("\tpopq  %rbp\n"
+                "\tret\n");
 }
 
 //---------------------------------------------
@@ -583,11 +588,16 @@ int register_x64_cgcall(REGISTER_CONTEXT_PARAM, int r, int sym_id)
 int register_x64_cgaddress(REGISTER_CONTEXT_PARAM, int id)
 {
   int r = register_x64_alloc(ctx);
-  //REG_G_SYM_TABLE(ctx, id)->name
-
-  //fprintf(Outfile, "\tleaq\t%s(%%rip), %s\n", Gsym[id].name, reglist[r]);
+  SymTable *st = REG_G_SYM_TABLE(ctx, id);
   char buf[48];
-  snprintf(buf, 48, "\tleaq\t%s(%%rip), %s\n", REG_G_SYM_TABLE(ctx, id)->name, reglist[r]);
+  if (st->class == C_LOCAL)
+  {
+    snprintf(buf, 48, "\tleaq\t%d(%%rbp), %s\n", st->posn, reglist[r]);
+  }
+  else
+  {
+    snprintf(buf, 48, "\tleaq\t%s(%%rip), %s\n", st->name, reglist[r]);
+  }
   //The leaq instruction loads the address of the named identifie
 
   REG_WRITE_BUF();
@@ -798,5 +808,126 @@ int register_x64_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label)
     REG_WRITE_BUF();
   }
 
+  return (r);
+}
+
+// Get the position of the next local variable.
+// Use the isParam flag to allocate a parameter (not yet XXX).
+int register_x64_cggetlocaloffset(REGISTER_CONTEXT_PARAM, int type, int isParam)
+{
+  // For now just decrement the offset by a minimum of 4 bytes
+  // and allocate on the stack
+  ctx->localOffset += (register_x64_cgprimsize(ctx, type) > 4) ? register_x64_cgprimsize(ctx, type) : 4;
+  // printf("Returning offset %d for type %d\n", localOffset, type);
+  return (-ctx->localOffset);
+}
+
+void register_x64_cgtextseg(REGISTER_CONTEXT_PARAM)
+{
+  if (ctx->currSeg != E_text_seg)
+  {
+    ctx->currSeg = E_text_seg;
+    REG_WRITE_STR("\t.text\n");
+  }
+}
+void register_x64_cgdataseg(REGISTER_CONTEXT_PARAM)
+{
+  if (ctx->currSeg != E_data_seg)
+  {
+    ctx->currSeg = E_data_seg;
+    REG_WRITE_STR("\t.data\n");
+  }
+}
+
+// Load a value from a local variable into a register.
+// Return the number of the register. If the
+// operation is pre- or post-increment/decrement,
+// also perform this action.
+int register_x64_cgloadlocal(REGISTER_CONTEXT_PARAM, int id, int op)
+{
+  // Get a new register
+  int r = register_x64_alloc(ctx);
+  SymTable *st = sym_getSymbol(ctx->writer->context->globalState, id);
+
+  // Print out the code to initialise it
+  REG_WRITE_BUF64_START;
+  switch (st->type)
+  {
+  case P_CHAR:
+    if (op == A_PREINC)
+      REG_WRITE_BUF64("\tincb\t%d(%%rbp)\n", st->posn);
+    if (op == A_PREDEC)
+      REG_WRITE_BUF64("\tdecb\t%d(%%rbp)\n", st->posn);
+
+    REG_WRITE_BUF64("\tmovzbq\t%d(%%rbp), %s\n", st->posn, reglist[r]);
+
+    if (op == A_POSTINC)
+      REG_WRITE_BUF64("\tincb\t%d(%%rbp)\n", st->posn);
+    if (op == A_POSTDEC)
+      REG_WRITE_BUF64("\tdecb\t%d(%%rbp)\n", st->posn);
+    break;
+
+  case P_INT:
+    if (op == A_PREINC)
+      REG_WRITE_BUF64("\tincl\t%d(%%rbp)\n", st->posn);
+    if (op == A_PREDEC)
+      REG_WRITE_BUF64("\tdecl\t%d(%%rbp)\n", st->posn);
+
+    REG_WRITE_BUF64("\tmovslq\t%d(%%rbp), %s\n", st->posn, reglist[r]);
+
+    if (op == A_POSTINC)
+      REG_WRITE_BUF64("\tincl\t%d(%%rbp)\n", st->posn);
+    if (op == A_POSTDEC)
+      REG_WRITE_BUF64("\tdecl\t%d(%%rbp)\n", st->posn);
+    break;
+
+  case P_LONG:
+  case P_CHARPTR:
+  case P_INTPTR:
+  case P_LONGPTR:
+    if (op == A_PREINC)
+      REG_WRITE_BUF64("\tincq\t%d(%%rbp)\n", st->posn);
+    if (op == A_PREDEC)
+      REG_WRITE_BUF64("\tdecq\t%d(%%rbp)\n", st->posn);
+
+    REG_WRITE_BUF64("\tmovq\t%d(%%rbp), %s\n", st->posn, reglist[r]);
+
+    if (op == A_POSTINC)
+      REG_WRITE_BUF64("\tincq\t%d(%%rbp)\n", st->posn);
+    if (op == A_POSTDEC)
+      REG_WRITE_BUF64("\tdecq\t%d(%%rbp)\n", st->posn);
+    break;
+
+  default:
+    REG_PUBLISH_ERROR(ctx, "Bad type(%d) in cgloadlocal:", st->type);
+  }
+  return (r);
+}
+
+// Store a register's value into a local variable
+int register_x64_cgstorelocal(REGISTER_CONTEXT_PARAM, int r, int id)
+{
+  SymTable *st = sym_getSymbol(ctx->writer->context->globalState, id);
+  REG_WRITE_BUF64_START
+  switch (st->type)
+  {
+  case P_CHAR:
+    REG_WRITE_BUF64("\tmovb\t%s, %d(%%rbp)\n", breglist[r], st->posn);
+    break;
+
+  case P_INT:
+    REG_WRITE_BUF64("\tmovl\t%s, %d(%%rbp)\n", dreglist[r], st->posn);
+    break;
+
+  case P_LONG:
+  case P_CHARPTR:
+  case P_INTPTR:
+  case P_LONGPTR:
+    REG_WRITE_BUF64("\tmovq\t%s, %d(%%rbp)\n", reglist[r],st->posn);
+    break;
+
+  default:
+    REG_PUBLISH_ERROR(ctx, "Bad type(%d) in cgstorlocal:", st->type);
+  }
   return (r);
 }

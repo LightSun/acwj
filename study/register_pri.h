@@ -8,16 +8,28 @@ CPP_START
 #define REG_MAXINTS 1024
 struct _Writer;
 
+enum
+{
+    E_no_seg,
+    E_text_seg,
+    E_data_seg
+};
+
 typedef struct
 {
     struct _Writer *writer;
-    int freereg[REG_COUNT]; // List of available registers 
+    int freereg[REG_COUNT]; // List of available registers
 
     // We have to store large integer literal values in memory.
     // Keep a list of them which will be output in the postamble
-    int* intlist;  //REG_MAXINTS
+    int *intlist; //REG_MAXINTS
     int intslot;
-}RegisterContext;
+    // Position of next local variable relative to stack base pointer.
+    // We store the offset as positive to make aligning the stack pointer easier
+    int localOffset; //offset of local variable
+    int stackOffset;
+    int currSeg; // Flag to say which section were are outputting in to
+} RegisterContext;
 
 #define REGISTER_CONTEXT_PARAM RegisterContext *ctx
 #define REG_G_WRITER(ctx) ctx->writer
@@ -28,7 +40,7 @@ typedef struct
 #define REG_WRITE_BUF() REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf)
 #define REG_WRITE_STR(s) REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), s)
 
-#define REG_G_SYM_TABLE(ctx, id) sym_getGlob(REG_G_GLOBAL_STATE(ctx), id)
+#define REG_G_SYM_TABLE(ctx, id) sym_getSymbol(REG_G_GLOBAL_STATE(ctx), id)
 /*
 #define REG_WRITE_BUF(ctx, buf, fmt, ...) \
 do{ \
@@ -39,12 +51,21 @@ va_end(vArgList); \
 REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);\
 }while(0); 
 */
-#define REG_WRITE_FMT_BUF(size, fmt, ...) \
-do{\
-char buf[size]; \
-snprintf(buf, size, fmt, ##__VA_ARGS__); \
-REG_WRITE_BUF(); \
-}while(0);
+#define REG_WRITE_FMT_BUF(size, fmt, ...)        \
+    do                                           \
+    {                                            \
+        char buf[size];                          \
+        snprintf(buf, size, fmt, ##__VA_ARGS__); \
+        REG_WRITE_BUF();                         \
+    } while (0);
+
+#define REG_WRITE_BUF64_START char buf[64];
+#define REG_WRITE_BUF64(fmt, ...)              \
+    do                                         \
+    {                                          \
+        snprintf(buf, 64, fmt, ##__VA_ARGS__); \
+        REG_WRITE_BUF();                       \
+    } while (0);
 
 #define REG_WRITE_FMT_BUF_32(fmt, ...) REG_WRITE_FMT_BUF(32, fmt, ##__VA_ARGS__)
 

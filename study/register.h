@@ -11,6 +11,7 @@ CPP_START
 #define REGISTER_ASSIGN_FUN(R, m, n) R->register_##m = register_##n##_##m;
 
 #define REGISTER_ASSIGN_FUNCS(R, arch)               \
+    REGISTER_ASSIGN_FUN(R, cgresetlocals, common)    \
     REGISTER_ASSIGN_FUN(R, cgpreamble, arch)         \
     REGISTER_ASSIGN_FUN(R, cgpostamble, arch)        \
     REGISTER_ASSIGN_FUN(R, cgloadint, arch)          \
@@ -47,7 +48,12 @@ CPP_START
     REGISTER_ASSIGN_FUN(R, cgnegate, arch)           \
     REGISTER_ASSIGN_FUN(R, cginvert, arch)           \
     REGISTER_ASSIGN_FUN(R, cglognot, arch)           \
-    REGISTER_ASSIGN_FUN(R, cgboolean, arch)
+    REGISTER_ASSIGN_FUN(R, cgboolean, arch)          \
+    REGISTER_ASSIGN_FUN(R, cggetlocaloffset, arch)   \
+    REGISTER_ASSIGN_FUN(R, cgtextseg, arch)          \
+    REGISTER_ASSIGN_FUN(R, cgdataseg, arch)          \
+    REGISTER_ASSIGN_FUN(R, cgloadlocal, arch)        \
+    REGISTER_ASSIGN_FUN(R, cgstorelocal, arch)
 
 /* 
 REGISTER_ASSIGN_FUN(R, cgequal, arch)\
@@ -159,6 +165,25 @@ struct _Register
     int (*register_cglognot)(REGISTER_CONTEXT_PARAM, int r);
 
     int (*register_cgboolean)(REGISTER_CONTEXT_PARAM, int r, int op, int label);
+
+    //get local variable offset
+    int (*register_cggetlocaloffset)(REGISTER_CONTEXT_PARAM, int type, int isParam);
+
+    //reset local offset
+    void (*register_cgresetlocals)(REGISTER_CONTEXT_PARAM);
+
+    //the text and data seg in asm
+    void (*register_cgtextseg)(REGISTER_CONTEXT_PARAM);
+    void (*register_cgdataseg)(REGISTER_CONTEXT_PARAM);
+
+    // Load a value from a local variable into a register.
+    // Return the number of the register. If the
+    // operation is pre- or post-increment/decrement,
+    // also perform this action.
+    int (*register_cgloadlocal)(REGISTER_CONTEXT_PARAM, int id, int op);
+
+    // Store a register's value into a local variable
+    int (*register_cgstorelocal)(REGISTER_CONTEXT_PARAM, int r, int id);
 };
 
 Register *register_new(int type);

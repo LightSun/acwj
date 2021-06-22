@@ -18,23 +18,30 @@ extern struct ASTnode *statement_parse(struct _Content *cd, struct _Writer *w, s
         ;
 */
 //may be a list of var.
-void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int type)
+void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int type, int islocal)
 {
-  int id;
-
   // Text now has the identifier's name.
   // If the next token is a '['
   if (token->token == T_LBRACKET)
   {
+    //skip past '['
     scanner_scan(cd, token);
     //check we are in array size.
     if (token->token == T_INTLIT)
     {
       // Add this as a known array and generate its space in assembly.
       // We treat the array as a pointer to its elements' type
-      id = sym_addglob(cd->context->globalState, cd->context->textBuf, types_pointer_to(type), S_ARRAY, 0, token->intvalue);
-      gen_globsym(w, id);
-    }else{
+      if (islocal)
+      {
+        sym_addlocal(cd->context->globalState, cd->context->textBuf, types_pointer_to(type), S_ARRAY, 0, token->intvalue);
+      }
+      else
+      {
+        sym_addglob(cd->context->globalState, cd->context->textBuf, types_pointer_to(type), S_ARRAY, 0, token->intvalue);
+      }
+    }
+    else
+    {
       //TODO
     }
     //ensure we are following ']'
@@ -44,8 +51,14 @@ void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int t
   else
   {
     //alloc one var .
-    id = sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_VARIABLE, 0, 1);
-    gen_globsym(w, id);
+    if (islocal)
+    {
+      sym_addlocal(cd->context->globalState, cd->context->textBuf, type, S_VARIABLE, 0, 1);
+    }
+    else
+    {
+      sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_VARIABLE, 0, 1);
+    }
   }
   //end with ';'
   misc_semi(cd, token);
@@ -64,6 +77,8 @@ struct ASTnode *decl_function(struct _Content *cd, struct _Writer *w, struct Tok
 
   nameslot = sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_FUNCTION, endlabel, 0);
   cd->context->functionid = nameslot;
+
+  gen_resetlocals(w); // Reset position of new locals
 
   // ( )
   misc_lparen(cd, token);
@@ -124,7 +139,7 @@ void decl_global(struct _Content *cd, struct _Writer *w, struct Token *token)
     {
 
       // Parse the global variable declaration
-      decl_var(cd, w, token, type);
+      decl_var(cd, w, token, type, 0);
     }
 
     // Stop when we have reached EOF

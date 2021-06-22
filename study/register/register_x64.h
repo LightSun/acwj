@@ -100,5 +100,21 @@ int register_x64_cglognot(REGISTER_CONTEXT_PARAM, int r);
 
 int register_x64_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label);
 
+//get local variable offset
+int register_x64_cggetlocaloffset(REGISTER_CONTEXT_PARAM, int type, int isParam);
+
+//the text and data seg in asm
+void register_x64_cgtextseg(REGISTER_CONTEXT_PARAM);
+void register_x64_cgdataseg(REGISTER_CONTEXT_PARAM);
+
+// Load a value from a local variable into a register.
+// Return the number of the register. If the
+// operation is pre- or post-increment/decrement,
+// also perform this action.
+int register_x64_cgloadlocal(REGISTER_CONTEXT_PARAM, int id, int op);
+
+// Store a register's value into a local variable
+int register_x64_cgstorelocal(REGISTER_CONTEXT_PARAM, int r, int id);
+
 CPP_END
 #endif

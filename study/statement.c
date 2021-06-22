@@ -154,7 +154,7 @@ static struct ASTnode *return_statement(Content *cd, struct _Writer *w, struct T
   struct ASTnode *tree;
 
   // Can't return a value if function returns P_VOID
-  if (sym_getGlob(cd->context->globalState, cd->context->functionid)->type == P_VOID)
+  if (sym_getSymbol(cd->context->globalState, cd->context->functionid)->type == P_VOID)
     WRITER_PUBLISH_ERROR(w, "Can't return from a void function");
 
   // Ensure we have 'return' '('
@@ -196,7 +196,7 @@ static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct T
     // XXX: These are globals at present.
     type = types_parse_type(cd, token);
     misc_ident(cd, token);
-    decl_var(cd, w, token, type);
+    decl_var(cd, w, token, type, 1);
     return (NULL); // No AST generated here
 
   case T_IF:
@@ -220,7 +220,7 @@ static struct ASTnode *single_statement(Content *cd, struct _Writer *w, struct T
 }
 
 // Parse a compound statement with "{ + }"
-// and return its AST
+// and return its AST. same to compound_statement
 struct ASTnode *statement_parse(Content *cd, struct _Writer *w, struct Token *token)
 {
   struct ASTnode *left = NULL;
