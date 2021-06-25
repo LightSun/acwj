@@ -327,6 +327,9 @@ int scanner_scan(Content *cd, struct Token *t)
   case ']':
     t->token = T_RBRACKET;
     break;
+  case ',':
+    t->token = T_COMMA;
+    break;
 
   case '~':
     t->token = T_INVERT;

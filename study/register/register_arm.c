@@ -585,6 +585,7 @@ int register_arm_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label)
     return r;
 }
 
+/*
 int register_arm_cggetlocaloffset(REGISTER_CONTEXT_PARAM, int type, int isParam)
 {
     // For now just decrement the offset by a minimum of 4 bytes
@@ -592,7 +593,7 @@ int register_arm_cggetlocaloffset(REGISTER_CONTEXT_PARAM, int type, int isParam)
     ctx->localOffset += (register_arm_cgprimsize(ctx, type) > 4) ? register_arm_cgprimsize(ctx, type) : 4;
     // printf("Returning offset %d for type %d\n", localOffset, type);
     return (-ctx->localOffset);
-}
+}*/
 
 void register_arm_cgtextseg(REGISTER_CONTEXT_PARAM){
  //TODO need impl

@@ -100,9 +100,6 @@ int register_x64_cglognot(REGISTER_CONTEXT_PARAM, int r);
 
 int register_x64_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label);
 
-//get local variable offset
-int register_x64_cggetlocaloffset(REGISTER_CONTEXT_PARAM, int type, int isParam);
-
 //the text and data seg in asm
 void register_x64_cgtextseg(REGISTER_CONTEXT_PARAM);
 void register_x64_cgdataseg(REGISTER_CONTEXT_PARAM);

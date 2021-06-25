@@ -331,13 +331,3 @@ int gen_globstr(struct _Writer *w, const char *strvalue)
   WRITER_REG_CALL(w, cgglobstr, l, strvalue);
   return (l);
 }
-
-int gen_getLocalOffset(struct _Writer *w, int type, int isparam)
-{
-  WRITER_REG_CALL(w, cggetlocaloffset, type, isparam);
-}
-
-void gen_resetlocals(struct _Writer *w)
-{
-  WRITER_REG_CALL(w, cgresetlocals);
-}

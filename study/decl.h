@@ -9,7 +9,7 @@ struct _Writer;
 struct Token;
 struct ASTnode;
 
-void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int type, int isLocal);
+void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int type, int isLocal, int isParam);
 
 struct ASTnode* decl_function(struct _Content *cd, struct _Writer *w, struct Token *token, int type);
 

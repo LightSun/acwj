@@ -18,7 +18,7 @@ extern struct ASTnode *statement_parse(struct _Content *cd, struct _Writer *w, s
         ;
 */
 //may be a list of var.
-void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int type, int islocal)
+void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int type, int islocal, int isparam)
 {
   // Text now has the identifier's name.
   // If the next token is a '['
@@ -33,16 +33,13 @@ void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int t
       // We treat the array as a pointer to its elements' type
       if (islocal)
       {
-        sym_addlocal(cd->context->globalState, cd->context->textBuf, types_pointer_to(type), S_ARRAY, 0, token->intvalue);
+        //sym_addlocal(cd->context->globalState, cd->context->textBuf, types_pointer_to(type), S_ARRAY, 0, token->intvalue);
+        CONTENT_PUBLISH_ERROR(cd, "For now, declaration of local arrays is not implemented");
       }
       else
       {
         sym_addglob(cd->context->globalState, cd->context->textBuf, types_pointer_to(type), S_ARRAY, 0, token->intvalue);
       }
-    }
-    else
-    {
-      //TODO
     }
     //ensure we are following ']'
     scanner_scan(cd, token);
@@ -53,17 +50,57 @@ void decl_var(struct _Content *cd, struct _Writer *w, struct Token *token, int t
     //alloc one var .
     if (islocal)
     {
-      sym_addlocal(cd->context->globalState, cd->context->textBuf, type, S_VARIABLE, 0, 1);
+      if(sym_addlocal(cd->context->globalState, cd->context->textBuf, type, S_VARIABLE, isparam, 1) == -1){
+           CONTENT_PUBLISH_ERROR(cd, "Duplicate local variable declaration", cd->context->textBuf);
+      }
     }
     else
     {
       sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_VARIABLE, 0, 1);
     }
   }
-  //end with ';'
-  misc_semi(cd, token);
 }
 
+// param_declaration: <null>
+//           | variable_declaration
+//           | variable_declaration ',' param_declaration
+//
+// Parse the parameters in parentheses after the function name.
+// Add them as symbols to the symbol table and return the number
+// of parameters.
+static int decl_param(struct _Content *cd, struct _Writer *w, struct Token *token)
+{
+  int type;
+  int paramcnt = 0;
+
+  // Loop until the final right parentheses
+  while (token->token != T_RPAREN)
+  {
+    // Get the type and identifier
+    // and add it to the symbol table
+    type = types_parse_type(cd, token);
+    misc_ident(cd, token);
+    decl_var(cd, w, token, type, 1, 1);
+    paramcnt++;
+
+    // Must have a ',' or ')' at this point
+    switch (token->token)
+    {
+    case T_COMMA:
+      scanner_scan(cd, token);
+      break;
+    case T_RPAREN:
+      break;
+    default:
+      CONTENT_PUBLISH_ERROR(cd, "Unexpected token(%d) in parameter list", token->token);
+    }
+  }
+
+  // Return the count of parameters
+  return (paramcnt);
+}
+
+#define nelems posn
 struct ASTnode *decl_function(struct _Content *cd, struct _Writer *w, struct Token *token, int type)
 {
   struct ASTnode *tree, *finalstmt;
@@ -78,10 +115,11 @@ struct ASTnode *decl_function(struct _Content *cd, struct _Writer *w, struct Tok
   nameslot = sym_addglob(cd->context->globalState, cd->context->textBuf, type, S_FUNCTION, endlabel, 0);
   cd->context->functionid = nameslot;
 
-  gen_resetlocals(w); // Reset position of new locals
-
+  int paramcnt;
   // ( )
   misc_lparen(cd, token);
+  paramcnt = decl_param(cd, w, token);
+  sym_getSymbol(cd->context->globalState, nameslot)->nelems = paramcnt;
   misc_rparen(cd, token);
 
   // Get the AST tree for the compound statement
@@ -134,12 +172,17 @@ void decl_global(struct _Content *cd, struct _Writer *w, struct Token *token)
         fprintf(stdout, "\n\n");
       }
       gen_genAST(cd, tree, w, NOLABEL, 0);
+
+      // Now free the symbols associated
+      // with this function
+      sym_freeloclsyms(cd->context->globalState);
     }
     else
     {
 
       // Parse the global variable declaration
-      decl_var(cd, w, token, type, 0);
+      decl_var(cd, w, token, type, 0, 0);
+      misc_semi(cd, token);
     }
 
     // Stop when we have reached EOF

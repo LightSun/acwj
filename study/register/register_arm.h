@@ -101,7 +101,7 @@ int register_arm_cglognot(REGISTER_CONTEXT_PARAM, int r);
 int register_arm_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label);
 
  //get local variable offset
-int register_arm_cggetlocaloffset(REGISTER_CONTEXT_PARAM, int type, int isParam);
+//int register_arm_cggetlocaloffset(REGISTER_CONTEXT_PARAM, int type, int isParam);
 
 //the text and data segment for asm
 void register_arm_cgtextseg(REGISTER_CONTEXT_PARAM);

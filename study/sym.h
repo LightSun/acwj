@@ -17,7 +17,8 @@ enum
 // Storage classes
 enum {
         C_GLOBAL = 1,           // Globally visible symbol
-        C_LOCAL                 // Locally visible symbol
+        C_LOCAL ,               // Locally visible symbol
+        C_PARAM,                // local visible params for function
 };
 
 // Symbol table structure
@@ -73,9 +74,11 @@ int sym_addglob(struct GlobalState *gs, const char *name, int type, int stype, i
 // + type: char, int etc.
 // + structural type: var, function, array etc.
 // + size: number of elements
-// + endlabel: if this is a function
+// + isparam: if this is a param of function
 // Return the slot number in the symbol table
-int sym_addlocal(struct GlobalState *gs, const char *name, int type, int stype, int endlabel, int size);
+int sym_addlocal(struct GlobalState *gs, const char *name, int type, int stype, int isparam, int size);
+
+void sym_freeloclsyms(struct GlobalState *gs);
 
 SymTable *sym_getSymbol(struct GlobalState *gs, int pos);
 

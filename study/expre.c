@@ -293,7 +293,7 @@ static int binastop(struct _Content *cd, int tokentype)
 {
   if (tokentype > T_EOF && tokentype <= T_SLASH)
     return (tokentype);
-  CONTENT_PUBLISH_ERROR(cd, "Syntax error, token = %d", tokentype);
+  CONTENT_PUBLISH_ERROR(cd, "binastop: Syntax error, token = %d", tokentype);
   return (0); // Keep -Wall happy
 }
 
@@ -329,7 +329,7 @@ static int op_precedence(struct _Content *cd, int tokentype)
   int prec = OpPrec[tokentype];
   if (prec == 0)
   {
-    CONTENT_PUBLISH_ERROR(cd, "Syntax error, token = %d", tokentype);
+    CONTENT_PUBLISH_ERROR(cd, "op_precedence: Syntax error, token = %d", tokentype);
   }
   return (prec);
 }

@@ -8,9 +8,24 @@
 // List of available registers and their names
 // We need a list of byte registers, too
 //static int freereg[4];
-static char *reglist[REG_COUNT] = {"%r8", "%r9", "%r10", "%r11"};      //long
-static char *breglist[REG_COUNT] = {"%r8b", "%r9b", "%r10b", "%r11b"}; //char
-static char *dreglist[REG_COUNT] = {"%r8d", "%r9d", "%r10d", "%r11d"}; //int
+static char *reglist[] =  
+{ "%r10", "%r11", "%r12", "%r13", "%r9", "%r8", "%rcx", "%rdx", "%rsi","%rdi" };        //long
+static char *breglist[] = 
+{ "%r10b", "%r11b", "%r12b", "%r13b", "%r9b", "%r8b", "%cl", "%dl", "%sil","%dil" };    //char
+static char *dreglist[] = 
+ { "%r10d", "%r11d", "%r12d", "%r13d", "%r9d", "%r8d", "%ecx", "%edx", "%esi", "%edi" }; //int
+
+#define FIRST_PARAM_REG 9		// Position of first parameter register
+
+// Get the position of the next local variable.
+// Use the isParam flag to allocate a parameter (not yet XXX).
+static int newlocaloffset(REGISTER_CONTEXT_PARAM, int type)
+{
+  // For now just decrement the offset by a minimum of 4 bytes
+  // and allocate on the stack
+  ctx->localOffset += (register_x64_cgprimsize(ctx, type) > 4) ? register_x64_cgprimsize(ctx, type) : 4;
+  return (-ctx->localOffset);
+}
 
 // Set all registers as available
 void register_x64_free_all(REGISTER_CONTEXT_PARAM)
@@ -30,7 +45,7 @@ static int register_x64_alloc(REGISTER_CONTEXT_PARAM)
       return (i);
     }
   }
-  WRITER_PUBLISH_ERROR(REG_G_WRITER(ctx), "Out of registers!\n");
+  REG_PUBLISH_ERROR(ctx, "Out of registers!\n");
 }
 
 // Return a register to the list of available registers.
@@ -123,10 +138,6 @@ int register_x64_cgdiv(REGISTER_CONTEXT_PARAM, int r1, int r2)
   snprintf(buf, 32, "\tmovq\t%%rax,%s\n", reglist[r1]);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
 
-  /*  fprintf(Outfile, "\tmovq\t%s,%%rax\n", reglist[r1]);
-  fprintf(Outfile, "\tcqo\n");
-  fprintf(Outfile, "\tidivq\t%s\n", reglist[r2]);
-  fprintf(Outfile, "\tmovq\t%%rax,%s\n", reglist[r1]); */
   register_x64_free(ctx, r2);
   return (r1);
 }
@@ -134,9 +145,6 @@ int register_x64_cgdiv(REGISTER_CONTEXT_PARAM, int r1, int r2)
 // Call printint() with the given register
 void register_x64_cgprintint(REGISTER_CONTEXT_PARAM, int r)
 {
-  /* fprintf(Outfile, "\tmovq\t%s, %%rdi\n", reglist[r]);
-  fprintf(Outfile, "\tcall\tprintint\n"); */
-
   char buf[32];
   snprintf(buf, 32, "\tmovq\t%s, %%rdi\n", reglist[r]);
   REG_G_WRITER(ctx)->writeChars(REG_G_WRITER_CTX(ctx), buf);
@@ -269,12 +277,10 @@ int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
   switch (st->type)
   {
   case P_CHAR:
-    // fprintf(Outfile, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], Gsym[id].name);
     snprintf(buf, 64, "\tmovb\t%s, %s(\%%rip)\n", breglist[r], st->name);
     break;
 
   case P_INT:
-    // fprintf(Outfile, "\tmovl\t%s, %s(\%%rip)\n", dreglist[r], Gsym[id].name);
     snprintf(buf, 64, "\tmovl\t%s, %s(\%%rip)\n", dreglist[r], st->name);
     break;
 
@@ -282,7 +288,6 @@ int register_x64_cgstoreglob(REGISTER_CONTEXT_PARAM, int r, int sym_id)
   case P_CHARPTR:
   case P_INTPTR:
   case P_LONGPTR:
-    //fprintf(Outfile, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], Gsym[id].name);
     snprintf(buf, 64, "\tmovq\t%s, %s(\%%rip)\n", reglist[r], st->name);
     break;
 
@@ -318,13 +323,13 @@ void register_x64_cgglobsym(REGISTER_CONTEXT_PARAM, int sym_id)
     switch (typesize)
     {
     case 1:
-      REG_WRITE_FMT_BUF_32("%s:\t.byte\t0\n", st->name);
+      REG_WRITE_STR("\t.byte\t0\n");
       break;
     case 4:
-      REG_WRITE_FMT_BUF_32("%s:\t.long\t0\n", st->name);
+      REG_WRITE_STR("\t.long\t0\n");
       break;
     case 8:
-      REG_WRITE_FMT_BUF_32("%s:\t.quad\t0\n", st->name);
+      REG_WRITE_STR("\t.quad\t0\n");
       break;
     default:
       REG_PUBLISH_ERROR(ctx, "Unknown typesize in register_x64_cgglobsym(): %d", typesize);
@@ -466,13 +471,14 @@ int register_x64_cgcompare_and_set(REGISTER_CONTEXT_PARAM, int ASTop, int r1, in
 
 void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, int sym_id)
 {
-  SymTable *st = REG_G_SYM_TABLE(ctx, sym_id);
+  SymTable *inputST = REG_G_SYM_TABLE(ctx, sym_id);
+  char *name = inputST->name;
+  int i;
+  int paramOffset = 16;
+  int paramReg = FIRST_PARAM_REG;
 
   register_x64_cgtextseg(ctx);
-
-  // Align the stack pointer to be a multiple of 16
-  // less than its previous value
-  ctx->stackOffset = (ctx->localOffset + 15) & ~15;
+  ctx->localOffset = 0;
 
   char buf[128];
   snprintf(buf, 128, "\t.globl\t%s\n"
@@ -480,15 +486,45 @@ void register_x64_cgfuncpreamble(REGISTER_CONTEXT_PARAM, int sym_id)
                      "%s:\n"
                      "\tpushq\t%%rbp\n"
                      "\tmovq\t%%rsp, %%rbp\n"
-                     "\taddq\t$%d,%%rsp\n",
-           st->name, st->name, st->name, -ctx->stackOffset);
+                     , name, name, name);
+  REG_WRITE_BUF();
+
+  struct GlobalState *gs = REG_G_GLOBAL_STATE(ctx);
+  int locals = gs->locals;
+  SymTable *temp;
+  // Copy any in-register parameters to the stack
+  // Stop after no more than six parameter registers
+  for (i = SYM_BOLS_COUNT - 1; i > locals; i--) {
+    temp = sym_getSymbol(gs, i);
+    if (temp->class != C_PARAM)
+      break;
+    if (i < SYM_BOLS_COUNT - 6)
+      break;
+    temp->posn = newlocaloffset(ctx, temp->type);
+    register_x64_cgstorelocal(ctx, paramReg--, i);
+  }
+
+  // For the remainder, if they are a parameter then they are
+  // already on the stack. If only a local, make a stack position.
+  for (; i > locals; i--) {
+    temp = sym_getSymbol(gs, i);
+    if (temp->class == C_PARAM) {
+      temp->posn = paramOffset;
+      paramOffset += 8;
+    } else {
+      temp->posn = newlocaloffset(ctx, temp->type);
+    }
+  }
+
+   // Align the stack pointer to be a multiple of 16
+  // less than its previous value
+  ctx->stackOffset = (ctx->localOffset + 15) & ~15;
+  snprintf(buf, 128, "\taddq\t$%d,%%rsp\n", -ctx->stackOffset);
   REG_WRITE_BUF();
 }
 
 void register_x64_cgfuncpostamble(REGISTER_CONTEXT_PARAM, int sym_id)
 {
-  //cglabel(Gsym[id].endlabel);
-  //fputs("\tpopq	%rbp\n" "\tret\n", Outfile);
   register_x64_cglabel(ctx, SYM_END_LABEL(REG_G_GLOBAL_STATE(ctx), sym_id));
   char buf[32];
   snprintf(buf, 32, "\taddq\t$%d,%%rsp\n", ctx->stackOffset);
@@ -609,21 +645,19 @@ int register_x64_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType)
 {
   switch (pType)
   {
-  case P_CHARPTR:
-  {
-    //fprintf(Outfile, "\tmovzbq\t(%s), %s\n", reglist[r], reglist[r]);
-    char buf[32];
-    snprintf(buf, 32, "\tmovzbq\t(%s), %s\n", reglist[r], reglist[r]);
-    REG_WRITE_BUF();
-    break;
+  case P_CHARPTR:{
+    REG_WRITE_FMT_BUF_32("\tmovzbq\t(%s), %s\n", reglist[r], reglist[r]);
   }
-  case P_INTPTR:
+    break;
+
+  case P_INTPTR:{
+    REG_WRITE_FMT_BUF_32("\tmovslq\t(%s), %s\n", reglist[r], reglist[r]);
+  }
+    break;
+
   case P_LONGPTR:
   {
-    //fprintf(Outfile, "\tmovq\t(%s), %s\n", reglist[r], reglist[r]);
-    char buf[32];
-    snprintf(buf, 32, "\tmovq\t(%s), %s\n", reglist[r], reglist[r]);
-    REG_WRITE_BUF();
+    REG_WRITE_FMT_BUF_32("\tmovq\t(%s), %s\n", reglist[r], reglist[r]);
     break;
   }
   }
@@ -633,7 +667,6 @@ int register_x64_cgderef(REGISTER_CONTEXT_PARAM, int r, int pType)
 // Shift a register left by a constant. '<<'
 int register_x64_cgshlconst(REGISTER_CONTEXT_PARAM, int r, int val)
 {
-  //fprintf(Outfile, "\tsalq\t$%d, %s\n", val, reglist[r]);
   char buf[32];
   snprintf(buf, 32, "\tsalq\t$%d, %s\n", val, reglist[r]);
   REG_WRITE_BUF();
@@ -648,19 +681,16 @@ int register_x64_cgstorederef(REGISTER_CONTEXT_PARAM, int r1, int r2, int type)
   switch (type)
   {
   case P_CHAR:
-    //fprintf(Outfile, "\tmovb\t%s, (%s)\n", breglist[r1], reglist[r2]);
     snprintf(buf, 32, "\tmovb\t%s, (%s)\n", breglist[r1], reglist[r2]);
     REG_WRITE_BUF();
     break;
 
   case P_INT:
-    // fprintf(Outfile, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
     snprintf(buf, 32, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
     REG_WRITE_BUF();
     break;
 
   case P_LONG:
-    // fprintf(Outfile, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
     snprintf(buf, 32, "\tmovq\t%s, (%s)\n", reglist[r1], reglist[r2]);
     REG_WRITE_BUF();
     break;
@@ -785,13 +815,6 @@ int register_x64_cglognot(REGISTER_CONTEXT_PARAM, int r)
 
 int register_x64_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label)
 {
-  /*  fprintf(Outfile, "\ttest\t%s, %s\n", reglist[r], reglist[r]);
-  if (op == A_IF || op == A_WHILE)
-    fprintf(Outfile, "\tje\tL%d\n", label);
-  else {
-    fprintf(Outfile, "\tsetnz\t%s\n", breglist[r]);
-    fprintf(Outfile, "\tmovzbq\t%s, %s\n", breglist[r], reglist[r]);
-  } */
   char buf[32];
   snprintf(buf, 32, "\ttest\t%s, %s\n", reglist[r], reglist[r]);
   REG_WRITE_BUF();
@@ -811,16 +834,6 @@ int register_x64_cgboolean(REGISTER_CONTEXT_PARAM, int r, int op, int label)
   return (r);
 }
 
-// Get the position of the next local variable.
-// Use the isParam flag to allocate a parameter (not yet XXX).
-int register_x64_cggetlocaloffset(REGISTER_CONTEXT_PARAM, int type, int isParam)
-{
-  // For now just decrement the offset by a minimum of 4 bytes
-  // and allocate on the stack
-  ctx->localOffset += (register_x64_cgprimsize(ctx, type) > 4) ? register_x64_cgprimsize(ctx, type) : 4;
-  // printf("Returning offset %d for type %d\n", localOffset, type);
-  return (-ctx->localOffset);
-}
 
 void register_x64_cgtextseg(REGISTER_CONTEXT_PARAM)
 {

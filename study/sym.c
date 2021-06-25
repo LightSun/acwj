@@ -29,6 +29,7 @@ void sym_globalState_delete(struct GlobalState* gs){
 int sym_findglob(struct GlobalState* gs, const char *s) {
   int i;
   for (i = 0; i < gs->globs; i++) {
+      if (gs->syms[i].class == C_PARAM) continue;
     if (*s == *(gs->syms[i].name) && !strcmp(s, gs->syms[i].name))
       return (i);
   }
@@ -115,21 +116,31 @@ int sym_addglob(struct GlobalState* gs, const char *name, int type, int stype, i
   return (slot);
 }
 
-int sym_addlocal(struct GlobalState* gs, const char *name, int type, int stype, int endlabel, int size) {
-  int slot, posn;
+int sym_addlocal(struct GlobalState* gs, const char *name, int type, int stype, int isParam, int size) {
+  int localslot, globalslot;
 
   // If this is already in the symbol table, return the existing slot
-  if ((slot = sym_findLocal(gs, name)) != -1)
-    return (slot);
+  if ((localslot = sym_findLocal(gs, name)) != -1)
+    return (localslot);
 
   // Otherwise get a new symbol slot and a position for this local.
-  // Update the symbol table entry and return the slot number
-  slot = newLocal(gs);
-  posn = gen_getLocalOffset(gs->gContext->writer, type, 0);	// XXX 0 for now
-  updatesym(gs, slot, name, type, stype, C_LOCAL, endlabel, size, posn);
-  return (slot);
+  // Update the local symbol table entry. If this is a parameter,
+  // also create a global C_PARAM entry to build the function's prototype.
+  localslot = newLocal(gs);
+  if(isParam){
+      updatesym(gs, localslot, name, type, stype, C_PARAM, 0, size, 0);
+      globalslot = newglob(gs);
+      updatesym(gs, globalslot, name, type, stype, C_PARAM, 0, size, 0);
+  }else{
+     updatesym(gs, localslot, name, type, stype, C_LOCAL, 0, size, 0);
+  } 
+  return (localslot);
 }
 
 SymTable* sym_getSymbol(struct GlobalState* gs, int pos){
     return &gs->syms[pos];
+}
+
+void sym_freeloclsyms(struct GlobalState *gs){
+  gs->locals = SYM_BOLS_COUNT - 1;
 }
