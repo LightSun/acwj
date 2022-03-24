@@ -11,19 +11,15 @@ param8:
 	movl	%r8d, -20(%rbp)
 	movl	%r9d, -24(%rbp)
 	addq	$-32,%rsp
-
 	movq	%r10, %rdi
 	call	printint
 	movq	%rax, %r11
-
 	movq	%r10, %rdi
 	call	printint
 	movq	%rax, %r11
-
 	movq	%r10, %rdi
 	call	printint
 	movq	%rax, %r11
-	
 	movq	%r10, %rdi
 	call	printint
 	movq	%rax, %r11

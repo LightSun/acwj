@@ -9,7 +9,7 @@ void globalContext_publishError(GlobalContext *ctx, const char *format, ...)
 
     va_list vArgList;
     va_start(vArgList, format);
-    int i = _vsnprintf(buf, sizeof(buf), format, vArgList);
+    int i = vsnprintf(buf, sizeof(buf), format, vArgList);
     va_end(vArgList);
 
     fprintf(stderr, "%s\n on line %d\n", buf, ctx->content->context->line);
